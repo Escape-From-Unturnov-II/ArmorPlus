@@ -11,6 +11,7 @@ Fixes masks to actually protect player.
 - UseArmorClasses: if the armor shoudl work as vanilla or with the new penetration chances
 - HasDuribility: set to true if the server uses durability
 - ArmorDamageMultiplierOnPen: multiplier used for damage done to armor when penetrating armor
+- PenDamgeDelta; used to reduce pendamge loss on penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)
 
 ## vestsProtectingArms / Legs
 Allows vests to also protect legs or arms (this can also be used with vanila armor logic)
