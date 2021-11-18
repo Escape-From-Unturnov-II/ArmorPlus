@@ -42,7 +42,7 @@ namespace PvPRework
                         $" DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
                         $" MinArmorDamage: {x.MinArmorDamage} MaxArmorDamage: {x.MaxArmorDamage}\n" +
                         $" DamageToDamageArmorMin: {x.DamageToDamageArmorMin} DamageToDamageArmorMax: {x.DamageToDamageArmorMax}\n" +
-                        $" StopDamageMulti: {x.StopDamageMulti}"
+                        $" StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
                     ).ToArray()
                 ) + "\n");
             if (gunPenValues.Count() >= 0)
@@ -78,12 +78,8 @@ namespace PvPRework
                 Configuration.Instance.UseArmorClasses = false;
             }
             //TODO: get mode (difficulty) and check for item/Has_Durability
-            //TODO: fix duribility loss
 
-            //TODO: add pen decrease on penn
             //TODO: add weight option for calcmean parameter
-
-            //TODO: check vest arm prot armor multicalc
         }
         protected override void Unload()
         {
@@ -164,7 +160,8 @@ namespace PvPRework
                         float armorMulti = 1;
                         if (vest != null && vestsProtectingArms.ContainsKey(vest.id))
                             vestsProtectingArms.TryGetValue(vest.id, out armorMulti);
-                        armor = calcVanillaArmor(player, vest, shirt);
+
+                        armor = calcVanillaArmor(player, vest, shirt, armorMulti);
                     }
                     break;
 
@@ -356,7 +353,7 @@ namespace PvPRework
         private float calcPenDamage(float penDamage, float penChance, int armorClassIndex)
         {
             ArmorClass armorClass = Configuration.Instance.armoClasses[armorClassIndex];
-            return penDamage * penChance - penDamage * armorClass.PennLossMulti;
+            return penDamage * penChance - penDamage * armorClass.PenLossMulti;
         }
 
         private float calcDamage(float damage, float penChance, int armorClassIndex)
@@ -399,7 +396,7 @@ namespace PvPRework
         private float calcVanillaArmor(Player player, ItemClothingAsset top, ItemClothingAsset bottom, float armorMulty = 1)
         {
             int index = 0;
-            return calcItemArmor(player, top, out index, true, armorMulty) + calcItemArmor(player, bottom, out index, true, armorMulty);
+            return calcItemArmor(player, top, out index, true, armorMulty) + calcItemArmor(player, bottom, out index, true);
         }
 
         private float calcItemArmor(Player player,ItemClothingAsset clothing, out int armorClassIndex, bool vanilla = false, float armorMulty = 1) 

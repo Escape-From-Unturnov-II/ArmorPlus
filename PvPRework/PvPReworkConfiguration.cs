@@ -53,7 +53,7 @@ namespace PvPRework
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
-                    StopDamageMulti = 0.4f, PennLossMulti = 0},
+                    StopDamageMulti = 0.4f, PenLossMulti = 0},
 
                 new ArmorClass{
                     Tier=2f, Armor = 0.9f,
@@ -61,7 +61,7 @@ namespace PvPRework
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
-                    StopDamageMulti = 0.2f, PennLossMulti = 0.1f},
+                    StopDamageMulti = 0.2f, PenLossMulti = 0.1f},
 
                 new ArmorClass{
                     Tier=3f, Armor = 0.8f,
@@ -69,7 +69,7 @@ namespace PvPRework
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
-                    StopDamageMulti = 0.1f, PennLossMulti = 0.2f},
+                    StopDamageMulti = 0.1f, PenLossMulti = 0.2f},
 
                 new ArmorClass{
                     Tier=3.5f, Armor = 0.7f,
@@ -77,7 +77,7 @@ namespace PvPRework
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
-                    StopDamageMulti = 0.05f, PennLossMulti = 0.3f},
+                    StopDamageMulti = 0.05f, PenLossMulti = 0.3f},
 
                 new ArmorClass{
                     Tier=4f, Armor = 0.65f,
@@ -85,7 +85,7 @@ namespace PvPRework
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 80,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
-                    StopDamageMulti = 0.02f, PennLossMulti = 0.35f},
+                    StopDamageMulti = 0.02f, PenLossMulti = 0.35f},
             };
 
             vestsProtectingArms = new List<KeyValueElement<ushort, float>> {

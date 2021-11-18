@@ -21,7 +21,7 @@ namespace PvPRework
         public float DamageToDamageArmorMax { get; set; } //damage required to do MaxArmorDamage
 
         public float StopDamageMulti { get; set; } //damage multiplier when not penetrating (0-1)
-        public float PennLossMulti; //the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in 10% penetration power reduction)
+        public float PenLossMulti; //the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in 10% penetration power reduction)
 
         public ArmorClass() {
             

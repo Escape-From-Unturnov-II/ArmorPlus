@@ -47,7 +47,7 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
 - DamageToDamageArmorMax: damage required to do MaxArmorDamage, below this the mean damage is between MinArmorDamage and MaxArmorDamage is calculated
 - 
 - StopDamageMulti: damage multiplier when not penetrating (0-1)
-- PennLossMulti: the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in a 10% additional penetration power reduction)
+- PenLossMulti: the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in a 10% additional penetration power reduction)
 
 ```xml
     <ArmorClass>
