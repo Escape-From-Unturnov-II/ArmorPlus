@@ -26,7 +26,10 @@ Allows vests to also protect legs or arms
 ```
 
 ## ArmorClass
-Allows to define ArmorClasses by armor value (this is the "Armor" value provided in the clothing.dat), ArmorClasses need to **start at 1 and go down from there**!
+Allows to define ArmorClasses by armor value (this is the "Armor" value provided in the clothing.dat) 
+
+**ArmorClasses need to start at armor 1 and go down from there!**
+
 When a armor value is not defined it will be calculated by taking the mean from the class below and above the armor value, or take max class if above max
 Penetration calculations are based on Tarkov logic: https://www.desmos.com/calculator/m8cmsfokkl?lang=en
 
