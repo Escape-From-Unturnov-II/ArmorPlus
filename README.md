@@ -13,7 +13,7 @@ Fixes masks to actually protect player.
 - ArmorDamageMultiplierOnPen: multiplier used for damage done to armor when penetrating armor
 
 ## vestsProtectingArms / Legs
-Allows vests to also protect legs or arms
+Allows vests to also protect legs or arms this can also be used with vanila armor logic 
 
 - Key: id of the clothing
 - Value: the armor multiplier used for arms or legs
