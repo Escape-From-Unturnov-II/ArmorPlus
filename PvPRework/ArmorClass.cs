@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace PvPRework
+﻿namespace PvPRework
 {
     public class ArmorClass
     {
@@ -12,8 +7,8 @@ namespace PvPRework
 
         public float PercentForNormalDamage { get; set; }  //damage required to do DamageMultiplierNormal blow this DamageMultiplierMin is used
         public float PercentForMaxDamage { get; set; }  //damage required to do 100% damage
-        public float DamageMultiplierMin { get; set; } // damage multiplier for minimal damage (0-1)
-        public float DamageMultiplierNormal { get; set; } // damage multiplier normal damage (0-1)
+        public float DamageMultiplierMin { get; set; } //damage multiplier for minimal damage (0-1)
+        public float DamageMultiplierNormal { get; set; } //damage multiplier normal damage (0-1)
 
         public int MinArmorDamage { get; set; } //min damage done to armor (1 = 1%)
         public int MaxArmorDamage { get; set; } //max damage done to armor (1 = 1%)

@@ -357,15 +357,20 @@ namespace PvPRework
         private float calcDamage(float damage, float penChance, int armorClassIndex)
         {
             ArmorClass armorClass = Configuration.Instance.armorClasses[armorClassIndex];
-            if (penChance < armorClass.PercentForMaxDamage)
+
+            if (penChance >= armorClass.PercentForMaxDamage)
             {
-                return damage * armorClass.DamageMultiplierNormal;
+                return damage;
             }
             else if (penChance < armorClass.PercentForNormalDamage)
             {
                 return damage * armorClass.DamageMultiplierMin;
             }
-            return damage;
+
+            return damage * calcMean(
+                armorClass.PercentForNormalDamage, armorClass.PercentForMaxDamage,
+                armorClass.DamageMultiplierNormal, 1, penChance);
+
         }
         private int getArmorClassIndex(float armor, out float armorTier)
         {
