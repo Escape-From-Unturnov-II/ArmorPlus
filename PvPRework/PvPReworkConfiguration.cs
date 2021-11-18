@@ -53,7 +53,7 @@ namespace PvPRework
             armorClasses = new List<ArmorClass>{
                 new ArmorClass{
                     Tier=1, Armor = 0.95f,
-                    PercentForNormalDamage = 20, PercentForMaxDamage = 90,
+                    PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
@@ -61,7 +61,7 @@ namespace PvPRework
 
                 new ArmorClass{
                     Tier=2f, Armor = 0.9f,
-                    PercentForNormalDamage = 20, PercentForMaxDamage = 90,
+                    PercentForNormalDamage =  0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
@@ -69,7 +69,7 @@ namespace PvPRework
 
                 new ArmorClass{
                     Tier=3f, Armor = 0.8f,
-                    PercentForNormalDamage = 20, PercentForMaxDamage = 90,
+                    PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
@@ -77,7 +77,7 @@ namespace PvPRework
 
                 new ArmorClass{
                     Tier=3.5f, Armor = 0.7f,
-                    PercentForNormalDamage = 20, PercentForMaxDamage = 90,
+                    PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
@@ -85,7 +85,7 @@ namespace PvPRework
 
                 new ArmorClass{
                     Tier=4f, Armor = 0.65f,
-                    PercentForNormalDamage = 20, PercentForMaxDamage = 90,
+                    PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 80,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
@@ -161,13 +161,13 @@ namespace PvPRework
                 new KeyValueElement<ushort, float> {Key = 18, Value = 35 },     //Timberwolf
 
                 // Shotguns
-                new KeyValueElement<ushort, float> {Key = 112, Value = 10.5f },     //Bluntforce
+                new KeyValueElement<ushort, float> {Key = 112, Value = 12f },     //Bluntforce
                 new KeyValueElement<ushort, float> {Key = 1484, Value = 13.5f },   //Bane
-                new KeyValueElement<ushort, float> {Key = 1480, Value = 10.5f },    //Determinator
-                new KeyValueElement<ushort, float> {Key = 380, Value = 13.5f },    //Masterkey
-                new KeyValueElement<ushort, float> {Key = 1436, Value = 13.5f },   //Quadbarrel
-                new KeyValueElement<ushort, float> {Key = 1143, Value = 13 },   //Sawed_Off
-                new KeyValueElement<ushort, float> {Key = 1366, Value = 10.5f },    //Vonya
+                new KeyValueElement<ushort, float> {Key = 1480, Value = 12f },    //Determinator
+                new KeyValueElement<ushort, float> {Key = 380, Value = 10.5f },    //Masterkey
+                new KeyValueElement<ushort, float> {Key = 1436, Value = 10.5f },   //Quadbarrel
+                new KeyValueElement<ushort, float> {Key = 1143, Value = 10f },       //Sawed_Off
+                new KeyValueElement<ushort, float> {Key = 1366, Value = 12 },    //Vonya
 
                 // Other
                 new KeyValueElement<ushort, float> {Key = 355, Value = 16 },    //Bow_Birch
