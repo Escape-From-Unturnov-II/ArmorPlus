@@ -11,7 +11,7 @@ namespace PvPRework
     public class PVPReworkConfiguration : IRocketPluginConfiguration
     {
         [XmlArrayItem(ElementName = "ArmoClasses")]
-        public List<ArmorClass> armoClasses;
+        public List<ArmorClass> armorClasses;
         [XmlArrayItem(ElementName = "BoneBreakingChance")]
         public List<BulletLimbDamageChance> boneBreakingChances;
         [XmlArrayItem(ElementName = "Vest")]
@@ -28,6 +28,9 @@ namespace PvPRework
         public bool UseArmorClasses; //defines if armor classes should be used
 
         public float ArmorDamageMultiplierOnPen; //multiplier used for damage done to armor when penetrating armor
+        public float PenDamgeDelta; //used to reduce pendamge loss on penetration chance
+                                    //(1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)
+
 
         public void LoadDefaults()
         {
@@ -37,6 +40,7 @@ namespace PvPRework
             BetterArmor = true;
             UseArmorClasses = true;
             ArmorDamageMultiplierOnPen = 0.5f;
+            PenDamgeDelta = 0.7f;
 
             boneBreakingChances = new List<BulletLimbDamageChance>{
                 new BulletLimbDamageChance{ Limb = "LEG", BreakChanceMin = 10, BreakChanceMax = 95, BreakChanceDamageMin = 10, BreakChanceDamageMax = 50},
@@ -46,7 +50,7 @@ namespace PvPRework
                 new BulletLimbDamageChance{ Limb = "SKULL", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                 new BulletLimbDamageChance{ Limb = "SPINE", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0}
             };
-            armoClasses = new List<ArmorClass>{
+            armorClasses = new List<ArmorClass>{
                 new ArmorClass{
                     Tier=1, Armor = 0.95f,
                     PercentForNormalDamage = 20, PercentForMaxDamage = 90,

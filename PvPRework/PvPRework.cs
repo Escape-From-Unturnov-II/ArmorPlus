@@ -1,14 +1,11 @@
 ﻿using Rocket.Core.Plugins;
-using Rocket.Core.Logging;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
-using Rocket.Unturned.Player;
 
 namespace PvPRework
 {
@@ -36,7 +33,7 @@ namespace PvPRework
 
             if(Configuration.Instance.UseArmorClasses)
                 Logger.Log("ArmorClasses:\n" + String.Join(
-                    "\n", Configuration.Instance.armoClasses.Select(
+                    "\n", Configuration.Instance.armorClasses.Select(
                         x => $"Armor {x.Armor}: Tier {x.Tier}\n" +
                         $" PercentForNormalDamage: {x.PercentForNormalDamage} PercentForMaxDamage: {x.PercentForMaxDamage}\n" +
                         $" DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
@@ -73,7 +70,7 @@ namespace PvPRework
             
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
 
-            if (Configuration.Instance.armoClasses.IsEmpty())
+            if (Configuration.Instance.armorClasses.IsEmpty())
             {
                 Configuration.Instance.UseArmorClasses = false;
             }
@@ -139,6 +136,7 @@ namespace PvPRework
                     if (Configuration.Instance.UseArmorClasses)
                     {
                         normalizedDamage = damage / 0.6f;
+                        didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (vest != null && vestsProtectingArms.ContainsKey(vest.id))
                         {
@@ -146,10 +144,7 @@ namespace PvPRework
                             vestsProtectingArms.TryGetValue(vest.id, out armorMulti);
                             didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage, armorMulti);
                         }
-                        else
-                        {
-                            didPenetrate = true; //set penetrate to true if no vest is equiped
-                        }
+
                         if (didPenetrate && shirt != null)
                         {
                             didPenetrate = penArmor(player, shirt, ref damage, ref pen, normalizedDamage);
@@ -172,6 +167,7 @@ namespace PvPRework
                     if (Configuration.Instance.UseArmorClasses)
                     {
                         normalizedDamage = damage / 0.6f;
+                        didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (vest != null && vestsProtectingLegs.ContainsKey(vest.id))
                         {
@@ -179,10 +175,7 @@ namespace PvPRework
                             vestsProtectingLegs.TryGetValue(vest.id,out armorMulti);
                             didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage, armorMulti);
                         }
-                        else
-                        {
-                            didPenetrate = true; //set penetrate to true if no vest is equiped
-                        }
+
                         if (didPenetrate && pants != null)
                         {
                             didPenetrate = penArmor(player, pants, ref damage, ref pen, normalizedDamage);
@@ -202,14 +195,13 @@ namespace PvPRework
                     if (Configuration.Instance.UseArmorClasses)
                     {
                         normalizedDamage = damage / 1.1f;
+                        didPenetrate = true; //set penetrate to true if no vest is equiped
+
                         if (hat != null)
                         {
                             didPenetrate = penArmor(player, hat, ref damage, ref pen, normalizedDamage);
                         }
-                        else
-                        {
-                            didPenetrate = true; //set penetrate to true if no vest is equiped
-                        }
+
                         if (didPenetrate && mask != null)
                         {
                             didPenetrate = penArmor(player, mask, ref damage, ref pen, normalizedDamage);
@@ -225,14 +217,13 @@ namespace PvPRework
                     if (Configuration.Instance.UseArmorClasses)
                     {
                         normalizedDamage = damage;
+                        didPenetrate = true; //set penetrate to true if no vest is equiped
+
                         if (vest != null)
                         {
                             didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage);
                         }
-                        else
-                        {
-                            didPenetrate = true; //set penetrate to true if no vest is equiped
-                        }
+
                         if (didPenetrate && shirt != null)
                         {
                             didPenetrate = penArmor(player, shirt, ref damage, ref pen, normalizedDamage);
@@ -313,17 +304,18 @@ namespace PvPRework
         }
         private bool penArmor(Player player, ItemClothingAsset clothingPart, ref float damage, ref float penDamage, float normalizedDamage, float armorMulty = 1)
         {
-            float penChance = 100;
+            float penChance = 1;
             bool didPenetrate = true;
             int armorClassIndex;
+            float armorTier;
             float oldPenDamage = penDamage;
 
-            float armor = calcItemArmor(player, clothingPart,out armorClassIndex, false, armorMulty);
+            float armor = calcItemArmor(player, clothingPart, out armorClassIndex, out armorTier, false, armorMulty);
             
 
-            if (armor >= 0)
+            if (armor > 0)
             {
-                penChance = calcPenChance(normalizedDamage, armor, penDamage, armorClassIndex);
+                penChance = calcPenChance(armor, penDamage);
 
                 if (penChance > rand.NextDouble())
                 {
@@ -333,7 +325,7 @@ namespace PvPRework
                 else
                 {
                     didPenetrate = false;
-                    damage *= Configuration.Instance.armoClasses[armorClassIndex].StopDamageMulti;
+                    damage *= Configuration.Instance.armorClasses[armorClassIndex].StopDamageMulti;
                 }
             }
 
@@ -341,8 +333,7 @@ namespace PvPRework
 
             if (Configuration.Instance.Debug)
             {
-                float tier = Configuration.Instance.armoClasses[armorClassIndex].Tier;
-                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " Damage: " + normalizedDamage + " DamageDone: " + damage + " Armor: " + clothingPart.name + " [" + tier + "" + armor + "]!");
+                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " absDamage: " + normalizedDamage + " calcDamage: " + damage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
 
             }
 
@@ -352,13 +343,20 @@ namespace PvPRework
 
         private float calcPenDamage(float penDamage, float penChance, int armorClassIndex)
         {
-            ArmorClass armorClass = Configuration.Instance.armoClasses[armorClassIndex];
-            return penDamage * penChance - penDamage * armorClass.PenLossMulti;
+            ArmorClass armorClass = Configuration.Instance.armorClasses[armorClassIndex];
+
+            float chanceWithDelta = 1 - (1 - penChance) * Configuration.Instance.PenDamgeDelta;
+            float fixedChance = chanceWithDelta > 1 ? 1 : penChance;
+            float newPenDamage = penDamage * fixedChance - penDamage * armorClass.PenLossMulti;
+
+            if (Configuration.Instance.Debug)
+                Logger.Log("newPenDamage: " + newPenDamage + " oldPenDamage: " + penDamage + " penChance: " + fixedChance + " PenLossMulti: " + armorClass.PenLossMulti);
+            return newPenDamage;
         }
 
         private float calcDamage(float damage, float penChance, int armorClassIndex)
         {
-            ArmorClass armorClass = Configuration.Instance.armoClasses[armorClassIndex];
+            ArmorClass armorClass = Configuration.Instance.armorClasses[armorClassIndex];
             if (penChance < armorClass.PercentForMaxDamage)
             {
                 return damage * armorClass.DamageMultiplierNormal;
@@ -369,14 +367,24 @@ namespace PvPRework
             }
             return damage;
         }
-        private int getArmorClassIndex(float armor)
+        private int getArmorClassIndex(float armor, out float armorTier)
         {
-            List<ArmorClass> armorClasses = Configuration.Instance.armoClasses;
+            armorTier = 0;
+            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
 
             for (int i = 0; i < armorClasses.Count(); i++)
             {
                 if (armor >= armorClasses[i].Armor)
                 {
+                    armorTier = armorClasses[i].Tier;
+
+                    if (armor > armorClasses[i].Armor && i > 0)
+                    {
+                        armorTier = calcMean(
+                            armorClasses[i-1].Armor, armorClasses[i].Armor,
+                            armorClasses[i-1].Tier, armorClasses[i].Tier, armor);
+
+                    }
                     return i;
                 }
             }
@@ -385,10 +393,8 @@ namespace PvPRework
         /**
          * Return Penetration chance from 0-1
          */
-        private float calcPenChance(float damage, float armor, float penetration, int armorClassIndex)
+        private float calcPenChance(float armor, float penetration)
         {
-            List<ArmorClass> armorClasses = Configuration.Instance.armoClasses;
-
             float penCalc = armor - penetration - 15;
             return penCalc > 0 ? 0 : (penCalc * penCalc) / 100;
         }
@@ -396,13 +402,14 @@ namespace PvPRework
         private float calcVanillaArmor(Player player, ItemClothingAsset top, ItemClothingAsset bottom, float armorMulty = 1)
         {
             int index = 0;
-            return calcItemArmor(player, top, out index, true, armorMulty) + calcItemArmor(player, bottom, out index, true);
+            float armorTier = 0;
+            return calcItemArmor(player, top, out index,out armorTier, true, armorMulty) + calcItemArmor(player, bottom, out index, out armorTier, true);
         }
 
-        private float calcItemArmor(Player player,ItemClothingAsset clothing, out int armorClassIndex, bool vanilla = false, float armorMulty = 1) 
+        private float calcItemArmor(Player player,ItemClothingAsset clothing, out int armorClassIndex,out float armorTier, bool vanilla = false, float armorMulty = 1) 
         {
             float defaultReturn = vanilla ? 1 : 0;
-            float armorTier = 0;
+            armorTier = 0;
             armorClassIndex = 0;
             float armor = 1 - (1 - clothing.armor) * armorMulty;
 
@@ -437,17 +444,8 @@ namespace PvPRework
                 }
                 else if (quality > 0)
                 {
-                    armorClassIndex = getArmorClassIndex(armor);
-                    List<ArmorClass> armorClasses = Configuration.Instance.armoClasses;
-                    armorTier = armorClasses[armorClassIndex].Tier;
-
-                    if (armor > armorClasses[armorClassIndex].Armor && armorClassIndex < armorClasses.Count()-1)
-                    {
-                        armorTier = calcMean(
-                            armorClasses[armorClassIndex].Armor, armorClasses[armorClassIndex + 1].Armor,
-                            armorClasses[armorClassIndex].Tier, armorClasses[armorClassIndex + 1].Tier, armor);
-
-                    }
+                    armorClassIndex = getArmorClassIndex(armor, out armorTier);
+                   
                     return (121 - 5000 / (45 + (int)quality * 2)) * armorTier * 0.1f;
                 }
 
@@ -477,7 +475,7 @@ namespace PvPRework
 
         private void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float normalizedDamage, bool didPenetrate)
         {
-            List<ArmorClass> armorClasses = Configuration.Instance.armoClasses;
+            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
             ArmorClass armorClass = armorClasses[armorClassIndex];
             PlayerClothing clothing = player.clothing;
 
