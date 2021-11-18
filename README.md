@@ -72,7 +72,7 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
 
 ```xml
 <Gun>
-	<Key>107</Key>
+    <Key>107</Key>
     <Value>20</Value>
 </Gun>
 ```
@@ -92,7 +92,7 @@ Allowes to define a bone break chance per Limb, the chance scales with damage
     <Limb>LEG</Limb>
     <BreakChanceMin>10</BreakChanceMin>
     <BreakChanceMax>95</BreakChanceMax>
-	  <BreakChanceDamageMin>10</BreakChanceDamageMin>
+    <BreakChanceDamageMin>10</BreakChanceDamageMin>
     <BreakChanceDamageMax>60</BreakChanceDamageMax>
 </BulletLimbDamageChance>
 ```
