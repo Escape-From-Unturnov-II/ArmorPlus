@@ -115,6 +115,13 @@ namespace PvPRework
             float armor = 1;
 
             UnturnedPlayer oponent = UnturnedPlayer.FromCSteamID(oponentId);
+            ItemWeaponAsset oponentWeapon = null;
+            
+            if (oponent.Player.equipment.asset.GetType().Equals(typeof(ItemWeaponAsset)))
+            {
+                oponentWeapon = (ItemWeaponAsset)oponent.Player.equipment.asset;
+            }
+
             float pen = 0;
             gunPenValues.TryGetValue(oponent.Player.equipment.asset.id, out pen);
 
@@ -135,7 +142,15 @@ namespace PvPRework
                 case ELimb.RIGHT_HAND:
                     if (Configuration.Instance.UseArmorClasses)
                     {
-                        normalizedDamage = damage / 0.6f;
+                        if(oponentWeapon != null)
+                        {
+                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.arm;
+                        }
+                        else
+                        {
+                            normalizedDamage = damage / 0.6f;
+                        }
+                        
                         didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (vest != null && vestsProtectingArms.ContainsKey(vest.id))
@@ -166,7 +181,14 @@ namespace PvPRework
                 case ELimb.RIGHT_FOOT:
                     if (Configuration.Instance.UseArmorClasses)
                     {
-                        normalizedDamage = damage / 0.6f;
+                        if (oponentWeapon != null)
+                        {
+                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.leg;
+                        }
+                        else
+                        {
+                            normalizedDamage = damage / 0.6f;
+                        }
                         didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (vest != null && vestsProtectingLegs.ContainsKey(vest.id))
@@ -194,7 +216,14 @@ namespace PvPRework
                 case ELimb.SKULL:
                     if (Configuration.Instance.UseArmorClasses)
                     {
-                        normalizedDamage = damage / 1.1f;
+                        if (oponentWeapon != null)
+                        {
+                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.skull;
+                        }
+                        else
+                        {
+                            normalizedDamage = damage / 1.1f;
+                        }
                         didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (hat != null)
@@ -216,7 +245,14 @@ namespace PvPRework
                 case ELimb.SPINE:
                     if (Configuration.Instance.UseArmorClasses)
                     {
-                        normalizedDamage = damage;
+                        if (oponentWeapon != null)
+                        {
+                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.spine;
+                        }
+                        else
+                        {
+                            normalizedDamage = damage;
+                        }
                         didPenetrate = true; //set penetrate to true if no vest is equiped
 
                         if (vest != null)
