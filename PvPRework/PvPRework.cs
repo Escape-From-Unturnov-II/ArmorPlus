@@ -16,6 +16,8 @@ namespace PvPRework
         private SerializableDictionary<ushort, float> gunPenValues = new SerializableDictionary<ushort, float>();
         private SerializableDictionary<ushort, float> vestsProtectingArms = new SerializableDictionary<ushort, float>();
         private SerializableDictionary<ushort, float> vestsProtectingLegs = new SerializableDictionary<ushort, float>();
+
+        #region Load
         protected override void Load()
         {
             //converts lists to dictionarys to increase performance
@@ -23,7 +25,7 @@ namespace PvPRework
             vestsProtectingArms.serializableDictionary = Configuration.Instance.vestsProtectingArms;
             vestsProtectingLegs.serializableDictionary = Configuration.Instance.vestsProtectingLegs;
 
-            Logger.Log("PvPRework Loaded, ");
+            Logger.Log("ArmorPus Loaded, ");
             if(Configuration.Instance.BreakLegs)
                 Logger.Log("BreakLegs:\n" +String.Join(
                     "\n", Configuration.Instance.boneBreakingChances.Select(
@@ -82,6 +84,7 @@ namespace PvPRework
         {
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
         }
+        #endregion
 
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
@@ -105,7 +108,7 @@ namespace PvPRework
             }
                        
         }
-
+        #region ArmorCheck
         private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor)
         {
             respectArmor = false;
@@ -117,7 +120,7 @@ namespace PvPRework
             UnturnedPlayer oponent = UnturnedPlayer.FromCSteamID(oponentId);
             ItemWeaponAsset oponentWeapon = null;
             
-            if (oponent.Player.equipment.asset.GetType().Equals(typeof(ItemWeaponAsset)))
+            if (oponent.Player.equipment.asset is ItemWeaponAsset)
             {
                 oponentWeapon = (ItemWeaponAsset)oponent.Player.equipment.asset;
             }
@@ -279,7 +282,9 @@ namespace PvPRework
             }
             damage = (float)Math.Round(damage);
         }
+        #endregion
 
+        #region BoneBreackCheck
         private void BreakBoneCheck(Player player, ELimb limb, float damage)
         {
             BulletLimbDamageChance boneBreak;
@@ -338,6 +343,158 @@ namespace PvPRework
                 }
             }
         }
+        #endregion
+
+        #region ArmorDamageCalc
+        private byte calcArmorDamage(ref byte armorQuality, float reduction, bool didPenetrate)
+        {
+            if (armorQuality > 0)
+            {
+                int reductionCalc = (int)Math.Round(didPenetrate ? reduction * Configuration.Instance.ArmorDamageMultiplierOnPen : reduction);
+
+                if (armorQuality <= reductionCalc)
+                {
+                    reductionCalc = armorQuality;
+                }
+                else if (Configuration.Instance.HasDuribility)
+                {
+                    armorQuality += 0x5;
+                }
+
+                return (byte)reductionCalc;
+            }
+            return 0;
+        }
+
+        private void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float normalizedDamage, bool didPenetrate)
+        {
+            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
+            ArmorClass armorClass = armorClasses[armorClassIndex];
+            PlayerClothing clothing = player.clothing;
+
+            if (clothing != null)
+            {
+                float armorDamage = 0;
+                if (normalizedDamage > armorClass.DamageToDamageArmorMin)
+                {
+                    armorDamage = armorClass.MaxArmorDamage;
+                    if (normalizedDamage < armorClass.DamageToDamageArmorMax && armorClassIndex < armorClasses.Count() - 1)
+                    {
+                        armorDamage = calcMean(
+                            armorClass.DamageToDamageArmorMin, armorClass.DamageToDamageArmorMax,
+                            armorClasses[armorClassIndex].Tier, armorClasses[armorClassIndex + 1].Tier, normalizedDamage);
+                    }
+                }
+
+                if (partToDamage is ItemHatAsset)
+                {
+                    clothing.hatQuality -= calcArmorDamage(ref clothing.hatQuality, armorDamage, didPenetrate);
+                    clothing.sendUpdateHatQuality();
+                }
+                else if (partToDamage is ItemMaskAsset)
+                {
+                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, armorDamage, didPenetrate);
+                    clothing.sendUpdateMaskQuality();
+                }
+                else if (partToDamage is ItemVestAsset)
+                {
+                    clothing.vestQuality -= calcArmorDamage(ref clothing.vestQuality, armorDamage, didPenetrate);
+                    clothing.sendUpdateVestQuality();
+                }
+                else if (partToDamage is ItemShirtAsset)
+                {
+                    clothing.shirtQuality -= calcArmorDamage(ref clothing.shirtQuality, armorDamage, didPenetrate);
+                    clothing.sendUpdateShirtQuality();
+                }
+                else if (partToDamage is ItemPantsAsset)
+                {
+                    clothing.pantsQuality -= calcArmorDamage(ref clothing.pantsQuality, armorDamage, didPenetrate);
+                    clothing.sendUpdatePantsQuality();
+                }
+            }
+        }
+        #endregion
+
+        #region ArmorCalc
+        private int getArmorClassIndex(float armor, out float armorTier)
+        {
+            armorTier = 0;
+            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
+
+            for (int i = 0; i < armorClasses.Count(); i++)
+            {
+                if (armor >= armorClasses[i].Armor)
+                {
+                    armorTier = armorClasses[i].Tier;
+
+                    if (armor > armorClasses[i].Armor && i > 0)
+                    {
+                        armorTier = calcMean(
+                            armorClasses[i - 1].Armor, armorClasses[i].Armor,
+                            armorClasses[i - 1].Tier, armorClasses[i].Tier, armor);
+
+                    }
+                    return i;
+                }
+            }
+            return 0;
+        }
+        private float calcVanillaArmor(Player player, ItemClothingAsset top, ItemClothingAsset bottom, float armorMulty = 1)
+        {
+            int index = 0;
+            float armorTier = 0;
+            return calcItemArmor(player, top, out index, out armorTier, true, armorMulty) + calcItemArmor(player, bottom, out index, out armorTier, true);
+        }
+
+        private float calcItemArmor(Player player, ItemClothingAsset clothing, out int armorClassIndex, out float armorTier, bool vanilla = false, float armorMulty = 1)
+        {
+            float defaultReturn = vanilla ? 1 : 0;
+            armorTier = 0;
+            armorClassIndex = 0;
+            float armor = 1 - (1 - clothing.armor) * armorMulty;
+
+            if (clothing != null)
+            {
+                int quality = 100;
+                Type clothingType = clothing.GetType();
+                if (clothing is ItemHatAsset)
+                {
+                    quality = player.clothing.hatQuality;
+                }
+                else if (clothing is ItemMaskAsset)
+                {
+                    quality = player.clothing.maskQuality;
+                }
+                else if (clothing is ItemVestAsset)
+                {
+                    quality = player.clothing.vestQuality;
+                }
+                else if (clothing is ItemShirtAsset)
+                {
+                    quality = player.clothing.shirtQuality;
+                }
+                else if (clothing is ItemPantsAsset)
+                {
+                    quality = player.clothing.pantsQuality;
+                }
+
+                if (vanilla)
+                {
+                    return 1 - (1 - armor) * (int)quality / 100;
+                }
+                else if (quality > 0)
+                {
+                    armorClassIndex = getArmorClassIndex(armor, out armorTier);
+
+                    return (121 - 5000 / (45 + (int)quality * 2)) * armorTier * 0.1f;
+                }
+
+            }
+            return defaultReturn;
+        }
+        #endregion
+
+        #region ArmorPenCalc
         private bool penArmor(Player player, ItemClothingAsset clothingPart, ref float damage, ref float penDamage, float normalizedDamage, float armorMulty = 1)
         {
             float penChance = 1;
@@ -408,29 +565,7 @@ namespace PvPRework
                 armorClass.DamageMultiplierNormal, 1, penChance);
 
         }
-        private int getArmorClassIndex(float armor, out float armorTier)
-        {
-            armorTier = 0;
-            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
-
-            for (int i = 0; i < armorClasses.Count(); i++)
-            {
-                if (armor >= armorClasses[i].Armor)
-                {
-                    armorTier = armorClasses[i].Tier;
-
-                    if (armor > armorClasses[i].Armor && i > 0)
-                    {
-                        armorTier = calcMean(
-                            armorClasses[i-1].Armor, armorClasses[i].Armor,
-                            armorClasses[i-1].Tier, armorClasses[i].Tier, armor);
-
-                    }
-                    return i;
-                }
-            }
-            return 0;
-        }
+      
         /**
          * Return Penetration chance from 0-1
          */
@@ -439,130 +574,7 @@ namespace PvPRework
             float penCalc = armor - penetration - 15;
             return penCalc > 0 ? 0 : (penCalc * penCalc) / 100;
         }
-
-        private float calcVanillaArmor(Player player, ItemClothingAsset top, ItemClothingAsset bottom, float armorMulty = 1)
-        {
-            int index = 0;
-            float armorTier = 0;
-            return calcItemArmor(player, top, out index,out armorTier, true, armorMulty) + calcItemArmor(player, bottom, out index, out armorTier, true);
-        }
-
-        private float calcItemArmor(Player player,ItemClothingAsset clothing, out int armorClassIndex,out float armorTier, bool vanilla = false, float armorMulty = 1) 
-        {
-            float defaultReturn = vanilla ? 1 : 0;
-            armorTier = 0;
-            armorClassIndex = 0;
-            float armor = 1 - (1 - clothing.armor) * armorMulty;
-
-            if (clothing != null)
-            {
-                int quality = 100;
-                Type clothingType = clothing.GetType();
-                if (clothingType.Equals(typeof(ItemHatAsset)))
-                {
-                    quality = player.clothing.hatQuality;
-                }
-                else if (clothingType.Equals(typeof(ItemMaskAsset)))
-                {
-                    quality = player.clothing.maskQuality;
-                }
-                else if (clothingType.Equals(typeof(ItemVestAsset)))
-                {
-                    quality = player.clothing.vestQuality;
-                }
-                else if (clothingType.Equals(typeof(ItemShirtAsset)))
-                {
-                    quality = player.clothing.shirtQuality;
-                }
-                else if (clothingType.Equals(typeof(ItemPantsAsset)))
-                {
-                    quality = player.clothing.pantsQuality;
-                }
-
-                if (vanilla)
-                {
-                    return 1 - (1 - armor) * (int)quality / 100;
-                }
-                else if (quality > 0)
-                {
-                    armorClassIndex = getArmorClassIndex(armor, out armorTier);
-                   
-                    return (121 - 5000 / (45 + (int)quality * 2)) * armorTier * 0.1f;
-                }
-
-            }
-            return defaultReturn;
-        }
-
-        private byte calcArmorDamage(ref byte armorQuality, float reduction, bool didPenetrate)
-        {
-            if (armorQuality > 0)
-            {
-                int reductionCalc = (int)Math.Round(didPenetrate ? reduction * Configuration.Instance.ArmorDamageMultiplierOnPen : reduction);
-
-                if (armorQuality <= reductionCalc)
-                {
-                    reductionCalc = armorQuality;
-                }
-                else if (Configuration.Instance.HasDuribility)
-                {
-                    armorQuality += 0x5;
-                }
-
-                return (byte)reductionCalc;
-            }
-            return 0;
-        }
-
-        private void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float normalizedDamage, bool didPenetrate)
-        {
-            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
-            ArmorClass armorClass = armorClasses[armorClassIndex];
-            PlayerClothing clothing = player.clothing;
-
-            if (clothing != null)
-            {
-                float armorDamage = 0;
-                if (normalizedDamage > armorClass.DamageToDamageArmorMin)
-                {
-                    armorDamage = armorClass.MaxArmorDamage;
-                    if (normalizedDamage < armorClass.DamageToDamageArmorMax && armorClassIndex < armorClasses.Count() - 1)
-                    {
-                        armorDamage = calcMean(
-                            armorClass.DamageToDamageArmorMin, armorClass.DamageToDamageArmorMax,
-                            armorClasses[armorClassIndex].Tier, armorClasses[armorClassIndex + 1].Tier, normalizedDamage);
-                    }
-                }
-
-                Type clothingType = partToDamage.GetType();
-                if (clothingType.Equals(typeof(ItemHatAsset)))
-                {
-                    clothing.hatQuality -= calcArmorDamage(ref clothing.hatQuality, armorDamage, didPenetrate);
-                    clothing.sendUpdateHatQuality();
-                }
-                else if (clothingType.Equals(typeof(ItemMaskAsset)))
-                {
-                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, armorDamage, didPenetrate);
-                    clothing.sendUpdateMaskQuality();
-                }
-                else if (clothingType.Equals(typeof(ItemVestAsset)))
-                {
-                    clothing.vestQuality -= calcArmorDamage(ref clothing.vestQuality, armorDamage, didPenetrate);
-                    clothing.sendUpdateVestQuality();
-                }
-                else if (clothingType.Equals(typeof(ItemShirtAsset)))
-                {
-                    clothing.shirtQuality -= calcArmorDamage(ref clothing.shirtQuality, armorDamage, didPenetrate);
-                    clothing.sendUpdateShirtQuality();
-                }
-                else if (clothingType.Equals(typeof(ItemPantsAsset)))
-                {
-                    clothing.pantsQuality -= calcArmorDamage(ref clothing.pantsQuality, armorDamage, didPenetrate);
-                    clothing.sendUpdatePantsQuality();
-                }
-            }
-        }
-
+        #endregion
         private float calcMean(float aMin, float aMax, float bMin, float bMax, float aActual)
         {
             float multi = 1 - (aActual - aMax) / (aMin - aMax);

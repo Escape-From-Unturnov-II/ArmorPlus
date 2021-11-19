@@ -1,21 +1,21 @@
 # PVP Rework
 
-Completely reworked the Armor-System (based on penetration chance not just damage decrease)
+Completely reworked Armor-System (based on penetration chance not just damage reduction)
 
-Allow bullets to break player's bones based on chance. (based on https://github.com/IcePlugins/BoneHurtingBullets)
+Allows bullets to break player bones based on chance. (based on https://github.com/IcePlugins/BoneHurtingBullets)
 
-Fixes masks to actually protect player and the ability to allow vest ro also protect arms and legs.
+Fixes masks to actually protect the player and ads the ability to allow vests to also protect arms and legs.
 
 ## Settings
 | Name   |      Description      |
 |----------|-------------|
 |Debug:|shows debug infos in the server console|
-|BreakLegs: |if bone breaking bullets shoudl be enabled|
-|BetterArmor:|if the new Armor system should be used (this is required for vests to protect arms or legs)|
-|UseArmorClasses:|if the armor shoudl work as vanilla or with the new penetration chances|
+|BreakLegs: |if bone breaking bullets should be enabled|
+|BetterArmor:|if the new Armor system should be used (this is required for the mask fix, vests to protect arms or legs and ArmorClasses)|
+|UseArmorClasses:|if the armor should work as in vanilla or with the new penetration chances|
 |HasDuribility:|set to true if the server uses durability|
 |ArmorDamageMultiplierOnPen:|multiplier used for damage done to armor when penetrating armor|
-|PenDamgeDelta:|used to reduce pendamge loss on penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
+|PenDamgeDelta:|used to reduce pendamge loss with penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
 
 ## vestsProtectingArms / Legs
 Allows vests to also protect legs or arms (this can also be used with vanila armor logic)
@@ -34,9 +34,9 @@ Allows vests to also protect legs or arms (this can also be used with vanila arm
 ## ArmorClass
 Allows to define ArmorClasses by armor value (this is the "Armor" value provided in the clothing.dat) 
 
-**ArmorClasses need to start at armor 1 and go down from there!**
+**ArmorClasses need to start at armor 1 and go down from there and tier needs to start at 0 and go up from there!**
 
-When a armor value is not defined it will be calculated by taking the mean from the class below and above the armor value, or take max class if above max
+When a armor value is not defined it will be calculated by taking the mean from the class below and above the armor value, or take max class if max
 Penetration calculations are based on Tarkov logic: https://www.desmos.com/calculator/m8cmsfokkl?lang=en
 | Name   |      Description      |
 |----------|-------------|
@@ -48,13 +48,13 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
 |DamageMultiplierMin:|damage multiplier for minimal damage (0-1)|
 |DamageMultiplierNormal:|damage multiplier normal damage (0-1)|
 |||
-|MinArmorDamage:|min damage done to armor when not penetrating (1 = 1%, on penn ArmorDamageMultiplierOnPen is used)|
-|MaxArmorDamage:|max damage done to armor when not penetrating (1 = 1%, on penn ArmorDamageMultiplierOnPen is used)|
+|MinArmorDamage:|min damage done to armor when not penetrating (1 = 1%, when penetrating ArmorDamageMultiplierOnPen is used)|
+|MaxArmorDamage:|max damage done to armor when not penetrating (1 = 1%, when penetrating ArmorDamageMultiplierOnPen is used)|
 |DamageToDamageArmorMin:|damage required to do MinArmorDamage, below this no damage is done|
-|DamageToDamageArmorMax:|damage required to do MaxArmorDamage, below this the mean damage is between MinArmorDamage and MaxArmorDamage is calculated|
+|DamageToDamageArmorMax:|damage required to do MaxArmorDamage, below this the mean damage between MinArmorDamage and MaxArmorDamage is calculated|
 |||
-|StopDamageMulti:|damage multiplier when not penetrating (0-1)|
-|PenLossMulti:|the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in a 10% additional penetration power reduction)|
+|StopDamageMulti:|damage multiplier when not penetrating (0-1), this simulates the hit you get when shot on armor and should be very small|
+|PenLossMulti:|the reduction in penetration power when penetrating this armor, this is additional to the reduction by pen chance (0.1 would result in a 10% additional penetration power reduction, see PenDamgeDelta)|
 
 ```xml
     <ArmorClass>
