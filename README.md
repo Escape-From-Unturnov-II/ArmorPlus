@@ -1,7 +1,9 @@
 # PVP Rework
 
 Completely reworked the Armor-System (based on penetration chance not just damage decrease)
+
 Allow bullets to break player's bones based on chance. (based on https://github.com/IcePlugins/BoneHurtingBullets)
+
 Fixes masks to actually protect player.
 
 ## Settings
