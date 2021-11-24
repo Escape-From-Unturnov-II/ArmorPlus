@@ -1,19 +1,25 @@
 # PVP Rework
 
-Completely reworked Armor-System (based on penetration chance not just damage reduction)
+Completely reworked Armor-System (based on penetration chance not just damage reduction).
+
+Uses the Escape from Tarkov Armor-Tiers and [Penetration logic](https://www.desmos.com/calculator/m8cmsfokkl?lang=en).
+
+Fixes masks to actually protect the player and ads the ability to allow vests to also protect arms and legs.
+
+The System is fully customizable and is a perfect addition to all PvP focused Servers.
 
 Allows bullets to break player bones based on chance. (based on https://github.com/IcePlugins/BoneHurtingBullets)
 
-Fixes masks to actually protect the player and ads the ability to allow vests to also protect arms and legs.
+All Calculations are shown in this [Excell Sheet](https://docs.google.com/spreadsheets/d/1Aq71OPWoRFZNGPXU-u45SQgkarJMai6a/edit?usp=sharing&ouid=104005208794763187898&rtpof=true&sd=true), this also allows to easily check penValues and armorClasses definitions.
 
 ## Settings
 | Name   |      Description      |
 |----------|-------------|
-|Debug:|shows debug infos in the server console|
+|Debug:|shows debug infos in the server console (shows damge done / penchances and so on)|
 |BreakLegs: |if bone breaking bullets should be enabled|
 |BetterArmor:|if the new Armor system should be used (this is required for the mask fix, vests to protect arms or legs and ArmorClasses)|
 |UseArmorClasses:|if the armor should work as in vanilla or with the new penetration chances|
-|HasDuribility:|set to true if the server uses durability|
+|HasDuribility:|set to true if the server uses durability to avoid double armor damage|
 |ArmorDamageMultiplierOnPen:|multiplier used for damage done to armor when penetrating armor|
 |PenDamgeDelta:|used to reduce pendamge loss with penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
 
@@ -86,7 +92,8 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
 ```
 
 ## BulletLimbDamageChance
-Allowes to define a bone break chance per Limb, the chance scales with damage
+Allowes to define bone break chances per Limb, the chance scales with damage.
+
 | Name   |      Description      |
 |----------|-------------|
 |Limb:|the limb that needs to be hit|
