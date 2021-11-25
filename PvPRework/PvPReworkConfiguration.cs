@@ -52,21 +52,26 @@ namespace PvPRework
             };
             armorClasses = new List<ArmorClass>{
                 new ArmorClass{
-                    Tier=1, Armor = 0.95f,
+                    Tier=0.5f, Armor = 0.95f,
                     PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
                     StopDamageMulti = 0.4f, PenLossMulti = 0},
-
                 new ArmorClass{
-                    Tier=2f, Armor = 0.9f,
+                    Tier=1f, Armor = 0.9f,
                     PercentForNormalDamage =  0.2f, PercentForMaxDamage = 0.8f,
                     DamageMultiplierMin = 0.8f,    DamageMultiplierNormal = 1f,
                     DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
                     StopDamageMulti = 0.2f, PenLossMulti = 0.1f},
-
+                new ArmorClass{
+                    Tier=2f, Armor = 0.85f,
+                    PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
+                    DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
+                    DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
+                    MinArmorDamage = 1, MaxArmorDamage = 4,
+                    StopDamageMulti = 0.1f, PenLossMulti = 0.2f},
                 new ArmorClass{
                     Tier=3f, Armor = 0.8f,
                     PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
@@ -74,7 +79,6 @@ namespace PvPRework
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
                     StopDamageMulti = 0.1f, PenLossMulti = 0.2f},
-
                 new ArmorClass{
                     Tier=3.5f, Armor = 0.7f,
                     PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
@@ -82,7 +86,6 @@ namespace PvPRework
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 60,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
                     StopDamageMulti = 0.05f, PenLossMulti = 0.3f},
-
                 new ArmorClass{
                     Tier=4f, Armor = 0.65f,
                     PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
@@ -103,7 +106,7 @@ namespace PvPRework
             gunPenValues = new List<KeyValueElement<ushort, float>> { 
 
                 // Civ Pistols
-                new KeyValueElement<ushort, float> {Key = 107, Value = 17 },    //Ace
+                new KeyValueElement<ushort, float> {Key = 107, Value = 17 },     //Ace
                 new KeyValueElement<ushort, float> {Key = 99, Value = 12.5f },   //Cobra
                 new KeyValueElement<ushort, float> {Key = 97, Value = 12.5f },   //Colt
                 new KeyValueElement<ushort, float> {Key = 1039, Value = 12.5f }, //Kryzkarek
@@ -115,14 +118,14 @@ namespace PvPRework
                 new KeyValueElement<ushort, float> {Key = 474, Value = 25 },    //Rifle_Maple
                 new KeyValueElement<ushort, float> {Key = 480, Value = 25 },    //Rifle_Pine
                 new KeyValueElement<ushort, float> {Key = 101, Value = 27 },    //Schofield
-                new KeyValueElement<ushort, float> {Key = 484, Value = 15.5f },    //Sportshot
-                new KeyValueElement<ushort, float> {Key = 1027, Value = 10.5f}, //Viper
+                new KeyValueElement<ushort, float> {Key = 484, Value = 15.5f }, //Sportshot
+                new KeyValueElement<ushort, float> {Key = 1027, Value = 14f},   //Viper
 
                 // LC Ranger Pistol
-                new KeyValueElement<ushort, float> {Key = 1360, Value = 10.5f},     //Teklowvka
+                new KeyValueElement<ushort, float> {Key = 1360, Value = 15.5f},     //Teklowvka
 
                 // LC Ranger Guns
-                new KeyValueElement<ushort, float> {Key = 1362, Value = 18 },       //Augewehr
+                new KeyValueElement<ushort, float> {Key = 1362, Value = 18.5f },    //Augewehr
                 new KeyValueElement<ushort, float> {Key = 1369, Value = 15.5f },    //Bulldog
                 new KeyValueElement<ushort, float> {Key = 1379, Value = 15.5f },    //Card
                 new KeyValueElement<ushort, float> {Key = 1364, Value = 19 },       //Fury
@@ -139,7 +142,7 @@ namespace PvPRework
                 new KeyValueElement<ushort, float> {Key = 1000, Value = 30 },   //Matamorez
 
                 // LC Mil Pistol
-                new KeyValueElement<ushort, float> {Key = 1021, Value = 10.5f}, //Avenger
+                new KeyValueElement<ushort, float> {Key = 1021, Value = 15.5f}, //Avenger
                 
                 // LC Mil Guns
                 new KeyValueElement<ushort, float> {Key = 116, Value = 17.5f }, //Honeybadger
@@ -153,7 +156,7 @@ namespace PvPRework
                 new KeyValueElement<ushort, float> {Key = 1488, Value = 19 },   //Swissgewehr                
 
                 // HC Mil Pistol
-                new KeyValueElement<ushort, float> {Key = 488, Value = 18 },    //Desert_Falcon
+                new KeyValueElement<ushort, float> {Key = 488, Value = 19 },    //Desert_Falcon
 
                 // HC Mil Guns
                 new KeyValueElement<ushort, float> {Key = 297, Value = 35 },    //Grizzly
@@ -161,13 +164,13 @@ namespace PvPRework
                 new KeyValueElement<ushort, float> {Key = 18, Value = 35 },     //Timberwolf
 
                 // Shotguns
-                new KeyValueElement<ushort, float> {Key = 112, Value = 12f },     //Bluntforce
-                new KeyValueElement<ushort, float> {Key = 1484, Value = 13.5f },   //Bane
+                new KeyValueElement<ushort, float> {Key = 112, Value = 13f },     //Bluntforce
+                new KeyValueElement<ushort, float> {Key = 1484, Value = 14f },    //Bane
                 new KeyValueElement<ushort, float> {Key = 1480, Value = 12f },    //Determinator
-                new KeyValueElement<ushort, float> {Key = 380, Value = 10.5f },    //Masterkey
-                new KeyValueElement<ushort, float> {Key = 1436, Value = 10.5f },   //Quadbarrel
-                new KeyValueElement<ushort, float> {Key = 1143, Value = 10f },       //Sawed_Off
-                new KeyValueElement<ushort, float> {Key = 1366, Value = 12 },    //Vonya
+                new KeyValueElement<ushort, float> {Key = 380, Value = 10.5f },   //Masterkey
+                new KeyValueElement<ushort, float> {Key = 1436, Value = 10.5f },  //Quadbarrel
+                new KeyValueElement<ushort, float> {Key = 1143, Value = 10f },    //Sawed_Off
+                new KeyValueElement<ushort, float> {Key = 1366, Value = 13 },     //Vonya
 
                 // Other
                 new KeyValueElement<ushort, float> {Key = 355, Value = 16 },    //Bow_Birch

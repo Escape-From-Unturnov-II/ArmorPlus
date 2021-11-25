@@ -25,7 +25,7 @@ namespace PvPRework
             vestsProtectingArms.serializableDictionary = Configuration.Instance.vestsProtectingArms;
             vestsProtectingLegs.serializableDictionary = Configuration.Instance.vestsProtectingLegs;
 
-            Logger.Log("ArmorPus Loaded, ");
+            Logger.Log("ArmorPus by SpeedMann Loaded, ");
             if(Configuration.Instance.BreakLegs)
                 Logger.Log("BreakLegs:\n" +String.Join(
                     "\n", Configuration.Instance.boneBreakingChances.Select(
@@ -44,7 +44,8 @@ namespace PvPRework
                         $" StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
                     ).ToArray()
                 ) + "\n");
-            if (gunPenValues.Count() >= 0)
+
+            if (gunPenValues != null && gunPenValues.Count() >= 0)
             {
                 Logger.Log("gunPenValues:\n" + String.Join(
                     "\n", gunPenValues.RealDictionary.Select(
@@ -53,7 +54,7 @@ namespace PvPRework
                 ) + "\n");
             }
             
-            if (vestsProtectingLegs != null)
+            if (vestsProtectingLegs != null && vestsProtectingLegs.Count() >= 0)
             {
                 Logger.Log("vestsProtectingLegs:\n" + String.Join(
                     "\n", vestsProtectingLegs.RealDictionary.Select(
@@ -61,7 +62,7 @@ namespace PvPRework
                     ).ToArray()
                 ) + "\n");
             }
-            if (vestsProtectingArms != null)
+            if (vestsProtectingArms != null && vestsProtectingArms.Count() >= 0)
             {
                 Logger.Log("vestsProtectingArms:\n" + String.Join(
                     "\n", vestsProtectingArms.RealDictionary.Select(
@@ -72,7 +73,7 @@ namespace PvPRework
             
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
 
-            if (Configuration.Instance.armorClasses.IsEmpty())
+            if (Configuration.Instance.armorClasses == null || Configuration.Instance.armorClasses.IsEmpty())
             {
                 Configuration.Instance.UseArmorClasses = false;
             }
