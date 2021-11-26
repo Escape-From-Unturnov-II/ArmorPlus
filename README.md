@@ -1,4 +1,4 @@
-# PVP Rework
+# ArmorPlus
 
 Completely reworked Armor-System (based on penetration chance not just damage reduction).
 
