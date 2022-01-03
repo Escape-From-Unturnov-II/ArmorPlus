@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace PvPRework
+namespace SpeedMann.PvPRework
 {
     public class PVPReworkConfiguration : IRocketPluginConfiguration
     {
-        [XmlArrayItem(ElementName = "ArmoClasses")]
+        [XmlArrayItem(ElementName = "ArmoClass")]
         public List<ArmorClass> armorClasses;
         [XmlArrayItem(ElementName = "BoneBreakingChance")]
         public List<BulletLimbDamageChance> boneBreakingChances;
@@ -24,9 +24,7 @@ namespace PvPRework
         public bool Debug; //to display debug information on server console
         public bool BreakLegs; //if bullets should be able to break legs
         public bool BetterArmor; //if better armor calculations should be used (requred for armorClasses and vestsProtectArms / Pants)
-        public bool HasDuribility; //set to true if server has durability
         public bool UseArmorClasses; //defines if armor classes should be used
-
         public float ArmorDamageMultiplierOnPen; //multiplier used for damage done to armor when penetrating armor
         public float PenDamgeDelta; //used to reduce pendamge loss on penetration chance
                                     //(1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)
@@ -35,7 +33,6 @@ namespace PvPRework
         public void LoadDefaults()
         {
             Debug = true;
-            HasDuribility = true;
             BreakLegs = true;
             BetterArmor = true;
             UseArmorClasses = true;

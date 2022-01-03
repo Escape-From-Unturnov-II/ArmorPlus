@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace PvPRework
+namespace SpeedMann.PvPRework
 {
     [Serializable]
     public class SerializableDictionary<TKey, TValue>

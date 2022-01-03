@@ -1,4 +1,4 @@
-﻿namespace PvPRework
+﻿namespace SpeedMann.PvPRework
 {
     public class ArmorClass
     {

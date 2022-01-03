@@ -1,17 +1,23 @@
-﻿using Rocket.Core.Plugins;
+﻿using HarmonyLib;
+using Rocket.Core.Plugins;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 
-namespace PvPRework
+namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
+        public static PvPRework Inst;
+        public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
+
+        private static bool HasDuribility;
 
         private SerializableDictionary<ushort, float> gunPenValues = new SerializableDictionary<ushort, float>();
         private SerializableDictionary<ushort, float> vestsProtectingArms = new SerializableDictionary<ushort, float>();
@@ -20,87 +26,53 @@ namespace PvPRework
         #region Load
         protected override void Load()
         {
+            Inst = this;
+            Conf = Configuration.Instance;
+
             //converts lists to dictionarys to increase performance
-            gunPenValues.serializableDictionary = Configuration.Instance.gunPenValues;
-            vestsProtectingArms.serializableDictionary = Configuration.Instance.vestsProtectingArms;
-            vestsProtectingLegs.serializableDictionary = Configuration.Instance.vestsProtectingLegs;
+            gunPenValues.serializableDictionary = Conf.gunPenValues;
+            vestsProtectingArms.serializableDictionary = Conf.vestsProtectingArms;
+            vestsProtectingLegs.serializableDictionary = Conf.vestsProtectingLegs;
 
-            Logger.Log("ArmorPus by SpeedMann Loaded, ");
-            if(Configuration.Instance.BreakLegs)
-                Logger.Log("BreakLegs:\n" +String.Join(
-                    "\n", Configuration.Instance.boneBreakingChances.Select(
-                        x => $"{x.Limb}: Min {x.BreakChanceMin}% Max {x.BreakChanceMax}% DamageMin {x.BreakChanceDamageMin} DamageMax {x.BreakChanceDamageMax}"
-                    ).ToArray()
-                ) + "\n");
+            printPluginInfo();
 
-            if(Configuration.Instance.UseArmorClasses)
-                Logger.Log("ArmorClasses:\n" + String.Join(
-                    "\n", Configuration.Instance.armorClasses.Select(
-                        x => $"Armor {x.Armor}: Tier {x.Tier}\n" +
-                        $" PercentForNormalDamage: {x.PercentForNormalDamage} PercentForMaxDamage: {x.PercentForMaxDamage}\n" +
-                        $" DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
-                        $" MinArmorDamage: {x.MinArmorDamage} MaxArmorDamage: {x.MaxArmorDamage}\n" +
-                        $" DamageToDamageArmorMin: {x.DamageToDamageArmorMin} DamageToDamageArmorMax: {x.DamageToDamageArmorMax}\n" +
-                        $" StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
-                    ).ToArray()
-                ) + "\n");
+            UnturnedPatches.Init();
 
-            if (gunPenValues != null && gunPenValues.Count() >= 0)
-            {
-                Logger.Log("gunPenValues:\n" + String.Join(
-                    "\n", gunPenValues.RealDictionary.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] Penetration: "+ x.Value
-                    ).ToArray()
-                ) + "\n");
-            }
-            
-            if (vestsProtectingLegs != null && vestsProtectingLegs.Count() >= 0)
-            {
-                Logger.Log("vestsProtectingLegs:\n" + String.Join(
-                    "\n", vestsProtectingLegs.RealDictionary.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ArmorMultiplier: " + x.Value
-                    ).ToArray()
-                ) + "\n");
-            }
-            if (vestsProtectingArms != null && vestsProtectingArms.Count() >= 0)
-            {
-                Logger.Log("vestsProtectingArms:\n" + String.Join(
-                    "\n", vestsProtectingArms.RealDictionary.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ArmorMultiplier: " + x.Value
-                    ).ToArray()
-                ) + "\n");
-            }
-            
+
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
+            UnturnedPatches.OnPostGetInput += OnGetInput;
 
-            if (Configuration.Instance.armorClasses == null || Configuration.Instance.armorClasses.IsEmpty())
+            if (Conf.armorClasses == null || Conf.armorClasses.IsEmpty())
             {
-                Configuration.Instance.UseArmorClasses = false;
+                Conf.UseArmorClasses = false;
             }
-            //TODO: get mode (difficulty) and check for item/Has_Durability
+            HasDuribility = Provider.modeConfigData.Items.Has_Durability;
 
-            //TODO: add weight option for calcmean parameter
+            /* TODO: Add Plugin for item storage update (clothing keep items)
+             * Use metadate to save storage id (check if possible)
+             * Use /vault plugin storage to open cloting from ground or inventory (check if mod is possible)
+             */
         }
         protected override void Unload()
         {
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
+            UnturnedPatches.OnPostGetInput -= OnGetInput;
         }
         #endregion
 
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
-            shouldAllow = true;
 
-            if (Configuration.Instance.Debug)
+            if (Conf.Debug)
                 Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + " Times: " + parameters.times + "!");
 
             switch (parameters.cause)
             {
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
-                    if (Configuration.Instance.BetterArmor)
-                        ArmorPenCheck(parameters.player, parameters.limb, parameters.killer, ref parameters.damage, ref parameters.respectArmor);
-                    if (Configuration.Instance.BreakLegs)
+                    if (Conf.BetterArmor)
+                        ArmorPenCheck(parameters.player, parameters.limb, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
+                    if (Conf.BreakLegs)
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
                     break;
 
@@ -109,12 +81,44 @@ namespace PvPRework
             }
                        
         }
+        private void OnGetInput(ref InputInfo inputInfo)
+        {
+            if (inputInfo != null && inputInfo.type == ERaycastInfoType.PLAYER && inputInfo.player != null && inputInfo.transform != null)
+            {
+                Transform skeleton = inputInfo.transform.GetChild(0).GetChild(0);
+                Vector3 localPoint;
+
+                if(!getLocalPoint(skeleton, inputInfo.point, inputInfo.limb, out localPoint))
+                {
+                    Logger.LogError("Error in BetterHitZones: No localPoint found for " + inputInfo.limb + " of " + inputInfo.transform.name);
+                    return;
+                }
+
+                switch (inputInfo.limb)
+                {
+                    case ELimb.SKULL:
+                        bool faceHit = localPoint.z > 0.25;
+                        Logger.Log("Raycast hit " + inputInfo.transform.name + " in the " + (faceHit ? "Face" : inputInfo.limb.ToString()));
+                        break;
+                    case ELimb.LEFT_ARM:
+                    case ELimb.RIGHT_ARM:
+                        bool upperArmHit = localPoint.x < -0.4;
+                        Logger.Log("Raycast hit " + inputInfo.transform.name + " in the " + (upperArmHit ? "UpperArm" : inputInfo.limb.ToString()));
+                        break;
+                    case ELimb.LEFT_LEG:
+                    case ELimb.RIGHT_LEG:
+                        bool tighHit = localPoint.x < -0.25;
+                        Logger.Log("Raycast hit " + inputInfo.transform.name + " in the " + (tighHit ? "Tigh" : inputInfo.limb.ToString()));
+                        break;
+                }
+            }
+        }
         #region ArmorCheck
-        private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor)
+        private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
         {
             respectArmor = false;
 
-            bool didPenetrate = false;
+            bool didPenetrate = true; // set penetrate to true to avoid cancle on no vest or no helmet
 
             float armor = 1;
 
@@ -144,18 +148,9 @@ namespace PvPRework
                 case ELimb.RIGHT_ARM:
                 case ELimb.LEFT_HAND:
                 case ELimb.RIGHT_HAND:
-                    if (Configuration.Instance.UseArmorClasses)
+                    if (Conf.UseArmorClasses)
                     {
-                        if(oponentWeapon != null)
-                        {
-                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.arm;
-                        }
-                        else
-                        {
-                            normalizedDamage = damage / 0.6f;
-                        }
-                        
-                        didPenetrate = true; //set penetrate to true if no vest is equiped
+                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.arm : damage / 0.6f;
 
                         if (vest != null && vestsProtectingArms.ContainsKey(vest.id))
                         {
@@ -183,17 +178,10 @@ namespace PvPRework
                 case ELimb.RIGHT_LEG:
                 case ELimb.LEFT_FOOT:
                 case ELimb.RIGHT_FOOT:
-                    if (Configuration.Instance.UseArmorClasses)
+                    if (Conf.UseArmorClasses)
                     {
-                        if (oponentWeapon != null)
-                        {
-                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.leg;
-                        }
-                        else
-                        {
-                            normalizedDamage = damage / 0.6f;
-                        }
-                        didPenetrate = true; //set penetrate to true if no vest is equiped
+
+                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.leg : damage / 0.6f;
 
                         if (vest != null && vestsProtectingLegs.ContainsKey(vest.id))
                         {
@@ -214,21 +202,14 @@ namespace PvPRework
                             vestsProtectingLegs.TryGetValue(vest.id, out armorMulti);
 
                         armor = calcVanillaArmor(player, vest, pants, armorMulti);
+
                     }
                     break;
 
                 case ELimb.SKULL:
-                    if (Configuration.Instance.UseArmorClasses)
+                    if (Conf.UseArmorClasses)
                     {
-                        if (oponentWeapon != null)
-                        {
-                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.skull;
-                        }
-                        else
-                        {
-                            normalizedDamage = damage / 1.1f;
-                        }
-                        didPenetrate = true; //set penetrate to true if no vest is equiped
+                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.skull : damage / 1.1f;
 
                         if (hat != null)
                         {
@@ -247,17 +228,10 @@ namespace PvPRework
                     break;
 
                 case ELimb.SPINE:
-                    if (Configuration.Instance.UseArmorClasses)
+                    if (Conf.UseArmorClasses)
                     {
-                        if (oponentWeapon != null)
-                        {
-                            normalizedDamage = damage / oponentWeapon.playerDamageMultiplier.spine;
-                        }
-                        else
-                        {
-                            normalizedDamage = damage;
-                        }
-                        didPenetrate = true; //set penetrate to true if no vest is equiped
+
+                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.spine : damage;
 
                         if (vest != null)
                         {
@@ -277,8 +251,12 @@ namespace PvPRework
                 default:
                     return;
             }
-            if (!Configuration.Instance.UseArmorClasses)
+            if (!Conf.UseArmorClasses)
             {
+                if (applyGlobalArmorMultiplier)
+                {
+                    armor *= Provider.modeConfigData.Players.Armor_Multiplier;
+                }
                 damage *= armor;
             }
             damage = (float)Math.Round(damage);
@@ -294,29 +272,29 @@ namespace PvPRework
                 case ELimb.LEFT_ARM:
                 case ELimb.RIGHT_ARM:
                     damage = damage / 0.6f;
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "ARM");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "ARM");
                     break;
                 case ELimb.LEFT_HAND:
                 case ELimb.RIGHT_HAND:
                     damage = damage / 0.6f;
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "HAND");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "HAND");
                     break;
                 case ELimb.LEFT_LEG:
                 case ELimb.RIGHT_LEG:
                     damage = damage / 0.6f;
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "LEG");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "LEG");
                     break;
                 case ELimb.LEFT_FOOT:
                 case ELimb.RIGHT_FOOT:
                     damage = damage / 0.6f;
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "FOOT");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "FOOT");
                     break;
                 case ELimb.SKULL:
                     damage = damage / 1.1f;
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "SKULL");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "SKULL");
                     break;
                 case ELimb.SPINE:
-                    boneBreak = Configuration.Instance.boneBreakingChances.FirstOrDefault(x => x.Limb == "SPINE");
+                    boneBreak = Conf.boneBreakingChances.FirstOrDefault(x => x.Limb == "SPINE");
                     break;
                 default:
                     return;
@@ -337,7 +315,7 @@ namespace PvPRework
                     {
                         player.life.breakLegs();
                     }
-                    if (Configuration.Instance.Debug)
+                    if (Conf.Debug)
                     {
                         Logger.Log("breakChance: " + breakChance + " Damage: " + damage + "!");
                     }
@@ -349,27 +327,31 @@ namespace PvPRework
         #region ArmorDamageCalc
         private byte calcArmorDamage(ref byte armorQuality, float reduction, bool didPenetrate)
         {
+            byte totalReduction = 0;
             if (armorQuality > 0)
             {
-                int reductionCalc = (int)Math.Round(didPenetrate ? reduction * Configuration.Instance.ArmorDamageMultiplierOnPen : reduction);
+                int reductionCalc = (int)Math.Round(didPenetrate ? reduction * Conf.ArmorDamageMultiplierOnPen : reduction);
 
                 if (armorQuality <= reductionCalc)
                 {
                     reductionCalc = armorQuality;
                 }
-                else if (Configuration.Instance.HasDuribility)
+                else if (HasDuribility)
                 {
                     armorQuality += 0x5;
                 }
 
-                return (byte)reductionCalc;
+                totalReduction = (byte)reductionCalc;
             }
-            return 0;
+            if (Conf.Debug)
+                Logger.Log("Armor Damage: " + totalReduction + " Armor Quality: " + armorQuality + (didPenetrate ? " PenMulti.: " + Conf.ArmorDamageMultiplierOnPen:""));
+
+            return totalReduction;
         }
 
         private void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float normalizedDamage, bool didPenetrate)
         {
-            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
+            List<ArmorClass> armorClasses = Conf.armorClasses;
             ArmorClass armorClass = armorClasses[armorClassIndex];
             PlayerClothing clothing = player.clothing;
 
@@ -420,7 +402,7 @@ namespace PvPRework
         private int getArmorClassIndex(float armor, out float armorTier)
         {
             armorTier = 0;
-            List<ArmorClass> armorClasses = Configuration.Instance.armorClasses;
+            List<ArmorClass> armorClasses = Conf.armorClasses;
 
             for (int i = 0; i < armorClasses.Count(); i++)
             {
@@ -519,13 +501,13 @@ namespace PvPRework
                 else
                 {
                     didPenetrate = false;
-                    damage *= Configuration.Instance.armorClasses[armorClassIndex].StopDamageMulti;
+                    damage *= Conf.armorClasses[armorClassIndex].StopDamageMulti;
                 }
             }
 
             damageArmor(player, clothingPart, armorClassIndex, normalizedDamage, didPenetrate);
 
-            if (Configuration.Instance.Debug)
+            if (Conf.Debug)
             {
                 Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " absDamage: " + normalizedDamage + " calcDamage: " + damage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
 
@@ -537,20 +519,20 @@ namespace PvPRework
 
         private float calcPenDamage(float penDamage, float penChance, int armorClassIndex)
         {
-            ArmorClass armorClass = Configuration.Instance.armorClasses[armorClassIndex];
+            ArmorClass armorClass = Conf.armorClasses[armorClassIndex];
 
-            float chanceWithDelta = 1 - (1 - penChance) * Configuration.Instance.PenDamgeDelta;
+            float chanceWithDelta = 1 - (1 - penChance) * Conf.PenDamgeDelta;
             float fixedChance = chanceWithDelta > 1 ? 1 : penChance;
             float newPenDamage = penDamage * fixedChance - penDamage * armorClass.PenLossMulti;
 
-            if (Configuration.Instance.Debug)
+            if (Conf.Debug)
                 Logger.Log("newPenDamage: " + newPenDamage + " oldPenDamage: " + penDamage + " penChance: " + fixedChance + " PenLossMulti: " + armorClass.PenLossMulti);
             return newPenDamage;
         }
 
         private float calcDamage(float damage, float penChance, int armorClassIndex)
         {
-            ArmorClass armorClass = Configuration.Instance.armorClasses[armorClassIndex];
+            ArmorClass armorClass = Conf.armorClasses[armorClassIndex];
 
             if (penChance >= armorClass.PercentForMaxDamage)
             {
@@ -576,10 +558,96 @@ namespace PvPRework
             return penCalc > 0 ? 0 : (penCalc * penCalc) / 100;
         }
         #endregion
+
+        #region HelperFunctions
+        private bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint)
+        {
+            Transform limbTransform = null;
+
+            switch (limb)
+            {
+                case ELimb.SKULL:
+                    limbTransform = skeleton.Find("Spine").Find("Skull");
+                    break;
+                case ELimb.SPINE:
+                    limbTransform = skeleton.Find("Spine");
+                    break;
+                case ELimb.LEFT_ARM:
+                    limbTransform = skeleton.Find("Spine").Find("Left_Shoulder").Find("Left_Arm");
+                    break;
+                case ELimb.RIGHT_ARM:
+                    limbTransform = skeleton.Find("Spine").Find("Right_Shoulder").Find("Right_Arm");
+                    break;
+                case ELimb.LEFT_LEG:
+                    limbTransform = skeleton.Find("Left_Hip").Find("Left_Leg");
+                    break;
+                case ELimb.RIGHT_LEG:
+                    limbTransform = skeleton.Find("Right_Hip").Find("Right_Leg");
+                    break;
+            }
+            if (limbTransform != null)
+            {
+                localPoint = limbTransform.InverseTransformPoint(point);
+                return true;
+            }
+            localPoint = Vector3.zero;
+            return false;
+        }
         private float calcMean(float aMin, float aMax, float bMin, float bMax, float aActual)
         {
             float multi = 1 - (aActual - aMax) / (aMin - aMax);
             return bMin + multi * (bMax - bMin);
         }
+
+        private void printPluginInfo()
+        {
+
+            Logger.Log("ArmorPus by SpeedMann Loaded, ");
+            if (Conf.BreakLegs)
+                Logger.Log("BreakLegs:\n" + String.Join(
+                    "\n", Conf.boneBreakingChances.Select(
+                        x => $"{x.Limb}: Min {x.BreakChanceMin}% Max {x.BreakChanceMax}% DamageMin {x.BreakChanceDamageMin} DamageMax {x.BreakChanceDamageMax}"
+                    ).ToArray()
+                ) + "\n");
+
+            if (Conf.UseArmorClasses)
+                Logger.Log("ArmorClasses:\n" + String.Join(
+                    "\n", Conf.armorClasses.Select(
+                        x => $"Armor {x.Armor}: Tier {x.Tier}\n" +
+                        $" PercentForNormalDamage: {x.PercentForNormalDamage} PercentForMaxDamage: {x.PercentForMaxDamage}\n" +
+                        $" DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
+                        $" MinArmorDamage: {x.MinArmorDamage} MaxArmorDamage: {x.MaxArmorDamage}\n" +
+                        $" DamageToDamageArmorMin: {x.DamageToDamageArmorMin} DamageToDamageArmorMax: {x.DamageToDamageArmorMax}\n" +
+                        $" StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
+                    ).ToArray()
+                ) + "\n");
+
+            if (gunPenValues != null && gunPenValues.Count() >= 0)
+            {
+                Logger.Log("gunPenValues:\n" + String.Join(
+                    "\n", gunPenValues.RealDictionary.Select(
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] Penetration: " + x.Value
+                    ).ToArray()
+                ) + "\n");
+            }
+
+            if (vestsProtectingLegs != null && vestsProtectingLegs.Count() >= 0)
+            {
+                Logger.Log("vestsProtectingLegs:\n" + String.Join(
+                    "\n", vestsProtectingLegs.RealDictionary.Select(
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ArmorMultiplier: " + x.Value
+                    ).ToArray()
+                ) + "\n");
+            }
+            if (vestsProtectingArms != null && vestsProtectingArms.Count() >= 0)
+            {
+                Logger.Log("vestsProtectingArms:\n" + String.Join(
+                    "\n", vestsProtectingArms.RealDictionary.Select(
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ArmorMultiplier: " + x.Value
+                    ).ToArray()
+                ) + "\n");
+            }
+        }
+        #endregion
     }
 }
