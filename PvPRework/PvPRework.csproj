@@ -7,7 +7,7 @@
     <ProjectGuid>{823FFF9D-4E4B-4ADD-819B-904636A39557}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PvPRework</RootNamespace>
+    <RootNamespace>SpeedMann.PvPRework</RootNamespace>
     <AssemblyName>ArmorPlus</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -38,22 +38,23 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.API">
-      <HintPath>lib\Rocket.API.dll</HintPath>
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\server\steamapps\common\U3DS\Modules\Rocket.Unturned\Rocket.API.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.Core">
-      <HintPath>lib\Rocket.Core.dll</HintPath>
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\server\steamapps\common\U3DS\Modules\Rocket.Unturned\Rocket.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.Unturned">
-      <HintPath>lib\Rocket.Unturned.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Steamworks.NET, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\server\steamapps\common\U3DS\Modules\Rocket.Unturned\Rocket.Unturned.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -63,22 +64,28 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>lib\UnityEngine.dll</HintPath>
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>lib\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\ArmorClass.cs" />
+    <Compile Include="Models\Config\BetterArmorConfig.cs" />
+    <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
+    <Compile Include="Models\Config\GunExtension.cs" />
+    <Compile Include="Models\Config\HatExtension.cs" />
+    <Compile Include="Models\Config\ItemExtension.cs" />
+    <Compile Include="Models\Config\VestExtension.cs" />
+    <Compile Include="Models\PlayerHit.cs" />
     <Compile Include="PvPRework.cs" />
     <Compile Include="PvPReworkConfiguration.cs" />
     <Compile Include="Models\BulletLimbDamageChance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Helper\SerializableDictionary.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

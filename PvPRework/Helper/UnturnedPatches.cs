@@ -39,10 +39,11 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region Patches
-        [HarmonyLib.HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
-        class DamageToolRaycast
+
+        [HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
+        class PlayerInputPatch
         {
-            [HarmonyLib.HarmonyPostfix]
+            [HarmonyPostfix]
             internal static void OnPostGetInputInvoker(ref InputInfo __result)
             {
                 OnPostGetInput?.Invoke(ref __result);
