@@ -14,6 +14,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
+        public static string PluginVersion = "1.1.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
@@ -33,10 +34,12 @@ namespace SpeedMann.PvPRework
             Inst = this;
             Conf = Configuration.Instance;
 
+            Conf.updateConfig();
+
             playerHits.Clear();
             //converts lists to dictionarys to increase performance
             gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
-            vestExtensions = createDictionaryFromItemExtensions(Conf.VestsExtensions);
+            vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
             hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
 
             printPluginInfo();
@@ -406,7 +409,7 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region ArmorDamageCalc
-        private byte calcArmorDamage(ref byte armorQuality, float reduction, bool didPenetrate, bool counterVanillaDamage = true)
+        private byte calcArmorDamage(ref byte armorQuality, float reduction, bool didPenetrate, bool counterVanillaDamage)
         {
             byte currentQuality = armorQuality;
             byte totalReduction = 0;
@@ -458,7 +461,7 @@ namespace SpeedMann.PvPRework
                 }
                 else if (partToDamage is ItemMaskAsset)
                 {
-                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, armorDamage, didPenetrate);
+                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, armorDamage, didPenetrate, false);
                     clothing.sendUpdateMaskQuality();
                 }
                 else if (partToDamage is ItemVestAsset)
@@ -744,7 +747,18 @@ namespace SpeedMann.PvPRework
             {
                 foreach (T itemExtension in itemExtensions)
                 {
-                    itemExtensionsDict.Add(itemExtension.Id, itemExtension);
+                    if (itemExtension.Id == 0)
+                        continue;
+
+                    if (itemExtensionsDict.ContainsKey(itemExtension.Id))
+                    {
+                        Logger.LogWarning("Item with Id:" + itemExtension.Id +" is a duplicate!");
+                    }
+                    else
+                    {
+                        itemExtensionsDict.Add(itemExtension.Id, itemExtension);
+                    }
+                    
                 }
             }
             return itemExtensionsDict;
@@ -753,14 +767,14 @@ namespace SpeedMann.PvPRework
         {
 
             Logger.Log("ArmorPus by SpeedMann Loaded, ");
-            if (Conf.BreakLegs)
+            if (Conf.BreakLegs && !Conf.BoneBreakingChances.IsEmpty())
                 Logger.Log("Enabled BreakLegs:\n" + String.Join(
                     "\n", Conf.BoneBreakingChances.Select(
                         x => $"{x.Limb}: Min {x.BreakChanceMin}% Max {x.BreakChanceMax}% DamageMin {x.BreakChanceDamageMin} DamageMax {x.BreakChanceDamageMax}"
                     ).ToArray()
                 ) + "\n");
 
-            if (Conf.BetterArmor.UseArmorClasses)
+            if (Conf.BetterArmor.UseArmorClasses && !Conf.ArmorClasses.IsEmpty())
                 Logger.Log("Enabled ArmorClasses:\n" + String.Join(
                     "\n", Conf.ArmorClasses.Select(
                         x => $"Armor {x.Armor}: Tier {x.Tier}\n" +
@@ -776,8 +790,8 @@ namespace SpeedMann.PvPRework
             {
                 BetterHitZonesConfig bHitZones = Conf.BetterArmor.BetterHitZones;
                 Logger.Log("Enabled BetterHitZones:\n" 
-                    + (bHitZones.HatsProtectFace ? "All Hats protect the face by default" : "Hats that should protect the face need to be specified")+ "\n"
-                    + (bHitZones.VestsProtectStomach ? "All Vests protect the stomach by default" : "Vests that should protect the stomach need to be specified") + "\n");
+                    + (bHitZones.HatsProtectFace ? "All Hats protect the face by default" : "Hats do not protect the face by default") + "\n"
+                    + (bHitZones.VestsProtectStomach ? "All Vests protect the stomach by default" : "Vests do not protect the stomach by default") + "\n");
             }
 
             if (gunExtensions != null && gunExtensions.Count() >= 0)
@@ -803,8 +817,8 @@ namespace SpeedMann.PvPRework
                     "\n", vestExtensions.Select(
                          x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] "
                          + (x.Value.ProtectStomach ? "\n  ProtectsStomach ":"")
-                         + (x.Value.ShoulderPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ShoulderPlateLength + "Armor: " + x.Value.ArmorShoulderPlate + " ": "") 
-                         + (x.Value.ThighPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ThighPlateLength + "Armor: " + x.Value.ArmorThighPlate : "")
+                         + (x.Value.ShoulderPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ShoulderPlateLength + " Armor: " + x.Value.ArmorShoulderPlate + " ": "") 
+                         + (x.Value.ThighPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ThighPlateLength + " Armor: " + x.Value.ArmorThighPlate : "")
                     ).ToArray()
                 ) + "\n");
             }

@@ -14,5 +14,10 @@ namespace SpeedMann.PvPRework.Models.Config
         {
 
         }
+
+        public bool Equals(ItemExtension other)
+        {
+            return other.Id == this.Id;
+        }
     }
 }

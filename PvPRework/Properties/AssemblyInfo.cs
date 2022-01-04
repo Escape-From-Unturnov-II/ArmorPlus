@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("PvPRework")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("PvPRework")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2018")]
+[assembly: AssemblyCopyright("SpeedMann")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

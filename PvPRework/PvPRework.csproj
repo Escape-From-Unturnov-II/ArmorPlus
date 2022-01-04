@@ -59,10 +59,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
     <Reference Include="UnityEngine">
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -73,6 +74,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />

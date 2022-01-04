@@ -4,10 +4,15 @@ Completely reworked Armor-System (based on penetration chance not just damage re
 
 Uses the Escape from Tarkov Armor-Tiers and [Penetration logic](https://www.desmos.com/calculator/m8cmsfokkl?lang=en).
 
-Fixes masks to actually protect the player and ads the ability to allow vests to also protect arms and legs.
+Added new HitZones for arms, legs, tomach and face.
+
+Fixes masks to actually protect the player.
+Vests can protect parts of the arms and legs and you can chose wether they should protect the stomach.
+It can be chosen if Hats should protect the face.
 
 The System is fully customizable and is a perfect addition to all PvP focused Servers.
 
+You can select armor damage depending on damage and armor tier.
 If the server uses durability vanilla armor damage will be reverted to avoid double armor damage
 
 Allows bullets to break player bones based on chance. (based on https://github.com/IcePlugins/BoneHurtingBullets)
@@ -17,25 +22,65 @@ All Calculations are shown in this [Excell Sheet](https://docs.google.com/spread
 ## Settings
 | Name   |      Description      |
 |----------|-------------|
+|Version:|shows the actual version of the plugin (this field will be automatically generated)|
 |Debug:|shows debug infos in the server console (shows damge done / penchances and so on)|
 |BreakLegs: |if bone breaking bullets should be enabled|
-|BetterArmor:|if the new Armor system should be used (this is required for the mask fix, vests to protect arms or legs and ArmorClasses)|
+
+## BetterArmor
+| Name   |      Description      |
+|----------|-------------|
+|Enabled:|if the new Armor system should be used (this is required for the mask fix, VestExtensions, HatExtensions, ArmorClasses as well as BetterHitZones)|
 |UseArmorClasses:|if the armor should work as in vanilla or with the new penetration chances|
 |ArmorDamageMultiplierOnPen:|multiplier used for damage done to armor when penetrating armor|
-|PenDamgeDelta:|used to reduce pendamge loss with penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
+|PenDamgeDelta:|used to reduce pendamage loss with penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
 
-## vestsProtectingArms / Legs
+## BetterHitZones
+This includes the fllowing hitzone: stomach, face, multiple for legs and arms
+| Name   |      Description      |
+|----------|-------------|
+|Enabled:|if the new hitzones should be used|
+|HatsProtectFace:|if all hats should protect the face by default (every exeption hass to be specified as HatExtension)|
+|VestsProtectStomach:|if all bests should protect the stomach by default (every exeption hass to be specified as VestExtension)|
+
+## HatExtensions
+| Name   |      Description      |
+|----------|-------------|
+|Id:|id of the clothing|
+|Name:|The name of the item (this field will be automatically generated)|
+|ProtectFace:|if this hat should protect the face|
+|ArmorFace:|Vanilla armor rating for the faceshield from (0-1 where 1 is no armor)|
+
+```xml
+    <HatExtension>
+      <Id>1525</Id>
+      <Name>Military_Helmet_Spec_Ops</Name>
+      <ProtectFace>true</ProtectFace>
+      <ArmorFace>0.85</ArmorFace>
+    </HatExtension>
+```
+
+## VestExtensions
 Allows vests to also protect legs or arms (this can also be used with vanila armor logic)
 | Name   |      Description      |
 |----------|-------------|
-|Key:|id of the clothing|
-|Value:|the armor multiplier used for arms or legs|
+|Id:|id of the clothing|
+|Name:|The name of the item (this field will be automatically generated)|
+|ProtectStomach:|if this vest should protect the stomach|
+|ShoulderPlateLength:|0 - 0.9 (0 is disabled, 0.23 is only shoulder , 0.4 is upper arm, 0.9 is full arm)|
+|ArmorShoulderPlate:| vanilla armor rating for shoulders / arms from (0-1 where 1 is no armor)|
+|ThighPlateLength:|0 - 0.9 (0 is disabled, 0.3 is full thigh, 0.9 is full leg)|
+|ArmorThighPlate:| vanilla armor rating for thighs / legs from (0-1 where 1 is no armor)|
 
 ```xml
-    <Vest>
-      <Key>1169</Key>
-      <Value>0.75</Value>
-    </Vest>
+    <VestExtension>
+      <Id>1169</Id>
+      <Name>Vest_Spec_Ops</Name>
+      <ProtectStomach>true</ProtectStomach>
+      <ShoulderPlateLength>0.4</ShoulderPlateLength>
+      <ArmorShoulderPlate>0.45</ArmorShoulderPlate>
+      <ThighPlateLength>0</ThighPlateLength>
+      <ArmorThighPlate>1</ArmorThighPlate>
+    </VestExtension>
 ```
 
 ## ArmorClass
@@ -79,17 +124,19 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
     </ArmorClass>
 ```
 
-## gunPenValues:
+## GunExtension
 | Name   |      Description      |
 |----------|-------------|
-|Key:|the id of the gun|
-|Value:|the penetration stat|
+|Id:|the id of the gun|
+|Name:|The name of the item (this field will be automatically generated)|
+|Penetration:|the penetration stat of the gun|
 
 ```xml
-<Gun>
-    <Key>107</Key>
-    <Value>20</Value>
-</Gun>
+    <GunExtension>
+      <Id>107</Id>
+      <Name>Ace</Name>
+      <Penetration>17</Penetration>
+    </GunExtension>
 ```
 
 ## BulletLimbDamageChance

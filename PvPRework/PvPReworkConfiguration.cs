@@ -3,8 +3,6 @@ using SDG.Unturned;
 using SpeedMann.PvPRework.Models.Config;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace SpeedMann.PvPRework
@@ -12,41 +10,46 @@ namespace SpeedMann.PvPRework
     public class PVPReworkConfiguration : IRocketPluginConfiguration
     {
         #region Old
+        [ObsoleteAttribute("This property is obsolete. Use BetterArmorConfig.Enabled instead.", false)]
         [XmlElement(ElementName = "BetterArmor")]
-        [ObsoleteAttribute("This property is obsolete. Use BetterArmorConfig.Enabled instead.", false)] 
-        public bool BetterArmorOld; //if better armor calculations should be used (required for armorClasses and vestsProtectArms / Pants)
+        public bool OldBetterArmor;
         [ObsoleteAttribute("This property is obsolete. Use BetterArmorConfig.UseArmorClasses instead.", false)]
-        public bool UseArmorClasses; //defines if armor classes should be used
+        [XmlElement(ElementName = "UseArmorClasses")]
+        public bool OldUseArmorClasses;
         [ObsoleteAttribute("This property is obsolete. Use BetterArmorConfig.ArmorDamageMultiplierOnPen instead.", false)]
-        public float ArmorDamageMultiplierOnPen; //multiplier used for damage done to armor when penetrating armor
+        [XmlElement(ElementName = "ArmorDamageMultiplierOnPen")]
+        public float OldArmorDamageMultiplierOnPen;
         [ObsoleteAttribute("This property is obsolete. Use BetterArmorConfig.PenDamgeDelta instead.", false)]
-        public float PenDamgeDelta; //used to reduce pendamge loss on penetration chance
-                                    //(1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)
+        [XmlElement(ElementName = "PenDamgeDelta")]
+        public float OldPenDamgeDelta;
 
         [XmlArrayItem(ElementName = "Vest")]
-        [ObsoleteAttribute("This property is obsolete. Use VestsExtensions instead.", false)]
-        public List<KeyValuePair<ushort, float>> vestsProtectingArms;
+        public List<KeyValueElement<ushort, float>> vestsProtectingArms;
         [XmlArrayItem(ElementName = "Vest")]
-        [ObsoleteAttribute("This property is obsolete. Use VestsExtensions instead.", false)]
-        public List<KeyValuePair<ushort, float>> vestsProtectingLegs;
+        public List<KeyValueElement<ushort, float>> vestsProtectingLegs;
         [XmlArrayItem(ElementName = "Gun")]
-        [ObsoleteAttribute("This property is obsolete. Use GunExtensions instead.", false)]
-        public List<KeyValuePair<ushort, float>> gunPenValues;
+        public List<KeyValueElement<ushort, float>> gunPenValues;
+
+        [XmlArrayItem(ElementName = "ArmoClass")]
+        public List<ArmorClass> armorClasses;
+        [XmlArrayItem(ElementName = "BoneBreakingChance")]
+        public List<BulletLimbDamageChance> boneBreakingChances;
         #endregion
 
-        public List<ArmorClass> ArmorClasses;
-        public List<BulletLimbDamageChance> BoneBreakingChances;
-        public List<GunExtension> GunExtensions;
-        public List<HatExtension> HatExtensions;
-        public List<VestExtension> VestsExtensions;
-
+        public string Version; //auto updating Version Number
         public bool Debug; //to display debug information on server console
         public bool BreakLegs; //if bullets should be able to break legs
         public BetterArmorConfig BetterArmor;
 
+        public List<ArmorClass> ArmorClasses;
+        public List<BulletLimbDamageChance> BoneBreakingChances;
+        public List<HatExtension> HatExtensions;
+        public List<VestExtension> VestExtensions;
+        public List<GunExtension> GunExtensions;
 
         public void LoadDefaults()
         {
+            Version = PvPRework.PluginVersion;
             Debug = true;
             BreakLegs = true;
             BetterArmor = new BetterArmorConfig()
@@ -127,16 +130,16 @@ namespace SpeedMann.PvPRework
                 }
             };
 
-            VestsExtensions = new List<VestExtension>
+            VestExtensions = new List<VestExtension>
             {
                 new VestExtension()
                 {
                     Id = 1169,
                     Name = "Spec Ops Vest",
                     ProtectStomach = true,
-                    ShoulderPlateLength = 0,
+                    ShoulderPlateLength = 0.4f,
                     ArmorShoulderPlate = 0.65f,
-                    ThighPlateLength = 0,
+                    ThighPlateLength = 0.3f,
                     ArmorThighPlate = 0.65f,
                 },
                 new VestExtension()
@@ -224,6 +227,119 @@ namespace SpeedMann.PvPRework
                 new GunExtension() { Id = 1394, Name = "HMG", Penetration = 25 },
                 new GunExtension() { Id = 1471, Name = "HMG_Fighter_Jet", Penetration = 25 },
             };
+        }
+
+        public void updateConfig()
+        {
+            if (Version != "1.1.0")
+            {
+                ArmorClasses = new List<ArmorClass>();
+                HatExtensions = new List<HatExtension>();
+                VestExtensions = new List<VestExtension>();
+                GunExtensions = new List<GunExtension>();
+
+                BetterArmor = new BetterArmorConfig();
+                BetterArmor.Enabled = OldBetterArmor;
+                BetterArmor.UseArmorClasses = OldUseArmorClasses;
+                BetterArmor.ArmorDamageMultiplierOnPen = OldArmorDamageMultiplierOnPen;
+                BetterArmor.PenDamgeDelta = OldPenDamgeDelta;
+                BetterArmor.BetterHitZones = new BetterHitZonesConfig
+                {
+                    Enabled = true,
+                    HatsProtectFace = false,
+                    VestsProtectStomach = true,
+                };
+                if (gunPenValues != null)
+                {
+                    foreach (KeyValueElement<ushort, float> gunPenValue in gunPenValues)
+                    {
+                        if (gunPenValue.Key == 0)
+                            continue;
+
+                        GunExtension newGun = new GunExtension() { Id = gunPenValue.Key, Penetration = gunPenValue.Value };
+                        if (!GunExtensions.Exists(x => x.Id == newGun.Id))
+                        {
+                            GunExtensions.Add(newGun);
+                        }
+                    }
+                    gunPenValues = null;
+                }
+
+                if (vestsProtectingArms != null)
+                {
+                    foreach (KeyValueElement<ushort, float> vestValue in vestsProtectingArms)
+                    {
+                        if (vestValue.Key == 0)
+                            continue;
+
+                        ItemVestAsset vestAsset = (ItemVestAsset)Assets.find(EAssetType.ITEM, vestValue.Key);
+                        float armor = 1;
+                        if (vestAsset != null)
+                        {
+                            armor = vestAsset.armor * vestValue.Value;
+                        }
+                        VestExtension newVest = new VestExtension() { Id = vestValue.Key, ShoulderPlateLength = 0.4f, ArmorShoulderPlate = armor };
+                        if (!VestExtensions.Exists(x => x.Id == newVest.Id))
+                        {
+                            VestExtensions.Add(newVest);
+                        }
+                    }
+                    vestsProtectingArms = null;
+                }
+                if (vestsProtectingLegs != null)
+                {
+                    foreach (KeyValueElement<ushort, float> vestValue in vestsProtectingLegs)
+                    {
+                        if(vestValue.Key == 0)
+                            continue;
+
+                        ItemVestAsset vestAsset = (ItemVestAsset)Assets.find(EAssetType.ITEM, vestValue.Key);
+                        float armor = 1;
+                        if (vestAsset != null)
+                        {
+                            armor = vestAsset.armor * vestValue.Value;
+                        }
+                        VestExtension newVest = new VestExtension() { Id = vestValue.Key, ThighPlateLength = 0.4f, ArmorThighPlate = armor };
+                        if (!VestExtensions.Exists(x => x.Id == newVest.Id))
+                        {
+                            VestExtensions.Add(newVest);
+                        }
+                        else
+                        {
+                            VestExtension existingVest = VestExtensions.Find(x => x.Id == newVest.Id);
+                            if (existingVest != null)
+                            {
+                                existingVest.ThighPlateLength = newVest.ThighPlateLength;
+                                existingVest.ArmorThighPlate = newVest.ArmorThighPlate;
+                            }
+                        }
+                    }
+                    vestsProtectingLegs = null;
+                }
+
+                ArmorClasses = armorClasses;
+                armorClasses = null;
+                BoneBreakingChances = boneBreakingChances;
+                boneBreakingChances = null;
+            }
+
+            addNames(HatExtensions);
+            addNames(VestExtensions);
+            addNames(GunExtensions);
+
+            Version = PvPRework.PluginVersion;
+            PvPRework.Inst.Configuration.Save();
+        }
+        public void addNames<T>(List<T> itemExtensions) where T : ItemExtension
+        {
+            foreach (T itemExtension in itemExtensions)
+            {
+                ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, itemExtension.Id);
+                if (itemAsset != null)
+                {
+                    itemExtension.Name = itemAsset.name;
+                }
+            }
         }
     }
 }
