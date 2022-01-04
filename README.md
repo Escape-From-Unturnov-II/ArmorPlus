@@ -83,6 +83,21 @@ Allows vests to also protect legs or arms (this can also be used with vanila arm
     </VestExtension>
 ```
 
+## GunExtension
+| Name   |      Description      |
+|----------|-------------|
+|Id:|the id of the gun|
+|Name:|The name of the item (this field will be automatically generated)|
+|Penetration:|the penetration stat of the gun|
+
+```xml
+    <GunExtension>
+      <Id>107</Id>
+      <Name>Ace</Name>
+      <Penetration>17</Penetration>
+    </GunExtension>
+```
+
 ## ArmorClass
 Allows to define ArmorClasses by armor value (this is the "Armor" value provided in the clothing.dat) 
 
@@ -122,21 +137,6 @@ Penetration calculations are based on Tarkov logic: https://www.desmos.com/calcu
       <DamageToDamageArmorMax>40</DamageToDamageArmorMax>
       <StopDamageMulti>0.02</StopDamageMulti>
     </ArmorClass>
-```
-
-## GunExtension
-| Name   |      Description      |
-|----------|-------------|
-|Id:|the id of the gun|
-|Name:|The name of the item (this field will be automatically generated)|
-|Penetration:|the penetration stat of the gun|
-
-```xml
-    <GunExtension>
-      <Id>107</Id>
-      <Name>Ace</Name>
-      <Penetration>17</Penetration>
-    </GunExtension>
 ```
 
 ## BulletLimbDamageChance
