@@ -34,12 +34,13 @@ namespace SpeedMann.PvPRework
         }
         #region Events
         public delegate void PostGetInput(ref InputInfo inputInfo);
-
         public static event PostGetInput OnPostGetInput;
+
+        public delegate void PreWearHat(Player player, ushort newHatId);
+        public static event PreWearHat OnPreWearHat;
         #endregion
 
         #region Patches
-
         [HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
         class PlayerInputPatch
         {
@@ -47,6 +48,18 @@ namespace SpeedMann.PvPRework
             internal static void OnPostGetInputInvoker(ref InputInfo __result)
             {
                 OnPostGetInput?.Invoke(ref __result);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearHat), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        class PlayerWearHatPatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, ushort id)
+            {
+                OnPreWearHat?.Invoke(__instance.player, id);
+                return true;
             }
         }
         #endregion

@@ -57,6 +57,9 @@
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\server\steamapps\common\U3DS\Modules\Rocket.Unturned\Rocket.Unturned.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SDG.NetTransport">
+      <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
@@ -75,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper\SerializableDictionary.cs" />
+    <Compile Include="Helper\EffectController.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />

@@ -33,8 +33,7 @@ namespace SpeedMann.PvPRework.Models.Config
                 case ELimb.SPINE:
                     return ProtectStomach;
             }
-            return false;
-                
+            return false;   
         }
     }
 }

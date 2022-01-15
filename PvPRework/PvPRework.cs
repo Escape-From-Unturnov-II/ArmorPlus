@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using Rocket.Core.Plugins;
+using Rocket.Unturned;
+using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Models.Config;
@@ -26,7 +28,7 @@ namespace SpeedMann.PvPRework
         private Dictionary<ushort, GunExtension> gunExtensions;
         private Dictionary<ushort, VestExtension> vestExtensions;
         private Dictionary<ushort, HatExtension> hatExtensions;
-        private List<PlayerHit> playerHits = new List<PlayerHit>();
+        private List<PlayerHit> playerHits;
 
         #region Load
         protected override void Load()
@@ -36,7 +38,7 @@ namespace SpeedMann.PvPRework
 
             Conf.updateConfig();
 
-            playerHits.Clear();
+            playerHits = new List<PlayerHit>();
             //converts lists to dictionarys to increase performance
             gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
             vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
@@ -46,9 +48,11 @@ namespace SpeedMann.PvPRework
 
             UnturnedPatches.Init();
 
-
+            Level.onPreLevelLoaded += OnPreLevelLoaded;
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
-            if(Conf.BetterArmor.BetterHitZones.Enabled)
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+            UnturnedPatches.OnPreWearHat += OnHatChanged;
+            if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
@@ -64,11 +68,27 @@ namespace SpeedMann.PvPRework
         }
         protected override void Unload()
         {
+            Level.onPreLevelLoaded -= OnPreLevelLoaded;
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
+            U.Events.OnPlayerConnected -= OnPlayerConnected;
+            UnturnedPatches.OnPreWearHat -= OnHatChanged;
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput -= OnGetInput;
         }
+        private void OnPreLevelLoaded(int level)
+        {
+            Conf.addNames();
+        }
         #endregion
+
+        private void OnPlayerConnected(UnturnedPlayer player)
+        {
+            checkHatEffect(player, player.Player.clothing.hat, true);
+        }
+        private void OnHatChanged(Player player, ushort newHatId)
+        {
+            checkHatEffect(UnturnedPlayer.FromPlayer(player), newHatId);
+        }
 
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
@@ -117,7 +137,6 @@ namespace SpeedMann.PvPRework
         private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
         {
             respectArmor = false;
-
             bool didPenetrate = true; // set penetrate to true to avoid cancle on no vest or no helmet
 
             float armor = 1;
@@ -155,6 +174,7 @@ namespace SpeedMann.PvPRework
 
             switch (limb)
             {
+                #region Arms
                 case ELimb.LEFT_ARM:
                 case ELimb.RIGHT_ARM:
                 case ELimb.LEFT_HAND:
@@ -192,7 +212,8 @@ namespace SpeedMann.PvPRework
                         armor = calcVanillaArmor(player, vest, shirt, (useOuterArmor ? armorOverride : 1));
                     }
                     break;
-
+                #endregion
+                #region Legs
                 case ELimb.LEFT_LEG:
                 case ELimb.RIGHT_LEG:
                 case ELimb.LEFT_FOOT:
@@ -231,7 +252,8 @@ namespace SpeedMann.PvPRework
                         armor = calcVanillaArmor(player, vest, pants, (useOuterArmor ? armorOverride : 1));
                     }
                     break;
-
+                #endregion
+                #region Skull
                 case ELimb.SKULL:
                     useOuterArmor = false;
                     bool faceHit = foundHit && isFaceHit(limb, currentlocalHit);
@@ -279,7 +301,8 @@ namespace SpeedMann.PvPRework
                         
                     }
                     break;
-
+                #endregion
+                #region Body
                 case ELimb.SPINE:
                     useOuterArmor = false;
                     bool stomacheHit = foundHit && isStomachHit(limb, currentlocalHit);
@@ -323,7 +346,7 @@ namespace SpeedMann.PvPRework
                     {
                         if(!stomacheHit || useOuterArmor)
                         {
-                            armor = calcVanillaArmor(player, vest, shirt, 1);
+                            armor = calcVanillaArmor(player, vest, shirt, -1);
                         }
                         else
                         {
@@ -332,6 +355,7 @@ namespace SpeedMann.PvPRework
                         
                     }
                     break;
+                #endregion
                 default:
                     return;
             }
@@ -650,6 +674,18 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region HelperFunctions
+        private void checkHatEffect(UnturnedPlayer player, ushort hatId, bool spawned = false)
+        {
+            HatExtension hat;
+            if (!spawned && hatExtensions.TryGetValue(player.Player.clothing.hat, out hat) && hat.UnequipEffectId > 0)
+            {
+                EffectController.spawnUI(hat.UnequipEffectId, player.CSteamID);
+            }
+            if (hatExtensions.TryGetValue(hatId, out hat) && hat.EquipEffectId > 0)
+            {
+                EffectController.spawnUI(hat.EquipEffectId, player.CSteamID);
+            }
+        }
         private bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out Vector3 localPoint)
         {
             localPoint = Vector3.zero;

@@ -230,8 +230,8 @@ namespace SpeedMann.PvPRework
         }
 
         public void updateConfig()
-        {
-            if (Version != "1.1.0")
+        {           
+            if (Version == "")
             {
                 ArmorClasses = new List<ArmorClass>();
                 HatExtensions = new List<HatExtension>();
@@ -322,15 +322,23 @@ namespace SpeedMann.PvPRework
                 BoneBreakingChances = boneBreakingChances;
                 boneBreakingChances = null;
             }
+            else if(Version == "1.1.0"){
 
+            }
+
+
+            Version = PvPRework.PluginVersion;
+
+            PvPRework.Inst.Configuration.Save();
+        }
+        public void addNames()
+        {
             addNames(HatExtensions);
             addNames(VestExtensions);
             addNames(GunExtensions);
-
-            Version = PvPRework.PluginVersion;
             PvPRework.Inst.Configuration.Save();
         }
-        public void addNames<T>(List<T> itemExtensions) where T : ItemExtension
+        private void addNames<T>(List<T> itemExtensions) where T : ItemExtension
         {
             foreach (T itemExtension in itemExtensions)
             {
