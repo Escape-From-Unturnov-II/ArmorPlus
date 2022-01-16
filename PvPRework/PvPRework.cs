@@ -7,6 +7,7 @@ using SDG.Unturned;
 using SpeedMann.PvPRework.Models.Config;
 using Steamworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -50,10 +51,16 @@ namespace SpeedMann.PvPRework
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
-            U.Events.OnPlayerConnected += OnPlayerConnected;
-            UnturnedPatches.OnPreWearHat += OnHatChanged;
+
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;
+
+            // UI
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+            UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
+            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
+            //Glasses: PlayerEquipment.ReceiveToggleVisionRequest / updateVision
+
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
             {
@@ -70,10 +77,14 @@ namespace SpeedMann.PvPRework
         {
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
-            U.Events.OnPlayerConnected -= OnPlayerConnected;
-            UnturnedPatches.OnPreWearHat -= OnHatChanged;
+
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput -= OnGetInput;
+
+            //UI
+            U.Events.OnPlayerConnected -= OnPlayerConnected;
+            UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
+            UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
         }
         private void OnPreLevelLoaded(int level)
         {
@@ -83,9 +94,13 @@ namespace SpeedMann.PvPRework
 
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            checkHatEffect(player, player.Player.clothing.hat, true);
+            StartCoroutine(waiter(player));
         }
-        private void OnHatChanged(Player player, ushort newHatId)
+        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
+        {
+            checkHatEffect(player, 0);
+        }
+        private void OnPreHatChanged(Player player, ushort newHatId)
         {
             checkHatEffect(UnturnedPlayer.FromPlayer(player), newHatId);
         }
@@ -674,16 +689,25 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region HelperFunctions
+
         private void checkHatEffect(UnturnedPlayer player, ushort hatId, bool spawned = false)
         {
             HatExtension hat;
-            if (!spawned && hatExtensions.TryGetValue(player.Player.clothing.hat, out hat) && hat.UnequipEffectId > 0)
+            ushort oldId = 0;
+            ushort newId = 0;
+            if (!spawned && hatExtensions.TryGetValue(player.Player.clothing.hat, out hat) && hat.EquipEffectId > 0)
             {
+                oldId = hat.UnequipEffectId;
                 EffectController.spawnUI(hat.UnequipEffectId, player.CSteamID);
             }
             if (hatExtensions.TryGetValue(hatId, out hat) && hat.EquipEffectId > 0)
             {
+                newId = hat.EquipEffectId;
                 EffectController.spawnUI(hat.EquipEffectId, player.CSteamID);
+            }
+            if (Conf.Debug && oldId != 0 || newId != 0)
+            {
+                Logger.Log("Hat UI changed old unequip: " + oldId + " new equip: " + newId);
             }
         }
         private bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out Vector3 localPoint)
@@ -858,6 +882,11 @@ namespace SpeedMann.PvPRework
                     ).ToArray()
                 ) + "\n");
             }
+        }
+        private IEnumerator waiter(UnturnedPlayer player)
+        {
+            yield return new WaitForSeconds(2);
+            checkHatEffect(player, player.Player.clothing.hat, true);
         }
         #endregion
     }

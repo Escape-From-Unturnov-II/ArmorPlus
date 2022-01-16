@@ -29,7 +29,7 @@ namespace SpeedMann.PvPRework
             }
             catch (Exception e)
             {
-                Logger.LogError($"EventLoad: {e.Message}");
+                Logger.LogError($"ArmorPlus patches: {e.Message}");
             }
         }
         #region Events
@@ -37,7 +37,7 @@ namespace SpeedMann.PvPRework
         public static event PostGetInput OnPostGetInput;
 
         public delegate void PreWearHat(Player player, ushort newHatId);
-        public static event PreWearHat OnPreWearHat;
+        public static event PreWearHat OnPreChangeHat;
         #endregion
 
         #region Patches
@@ -52,13 +52,28 @@ namespace SpeedMann.PvPRework
         }
 
 
-        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearHat), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]
         class PlayerWearHatPatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, Guid id)
+            {
+                Asset asset = Assets.find(id);
+                if (asset != null)
+                {
+                    OnPreChangeHat?.Invoke(__instance.player, asset.id);
+                }
+
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearHat), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        class PlayerWearHatPatch2
         {
             [HarmonyPrefix]
             internal static bool OnPreWearHatInvoker(PlayerClothing __instance, ushort id)
             {
-                OnPreWearHat?.Invoke(__instance.player, id);
+                OnPreChangeHat?.Invoke(__instance.player, id);
                 return true;
             }
         }

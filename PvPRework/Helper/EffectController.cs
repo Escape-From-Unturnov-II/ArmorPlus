@@ -20,6 +20,7 @@ namespace SpeedMann.PvPRework
         public static void spawnUI(ushort effectId)
         {
             EffectManager.sendUIEffect(effectId, HatEffectKey, true);
+            
         }
         public static void spawnUI(ushort effectId, CSteamID executorID)
         {
@@ -29,8 +30,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to show UI (CSteamID not found)");
                 return;
             }
-            EffectManager.sendUIEffect(effectId, HatEffectKey, transportConnection, false);
-
+            EffectManager.sendUIEffect(effectId, HatEffectKey, transportConnection, true);
         }
         public static void setVisibility(bool visible, string panelName)
         {
