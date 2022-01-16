@@ -35,6 +35,8 @@ All Calculations are shown in this [Excell Sheet](https://docs.google.com/spread
 |UseArmorClasses:|if the armor should work as in vanilla or with the new penetration chances|
 |ArmorDamageMultiplierOnPen:|multiplier used for damage done to armor when penetrating armor|
 |PenDamgeDelta:|used to reduce pendamage loss with penetration chance (1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)|
+|HatEffectKey:|the key for the UI-Effects of hats (default is 5210)|
+|GlassesEffectKey:|the key for the UI-Effects of glasses (default is 5211)|
 
 ## BetterHitZones
 This includes the fllowing hitzone: stomach, face, multiple for legs and arms
@@ -66,6 +68,7 @@ This includes the fllowing hitzone: stomach, face, multiple for legs and arms
 ```
 
 ## GlassesExtensions
+Currently only NVGs are available in this category (UI will display when NVG is active)
 | Name   |      Description      |
 |----------|-------------|
 |Id:|id of the clothing|
