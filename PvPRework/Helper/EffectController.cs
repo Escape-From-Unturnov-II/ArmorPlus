@@ -14,15 +14,12 @@ namespace SpeedMann.PvPRework
 
     class EffectController
     {
-        //EventManager UI 
-        public static short HatEffectKey = 5210;
-
-        public static void spawnUI(ushort effectId)
+        public static void spawnUI(ushort effectId, short effectKey)
         {
-            EffectManager.sendUIEffect(effectId, HatEffectKey, true);
+            EffectManager.sendUIEffect(effectId, effectKey, true);
             
         }
-        public static void spawnUI(ushort effectId, CSteamID executorID)
+        public static void spawnUI(ushort effectId, short effectKey, CSteamID executorID)
         {
             ITransportConnection transportConnection = Provider.findTransportConnection(executorID);
             if (transportConnection == null)
@@ -30,17 +27,17 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to show UI (CSteamID not found)");
                 return;
             }
-            EffectManager.sendUIEffect(effectId, HatEffectKey, transportConnection, true);
+            EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
         }
-        public static void setVisibility(bool visible, string panelName)
+        public static void setVisibility(bool visible, short effectKey, string panelName)
         {
             foreach (SteamPlayer player in Provider.clients)
             {
                 UnturnedPlayer uPlayer = UnturnedPlayer.FromSteamPlayer(player);
-                setVisibility(visible, panelName, uPlayer.CSteamID);
+                setVisibility(visible, effectKey, panelName, uPlayer.CSteamID);
             }
         }
-        public static void setVisibility(bool visible, string panelName, CSteamID executorID)
+        public static void setVisibility(bool visible, short effectKey, string panelName, CSteamID executorID)
         {
             ITransportConnection transportConnection = Provider.findTransportConnection(executorID);
             if (transportConnection == null)
@@ -48,7 +45,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to hide UI (CSteamID not found)");
                 return;
             }
-            EffectManager.sendUIEffectVisibility(HatEffectKey, transportConnection, false, panelName, visible);
+            EffectManager.sendUIEffectVisibility(effectKey, transportConnection, false, panelName, visible);
         }
     }
 }

@@ -44,6 +44,7 @@ namespace SpeedMann.PvPRework
         public List<ArmorClass> ArmorClasses;
         public List<BulletLimbDamageChance> BoneBreakingChances;
         public List<HatExtension> HatExtensions;
+        public List<GlassesExtension> GlassesExtensions;
         public List<VestExtension> VestExtensions;
         public List<GunExtension> GunExtensions;
 
@@ -117,6 +118,17 @@ namespace SpeedMann.PvPRework
                     DamageToDamageArmorMin = 15, DamageToDamageArmorMax = 80,
                     MinArmorDamage = 1, MaxArmorDamage = 4,
                     StopDamageMulti = 0.02f, PenLossMulti = 0.35f},
+            };
+
+            GlassesExtensions = new List<GlassesExtension>()
+            {
+                new GlassesExtension()
+                {
+                    Id = 334,
+                    Name = "Military Nightvision",
+                    EquipEffectId = 0,
+                    UnequipEffectId = 0,
+                }
             };
 
             HatExtensions = new List<HatExtension>
@@ -321,9 +333,23 @@ namespace SpeedMann.PvPRework
                 armorClasses = null;
                 BoneBreakingChances = boneBreakingChances;
                 boneBreakingChances = null;
+                Version = "1.1.0";
             }
-            else if(Version == "1.1.0"){
+            if(Version == "1.1.0"){
+                BetterArmor.GlassesEffectKey = 5210;
+                BetterArmor.HatEffectKey = 5211;
+                GlassesExtensions = new List<GlassesExtension>()
+                {
+                    new GlassesExtension()
+                    {
+                        Id = 334,
+                        Name = "Military Nightvision",
+                        EquipEffectId = 0,
+                        UnequipEffectId = 0,
+                    }
+                };
 
+                Version = "1.2.0";
             }
 
 
@@ -334,6 +360,7 @@ namespace SpeedMann.PvPRework
         public void addNames()
         {
             addNames(HatExtensions);
+            addNames(GlassesExtensions);
             addNames(VestExtensions);
             addNames(GunExtensions);
             PvPRework.Inst.Configuration.Save();

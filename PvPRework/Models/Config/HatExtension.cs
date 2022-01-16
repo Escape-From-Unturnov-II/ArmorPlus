@@ -7,12 +7,11 @@ using UnityEngine;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class HatExtension : ItemExtension
+    public class HatExtension : ItemUIExtension
     {
         public bool ProtectFace = false; // if this hat should protect the face
         public float ArmorFace = 1; // vanilla armor rating from (0-1 where 1 is no armor)
-        public ushort EquipEffectId = 0;
-        public ushort UnequipEffectId = 0;
+
         /*
         public bool ProtectEars = false;
         public float ArmorEars = 1; // vanilla armor rating from (0-1 where 1 is no armor)

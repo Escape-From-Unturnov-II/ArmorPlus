@@ -17,7 +17,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.1.0";
+        public static string PluginVersion = "1.2.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
@@ -29,6 +29,7 @@ namespace SpeedMann.PvPRework
         private Dictionary<ushort, GunExtension> gunExtensions;
         private Dictionary<ushort, VestExtension> vestExtensions;
         private Dictionary<ushort, HatExtension> hatExtensions;
+        private Dictionary<ushort, GlassesExtension> glassesExtensions;
         private List<PlayerHit> playerHits;
 
         #region Load
@@ -44,8 +45,7 @@ namespace SpeedMann.PvPRework
             gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
             vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
             hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
-
-            printPluginInfo();
+            glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
 
             UnturnedPatches.Init();
 
@@ -58,8 +58,8 @@ namespace SpeedMann.PvPRework
             // UI
             U.Events.OnPlayerConnected += OnPlayerConnected;
             UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
+            UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
-            //Glasses: PlayerEquipment.ReceiveToggleVisionRequest / updateVision
 
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
@@ -89,6 +89,7 @@ namespace SpeedMann.PvPRework
         private void OnPreLevelLoaded(int level)
         {
             Conf.addNames();
+            printPluginInfo();
         }
         #endregion
 
@@ -98,11 +99,24 @@ namespace SpeedMann.PvPRework
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
-            checkHatEffect(player, 0);
+            checkClothingEffect(hatExtensions, player, 0);
+            checkClothingEffect(glassesExtensions, player, 0);
         }
         private void OnPreHatChanged(Player player, ushort newHatId)
         {
-            checkHatEffect(UnturnedPlayer.FromPlayer(player), newHatId);
+            checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
+        }
+        private void OnVisionChanged(Player player, ushort glassesId, bool activate)
+        {
+            if (activate)
+            {
+                checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), glassesId);
+            }
+            else
+            {
+                checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
+            }
+            
         }
 
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
@@ -690,24 +704,42 @@ namespace SpeedMann.PvPRework
 
         #region HelperFunctions
 
-        private void checkHatEffect(UnturnedPlayer player, ushort hatId, bool spawned = false)
+        private void checkClothingEffect<T>(Dictionary<ushort, T> clothingExtensions,UnturnedPlayer player, ushort clothingId, bool spawned = false) where T : ItemUIExtension
         {
-            HatExtension hat;
+            T clothingExtension;
+            ushort equipedClothingId;
+            short effectKey;
             ushort oldId = 0;
             ushort newId = 0;
-            if (!spawned && hatExtensions.TryGetValue(player.Player.clothing.hat, out hat) && hat.EquipEffectId > 0)
+
+            if (typeof(T).Equals(typeof(GlassesExtension)))
             {
-                oldId = hat.UnequipEffectId;
-                EffectController.spawnUI(hat.UnequipEffectId, player.CSteamID);
+                effectKey = Conf.BetterArmor.GlassesEffectKey;
+                equipedClothingId = player.Player.clothing.glasses;
             }
-            if (hatExtensions.TryGetValue(hatId, out hat) && hat.EquipEffectId > 0)
+            else if (typeof(T).Equals(typeof(HatExtension)))
             {
-                newId = hat.EquipEffectId;
-                EffectController.spawnUI(hat.EquipEffectId, player.CSteamID);
+                effectKey = Conf.BetterArmor.HatEffectKey;
+                equipedClothingId = player.Player.clothing.hat;
+            }
+            else
+            {
+                return;
+            }
+
+            if (!spawned && clothingExtensions.TryGetValue(equipedClothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
+            {
+                oldId = clothingExtension.UnequipEffectId;
+                EffectController.spawnUI(clothingExtension.UnequipEffectId, effectKey, player.CSteamID);
+            }
+            if (clothingExtensions.TryGetValue(clothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
+            {
+                newId = clothingExtension.EquipEffectId;
+                EffectController.spawnUI(clothingExtension.EquipEffectId, effectKey, player.CSteamID);
             }
             if (Conf.Debug && oldId != 0 || newId != 0)
             {
-                Logger.Log("Hat UI changed old unequip: " + oldId + " new equip: " + newId);
+                Logger.Log("Clothing UI changed old unequip: " + oldId + " new equip: " + newId);
             }
         }
         private bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out Vector3 localPoint)
@@ -867,7 +899,16 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("HatExtensions:\n" + String.Join(
                     "\n", hatExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ProtectFace: " + x.Value.ProtectFace + " FaceArmor: " + x.Value.ArmorFace
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ProtectFace: {x.Value.ProtectFace} FaceArmor: {x.Value.ArmorFace} \n"+
+                         $"EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
+                    ).ToArray()
+                ) + "\n");
+            }
+            if (glassesExtensions != null && glassesExtensions.Count() >= 0)
+            {
+                Logger.Log("GlassesExtensions:\n" + String.Join(
+                    "\n", hatExtensions.Select(
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
                     ).ToArray()
                 ) + "\n");
             }
@@ -886,7 +927,8 @@ namespace SpeedMann.PvPRework
         private IEnumerator waiter(UnturnedPlayer player)
         {
             yield return new WaitForSeconds(2);
-            checkHatEffect(player, player.Player.clothing.hat, true);
+            checkClothingEffect(hatExtensions, player, player.Player.clothing.hat, true);
+            checkClothingEffect(glassesExtensions, player, player.Player.clothing.glasses);
         }
         #endregion
     }

@@ -38,6 +38,9 @@ namespace SpeedMann.PvPRework
 
         public delegate void PreWearHat(Player player, ushort newHatId);
         public static event PreWearHat OnPreChangeHat;
+
+        public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
+        public static event PreVisionChanged OnPreVisionChanged;
         #endregion
 
         #region Patches
@@ -74,6 +77,26 @@ namespace SpeedMann.PvPRework
             internal static bool OnPreWearHatInvoker(PlayerClothing __instance, ushort id)
             {
                 OnPreChangeHat?.Invoke(__instance.player, id);
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(Player), nameof(Player.updateGlassesLights))]
+        class EquipmentToggleVision
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreChangeVisionInvoker(Player __instance, bool on)
+            {
+                OnPreVisionChanged?.Invoke(__instance, __instance.clothing.glasses, on);
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearGlasses), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        class PlayerWearGlassesPatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreWearGlassesInvoker(PlayerClothing __instance, ushort id)
+            {
+                OnPreVisionChanged?.Invoke(__instance.player, __instance.player.clothing.glasses, false);
                 return true;
             }
         }

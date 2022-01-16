@@ -9,6 +9,8 @@ Added new HitZones for arms, legs, tomach and face.
 Fixes masks to actually protect the player.
 Vests can protect parts of the arms and legs and you can chose wether they should protect the stomach.
 It can be chosen if Hats should protect the face.
+Can spawn Custom UIEffects when equiping and unequiping hats and anabling / disabling nightvision.
+When Using Hat UIEffects and Glasses UIEffects make sure that the Glasses UIEffect Canvas SortOrder is higher than the on on for hats.
 
 The System is fully customizable and is a perfect addition to all PvP focused Servers.
 
@@ -47,6 +49,8 @@ This includes the fllowing hitzone: stomach, face, multiple for legs and arms
 |----------|-------------|
 |Id:|id of the clothing|
 |Name:|The name of the item (this field will be automatically generated)|
+|EquipEffectId:|The Id of the UI-Effect that should be played when equiping the Hat (0 is no effect)|
+|UnequipEffectId:|The Id of the UI-Effect that should be played when unequiping the Hat, or 0 to just remove the current one|
 |ProtectFace:|if this hat should protect the face|
 |ArmorFace:|Vanilla armor rating for the faceshield from (0-1 where 1 is no armor)|
 
@@ -54,9 +58,28 @@ This includes the fllowing hitzone: stomach, face, multiple for legs and arms
     <HatExtension>
       <Id>1525</Id>
       <Name>Military_Helmet_Spec_Ops</Name>
+      <EquipEffectId>0</EquipEffectId>
+      <UnequipEffectId>0</UnequipEffectId>
       <ProtectFace>true</ProtectFace>
       <ArmorFace>0.85</ArmorFace>
     </HatExtension>
+```
+
+## GlassesExtensions
+| Name   |      Description      |
+|----------|-------------|
+|Id:|id of the clothing|
+|Name:|The name of the item (this field will be automatically generated)|
+|EquipEffectId:|The Id of the UI-Effect that should be played when enabling Nightvison (0 is no effect)|
+|UnequipEffectId:|The Id of the UI-Effect that should be played when disabling Nightvison, or 0 to just remove the current one|
+
+```xml
+    <GlassesExtension>
+      <Id>334</Id>
+      <Name>Military_Nightvision</Name>
+      <EquipEffectId>0</EquipEffectId>
+      <UnequipEffectId>0</UnequipEffectId>
+    </GlassesExtension>
 ```
 
 ## VestExtensions
