@@ -54,7 +54,7 @@ This includes the fllowing hitzone: stomach, face, multiple for legs and arms
 |EquipEffectId:|The Id of the UI-Effect that should be played when equiping the Hat (0 is no effect)|
 |UnequipEffectId:|The Id of the UI-Effect that should be played when unequiping the Hat, or 0 to just remove the current one|
 |ProtectFace:|if this hat should protect the face|
-|ArmorFace:|Vanilla armor rating for the faceshield from (0-1 where 1 is no armor)|
+|ArmorFace:|Vanilla armor rating for the faceshield from 0-1 (1 is no armor / -1 equals to default armor for the hat)|
 
 ```xml
     <HatExtension>
@@ -93,9 +93,9 @@ Allows vests to also protect legs or arms (this can also be used with vanila arm
 |Name:|The name of the item (this field will be automatically generated)|
 |ProtectStomach:|if this vest should protect the stomach|
 |ShoulderPlateLength:|0 - 0.9 (0 is disabled, 0.23 is only shoulder , 0.4 is upper arm, 0.9 is full arm)|
-|ArmorShoulderPlate:| vanilla armor rating for shoulders / arms from (0-1 where 1 is no armor)|
+|ArmorShoulderPlate:|vanilla armor rating for thighs / legs from 0-1 (1 is no armor / -1 equals to default armor for the vest)|
 |ThighPlateLength:|0 - 0.9 (0 is disabled, 0.3 is full thigh, 0.9 is full leg)|
-|ArmorThighPlate:| vanilla armor rating for thighs / legs from (0-1 where 1 is no armor)|
+|ArmorThighPlate:|vanilla armor rating for thighs / legs from 0-1 (1 is no armor / -1 equals to default armor for the vest)|
 
 ```xml
     <VestExtension>

@@ -21,6 +21,7 @@ namespace SpeedMann.PvPRework
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
+        private static bool ModsLoaded = false;
 
         private static TimeSpan PlayerHitMaxAge = new TimeSpan(0,0,2);
 
@@ -68,6 +69,10 @@ namespace SpeedMann.PvPRework
             }
             HasDuribility = Provider.modeConfigData.Items.Has_Durability;
 
+            if (ModsLoaded)
+            {
+                printPluginInfo();
+            }
             /* TODO: Add Plugin for item storage update (clothing keep items)
              * Use metadate to save storage id (check if possible)
              * Use /vault plugin storage to open cloting from ground or inventory (check if mod is possible)
@@ -294,6 +299,7 @@ namespace SpeedMann.PvPRework
                             hatExtensions.TryGetValue(hat.id, out hatExtension);
                             if (hatExtension != null && hatExtension.ProtectFace)
                             {
+                                armorOverride = hatExtension.ArmorFace;
                                 useOuterArmor = hatExtension.ProtectFace;
                             }
                         }
@@ -309,7 +315,7 @@ namespace SpeedMann.PvPRework
 
                         if (hat != null && !faceHit || useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, hat, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, hat, ref damage, ref pen, normalizedDamage, armorOverride);
                         }
 
                         if (didPenetrate && mask != null)
@@ -858,32 +864,61 @@ namespace SpeedMann.PvPRework
         private void printPluginInfo()
         {
 
-            Logger.Log("ArmorPus by SpeedMann Loaded, ");
+            Logger.Log("\nArmorPlus by SpeedMann Loaded, ");
+
+            if (Conf.BetterArmor.Enabled)
+            {
+                BetterArmorConfig betterA = Conf.BetterArmor;
+                Logger.Log("Enabled BetterArmor:\n"
+                + (betterA.UseArmorClasses ? $" ArmorDamageMultiplierOnPen: {betterA.ArmorDamageMultiplierOnPen} PenDamgeDelta: {betterA.PenDamgeDelta}\n" : "")
+                + $" GlassesEffectKey: {betterA.GlassesEffectKey} HatEffectKey: {betterA.HatEffectKey}\n"
+                );
+            }
+            else
+            {
+                Logger.Log("Disabled BetterArmor:\n");
+            }
             if (Conf.BreakLegs && !Conf.BoneBreakingChances.IsEmpty())
+            {
                 Logger.Log("Enabled BreakLegs:\n" + String.Join(
                     "\n", Conf.BoneBreakingChances.Select(
-                        x => $"{x.Limb}: Min {x.BreakChanceMin}% Max {x.BreakChanceMax}% DamageMin {x.BreakChanceDamageMin} DamageMax {x.BreakChanceDamageMax}"
+                        x => $" {x.Limb}: Min {x.BreakChanceMin}% Max {x.BreakChanceMax}% DamageMin {x.BreakChanceDamageMin} DamageMax {x.BreakChanceDamageMax}"
                     ).ToArray()
                 ) + "\n");
-
+            }
+            else
+            {
+                Logger.Log("Disabled BreakLegs:\n");
+            }
+                
             if (Conf.BetterArmor.UseArmorClasses && !Conf.ArmorClasses.IsEmpty())
+            {
                 Logger.Log("Enabled ArmorClasses:\n" + String.Join(
                     "\n", Conf.ArmorClasses.Select(
-                        x => $"Armor {x.Armor}: Tier {x.Tier}\n" +
-                        $" PercentForNormalDamage: {x.PercentForNormalDamage} PercentForMaxDamage: {x.PercentForMaxDamage}\n" +
-                        $" DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
-                        $" MinArmorDamage: {x.MinArmorDamage} MaxArmorDamage: {x.MaxArmorDamage}\n" +
-                        $" DamageToDamageArmorMin: {x.DamageToDamageArmorMin} DamageToDamageArmorMax: {x.DamageToDamageArmorMax}\n" +
-                        $" StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
+                        x => $" Armor {x.Armor}: Tier {x.Tier}\n" +
+                        $"  PercentForNormalDamage: {x.PercentForNormalDamage} PercentForMaxDamage: {x.PercentForMaxDamage}\n" +
+                        $"  DamageMultiplierMin: {x.DamageMultiplierMin} DamageMultiplierNormal: {x.DamageMultiplierNormal}\n" +
+                        $"  MinArmorDamage: {x.MinArmorDamage} MaxArmorDamage: {x.MaxArmorDamage}\n" +
+                        $"  DamageToDamageArmorMin: {x.DamageToDamageArmorMin} DamageToDamageArmorMax: {x.DamageToDamageArmorMax}\n" +
+                        $"  StopDamageMulti: {x.StopDamageMulti} PenLossMulti: {x.PenLossMulti}"
                     ).ToArray()
                 ) + "\n");
-
+            }
+            else
+            {
+                Logger.Log("Disabled ArmorClasses:\n");
+            }
+               
             if (Conf.BetterArmor.BetterHitZones.Enabled)
             {
                 BetterHitZonesConfig bHitZones = Conf.BetterArmor.BetterHitZones;
                 Logger.Log("Enabled BetterHitZones:\n" 
-                    + (bHitZones.HatsProtectFace ? "All Hats protect the face by default" : "Hats do not protect the face by default") + "\n"
-                    + (bHitZones.VestsProtectStomach ? "All Vests protect the stomach by default" : "Vests do not protect the stomach by default") + "\n");
+                    + (bHitZones.HatsProtectFace ? " All Hats protect the face by default" : " Hats do not protect the face by default") + "\n"
+                    + (bHitZones.VestsProtectStomach ? " All Vests protect the stomach by default" : " Vests do not protect the stomach by default") + "\n");
+            }
+            else
+            {
+                Logger.Log("Disabled BetterHitZones:\n");
             }
 
             if (gunExtensions != null && gunExtensions.Count() >= 0)
@@ -899,8 +934,9 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("HatExtensions:\n" + String.Join(
                     "\n", hatExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] ProtectFace: {x.Value.ProtectFace} FaceArmor: {x.Value.ArmorFace} \n"+
-                         $"EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}]\n" +
+                         $"  ProtectFace: {x.Value.ProtectFace} FaceArmor: {x.Value.ArmorFace} \n"+
+                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
                     ).ToArray()
                 ) + "\n");
             }
@@ -908,7 +944,8 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("GlassesExtensions:\n" + String.Join(
                     "\n", hatExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] \n" +
+                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
                     ).ToArray()
                 ) + "\n");
             }
@@ -916,13 +953,15 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("VestsExtensions:\n" + String.Join(
                     "\n", vestExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] "
-                         + (x.Value.ProtectStomach ? "\n  ProtectsStomach ":"")
-                         + (x.Value.ShoulderPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ShoulderPlateLength + " Armor: " + x.Value.ArmorShoulderPlate + " ": "") 
-                         + (x.Value.ThighPlateLength > 0 ? "\n   ShoulderPlateLength: " + x.Value.ThighPlateLength + " Armor: " + x.Value.ArmorThighPlate : "")
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}]\n"
+                         + $"  ProtectsStomach: {x.Value.ProtectStomach}"
+                         + (x.Value.ShoulderPlateLength > 0 ? $"\n  ShoulderPlateLength: {x.Value.ShoulderPlateLength} Armor: {x.Value.ArmorShoulderPlate}" : "") 
+                         + (x.Value.ThighPlateLength > 0 ? $"\n  ShoulderPlateLength: {x.Value.ThighPlateLength} Armor: {x.Value.ArmorThighPlate}" : "")
                     ).ToArray()
                 ) + "\n");
             }
+
+            ModsLoaded = true;
         }
         private IEnumerator waiter(UnturnedPlayer player)
         {
