@@ -904,7 +904,7 @@ namespace SpeedMann.PvPRework
             if (glassesExtensions != null && glassesExtensions.Count() >= 0)
             {
                 Logger.Log("GlassesExtensions:\n" + String.Join(
-                    "\n", hatExtensions.Select(
+                    "\n", glassesExtensions.Select(
                          x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] \n" +
                          $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
                     ).ToArray()
