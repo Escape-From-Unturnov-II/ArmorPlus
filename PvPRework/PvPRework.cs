@@ -60,7 +60,7 @@ namespace SpeedMann.PvPRework
             U.Events.OnPlayerConnected += OnPlayerConnected;
             UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
-            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
+            UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
@@ -89,7 +89,7 @@ namespace SpeedMann.PvPRework
             //UI
             U.Events.OnPlayerConnected -= OnPlayerConnected;
             UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
-            UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
+            UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
         }
         private void OnPreLevelLoaded(int level)
         {
@@ -102,11 +102,19 @@ namespace SpeedMann.PvPRework
         {
             StartCoroutine(waiter(player));
         }
-        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
+
+        private void OnPlayerDead(UnturnedPlayer player, Vector3 position)
         {
-            EffectController.checkClothingEffect(hatExtensions, player, 0);
-            EffectController.checkClothingEffect(glassesExtensions, player, 0);
+            if(player.Player.clothing.hat == 0)
+            {
+                EffectController.spawnUI(0, Conf.BetterArmor.HatEffectKey, player.CSteamID);
+            }
+            if(player.Player.clothing.glasses == 0)
+            {
+                EffectController.spawnUI(0, Conf.BetterArmor.GlassesEffectKey, player.CSteamID);
+            }
         }
+        
         private void OnPreHatChanged(Player player, ushort newHatId)
         {
             EffectController.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
