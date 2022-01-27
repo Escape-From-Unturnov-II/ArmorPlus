@@ -35,8 +35,6 @@ namespace SpeedMann.PvPRework
             T clothingExtension;
             ushort equipedClothingId;
             short effectKey;
-            ushort uneqipId = 0;
-            ushort equipId = 0;
 
             if (typeof(T).Equals(typeof(GlassesExtension)))
             {
@@ -58,13 +56,13 @@ namespace SpeedMann.PvPRework
             {
                 spawnUI(clothingExtension.UnequipEffectId, effectKey, player.CSteamID);
                 if (conf.Debug)
-                    Logger.Log("Clothing UI enabled: " + equipId);
+                    Logger.Log($"Clothing UI for Item: {equipedClothingId} disabled with: {clothingExtension.UnequipEffectId}");
             }
             if (clothingExtensions.TryGetValue(clothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
             {
                 spawnUI(clothingExtension.EquipEffectId, effectKey, player.CSteamID);
                 if (conf.Debug)
-                    Logger.Log("Clothing UI disabled with: " + uneqipId);
+                    Logger.Log($"Clothing UI for Item: {equipedClothingId} enabled: {clothingExtension.EquipEffectId}");
             }
         }
         public static void spawnUI(ushort effectId, short effectKey)

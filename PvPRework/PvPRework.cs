@@ -4,6 +4,7 @@ using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models.Config;
 using Steamworks;
 using System;
@@ -17,7 +18,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.2.0";
+        public static string PluginVersion = "1.3.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
@@ -48,6 +49,7 @@ namespace SpeedMann.PvPRework
             hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
             glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
 
+            UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
@@ -82,6 +84,8 @@ namespace SpeedMann.PvPRework
         {
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
+
+            UnturnedPatches.Cleanup();
 
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput -= OnGetInput;
@@ -184,24 +188,19 @@ namespace SpeedMann.PvPRework
             float armor = 1;
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
             UnturnedPlayer oponent = UnturnedPlayer.FromCSteamID(oponentId);
-            ItemWeaponAsset oponentWeapon = null;
-            
-            if (oponent.Player.equipment.asset is ItemWeaponAsset)
-            {
-                oponentWeapon = (ItemWeaponAsset)oponent.Player.equipment.asset;
-            }
 
             VestExtension vestExtension = null;
             HatExtension hatExtension = null;
-            GunExtension gunExtension = null;
-            gunExtensions.TryGetValue(oponent.Player.equipment.asset.id, out gunExtension);
-            float pen = gunExtension != null ? gunExtension.Penetration : 0;
 
             ItemHatAsset hat = player.clothing.hatAsset;
             ItemMaskAsset mask = player.clothing.maskAsset;
             ItemVestAsset vest = player.clothing.vestAsset;
             ItemShirtAsset shirt = player.clothing.shirtAsset;
             ItemPantsAsset pants = player.clothing.pantsAsset;
+
+            ItemWeaponAsset oponentWeapon;
+
+            float pen = getCurrentPenetration(player, out oponentWeapon);
 
             float normalizedDamage = 0;
 
@@ -717,6 +716,39 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region HelperFunctions
+        internal float getCurrentPenetration(Player player, out ItemWeaponAsset weapon)
+        {
+            weapon = null;
+            Attachments gunAttachments = null;
+            GunExtension gunExtension = null;
+            
+            if (player.equipment?.asset is ItemWeaponAsset)
+            {
+                weapon = (ItemWeaponAsset)player.equipment.asset;
+                if (player.equipment.useable is UseableGun)
+                {
+                    UseableGun oponentGun = (UseableGun)player.equipment.useable;
+                    UnturnedPrivateFields.getGunAttachments(oponentGun, out gunAttachments);
+                }
+                gunExtensions.TryGetValue(player.equipment.asset.id, out gunExtension);
+            }
+            
+            float pen = 0;
+            if (gunExtension != null)
+            {
+                pen = gunExtension.Penetration;
+                if (gunAttachments != null && gunExtension.MagazineOverrides?.Count > 0)
+                {
+                    MagazineOverride magOver = gunExtension.MagazineOverrides.Find(x => x.Id == gunAttachments.magazineID);
+                    if (magOver != null)
+                    {
+                        pen = magOver.Penetration;
+                    }
+                }
+            }
+
+            return pen;
+        }
         private bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out Vector3 localPoint)
         {
             localPoint = Vector3.zero;
@@ -894,7 +926,12 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("GunExtensions:\n" + String.Join(
                     "\n", gunExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] Penetration: " + x.Value.Penetration
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] Penetration: {x.Value.Penetration}"+
+                         (x.Value.MagazineOverrides != null && x.Value.MagazineOverrides.Count() > 0 ? String.Join(
+                             "", x.Value.MagazineOverrides.Select(
+                                 y => $"\n  {Assets.find(EAssetType.ITEM, y.Id)?.name ?? "> INVALID ID <"} [{y.Id}] PenetrationOverride: {y.Penetration}" 
+                             ).ToArray()
+                         ) : "")
                     ).ToArray()
                 ) + "\n");
             }

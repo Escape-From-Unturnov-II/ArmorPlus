@@ -81,6 +81,7 @@
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\EffectController.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
+    <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
@@ -89,8 +90,10 @@
     <Compile Include="Models\Config\HatExtension.cs" />
     <Compile Include="Models\Config\ItemExtension.cs" />
     <Compile Include="Models\Config\ItemUIExtension.cs" />
+    <Compile Include="Models\Config\MagazineOverride.cs" />
     <Compile Include="Models\Config\VestExtension.cs" />
     <Compile Include="Models\PlayerHit.cs" />
+    <Compile Include="PvPReworkCommands.cs" />
     <Compile Include="PvPRework.cs" />
     <Compile Include="PvPReworkConfiguration.cs" />
     <Compile Include="Models\BulletLimbDamageChance.cs" />

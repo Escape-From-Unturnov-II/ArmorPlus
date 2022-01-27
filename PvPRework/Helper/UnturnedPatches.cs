@@ -32,6 +32,28 @@ namespace SpeedMann.PvPRework
                 Logger.LogError($"ArmorPlus patches: {e.Message}");
             }
         }
+        public static void Cleanup()
+        {
+            try
+            {
+                Harmony harmony = new Harmony("SpeedMann.PvPRework");
+                harmony.UnpatchAll();
+
+                if (PvPRework.Conf.Debug)
+                {
+                    var myOriginalMethods = harmony.GetPatchedMethods();
+                    Logger.Log("Patched Methods:");
+                    foreach (var method in myOriginalMethods)
+                    {
+                        Logger.Log(" " + method.ToString());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"ArmorPlus patches: {e.Message}");
+            }
+        }
         #region Events
         public delegate void PostGetInput(ref InputInfo inputInfo);
         public static event PostGetInput OnPostGetInput;

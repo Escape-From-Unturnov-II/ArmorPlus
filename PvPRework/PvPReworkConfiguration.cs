@@ -1004,7 +1004,7 @@ namespace SpeedMann.PvPRework
                     }
                 };
 
-                Version = "1.2.0";
+                Version = "1.3.0";
             }
 
             #region clearOldValues
@@ -1025,6 +1025,13 @@ namespace SpeedMann.PvPRework
             addNames(GlassesExtensions);
             addNames(VestExtensions);
             addNames(GunExtensions);
+            foreach(GunExtension gunEx in GunExtensions)
+            {
+                if(gunEx.MagazineOverrides != null)
+                {
+                    addNames(gunEx.MagazineOverrides);
+                }
+            }
             PvPRework.Inst.Configuration.Save();
         }
         private void addNames<T>(List<T> itemExtensions) where T : ItemExtension
