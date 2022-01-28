@@ -52,6 +52,7 @@ namespace SpeedMann.PvPRework
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
 
+            UnturnedPlayerEvents.OnPlayerUpdateStance += OnStanceChanged;
             Level.onPreLevelLoaded += OnPreLevelLoaded;
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
 
@@ -82,6 +83,7 @@ namespace SpeedMann.PvPRework
         }
         protected override void Unload()
         {
+            UnturnedPlayerEvents.OnPlayerUpdateStance -= OnStanceChanged;
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
             DamageTool.damagePlayerRequested -= DamagePlayerRequested;
 
@@ -106,6 +108,7 @@ namespace SpeedMann.PvPRework
         {
             StartCoroutine(waiter(player));
         }
+
 
         private void OnPlayerDead(UnturnedPlayer player, Vector3 position)
         {
@@ -179,6 +182,12 @@ namespace SpeedMann.PvPRework
                 playerHits.Add(new PlayerHit(inputInfo));
             }
         }
+
+        private void OnStanceChanged(UnturnedPlayer player, byte stance)
+        {
+            Logger.Log($"Changed Stance: {stance}");
+        }
+
         #region ArmorCheck
         private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
         {
@@ -200,7 +209,7 @@ namespace SpeedMann.PvPRework
 
             ItemWeaponAsset oponentWeapon;
 
-            float pen = getCurrentPenetration(player, out oponentWeapon);
+            float pen = getCurrentPenetration(oponent.Player, out oponentWeapon);
 
             float normalizedDamage = 0;
 

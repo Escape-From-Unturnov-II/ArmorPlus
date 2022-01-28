@@ -11,11 +11,13 @@ namespace SpeedMann.PvPRework
 {
     class UnturnedPatches
     {
+        private static Harmony harmony;
+        private static string harmonyId = "SpeedMann.PvPRework";
         public static void Init()
         {
             try
             {
-                Harmony harmony = new Harmony("SpeedMann.PvPRework");
+                harmony = new Harmony(harmonyId);
                 harmony.PatchAll();
                 if (PvPRework.Conf.Debug)
                 {
@@ -36,8 +38,7 @@ namespace SpeedMann.PvPRework
         {
             try
             {
-                Harmony harmony = new Harmony("SpeedMann.PvPRework");
-                harmony.UnpatchAll();
+                harmony.UnpatchAll(harmonyId);
 
                 if (PvPRework.Conf.Debug)
                 {
