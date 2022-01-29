@@ -58,6 +58,8 @@ namespace SpeedMann.PvPRework
 
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;
+            // Cosmetics
+            UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
 
             // UI
             U.Events.OnPlayerConnected += OnPlayerConnected;
@@ -76,10 +78,6 @@ namespace SpeedMann.PvPRework
             {
                 printPluginInfo();
             }
-            /* TODO: Add Plugin for item storage update (clothing keep items)
-             * Use metadate to save storage id (check if possible)
-             * Use /vault plugin storage to open cloting from ground or inventory (check if mod is possible)
-             */
         }
         protected override void Unload()
         {
@@ -101,11 +99,14 @@ namespace SpeedMann.PvPRework
         {
             Conf.addNames();
             printPluginInfo();
+            ModsLoaded = true;
         }
         #endregion
 
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+
+            disableCosmethics(player.Player);
             StartCoroutine(waiter(player));
         }
 
@@ -122,6 +123,13 @@ namespace SpeedMann.PvPRework
             }
         }
         
+        private void OnVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle)
+        {
+            if (toggle)
+            {
+                disableCosmethics(playerClothing.player);
+            }
+        }
         private void OnPreHatChanged(Player player, ushort newHatId)
         {
             EffectController.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
@@ -725,6 +733,12 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region HelperFunctions
+        internal void disableCosmethics(Player player)
+        {
+            player.clothing.ServerSetVisualToggleState(EVisualToggleType.COSMETIC, false);
+            player.clothing.ServerSetVisualToggleState(EVisualToggleType.MYTHIC, false);
+        }
+
         internal float getCurrentPenetration(Player player, out ItemWeaponAsset weapon)
         {
             weapon = null;
@@ -900,7 +914,9 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("Disabled BreakLegs:\n");
             }
-                
+
+            Logger.Log($"{(Conf.DisableCosmetics ? "Disabled" : "Allow")} Cosmetics");
+
             if (Conf.BetterArmor.UseArmorClasses && !Conf.ArmorClasses.IsEmpty())
             {
                 Logger.Log("Enabled ArmorClasses:\n" + String.Join(
@@ -975,8 +991,6 @@ namespace SpeedMann.PvPRework
                     ).ToArray()
                 ) + "\n");
             }
-
-            ModsLoaded = true;
         }
         private IEnumerator waiter(UnturnedPlayer player)
         {

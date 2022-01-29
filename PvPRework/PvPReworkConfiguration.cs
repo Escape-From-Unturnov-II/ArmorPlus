@@ -39,6 +39,7 @@ namespace SpeedMann.PvPRework
         private static bool useVanillaDefaults = true;
         public string Version; //auto updating Version Number
         public bool Debug; //to display debug information on server console
+        public bool DisableCosmetics;
         public bool BreakLegs; //if bullets should be able to break legs
         public BetterArmorConfig BetterArmor;
 
@@ -53,6 +54,7 @@ namespace SpeedMann.PvPRework
         {
             Version = PvPRework.PluginVersion;
             Debug = true;
+            DisableCosmetics = true;
             if (useVanillaDefaults)
             {
                 BreakLegs = true;

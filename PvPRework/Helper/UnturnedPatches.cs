@@ -59,6 +59,9 @@ namespace SpeedMann.PvPRework
         public delegate void PostGetInput(ref InputInfo inputInfo);
         public static event PostGetInput OnPostGetInput;
 
+        public delegate void PostVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle);
+        public static event PostVisualToggle OnPostVisualToggle;
+
         public delegate void PreWearHat(Player player, ushort newHatId);
         public static event PreWearHat OnPreChangeHat;
 
@@ -67,6 +70,8 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region Patches
+
+        // Hit Zones
         [HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
         class PlayerInputPatch
         {
@@ -76,8 +81,37 @@ namespace SpeedMann.PvPRework
                 OnPostGetInput?.Invoke(ref __result);
             }
         }
+        // Cosmetics
+        internal class VisualToggleState
+        {
+            internal PlayerClothing playerClothing;
+            internal EVisualToggleType type;
+            internal bool toggle;
+        }
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveVisualToggleState))]
+        class VisualToggelPatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreVisualToggleInvoker(PlayerClothing __instance, EVisualToggleType type, bool toggle, out VisualToggleState __state)
+            {
+                __state = new VisualToggleState
+                {
+                    playerClothing = __instance,
+                    type = type,
+                    toggle = toggle,
+                };
+                return true;
+            }
 
+            [HarmonyPostfix]
+            internal static void OnPostVisualToggleInvoker(VisualToggleState __state)
+            {
+                OnPostVisualToggle?.Invoke(__state.playerClothing, __state.type, __state.toggle);
+            }
+        }
+        
 
+        #region UI Patches
         [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]
         class PlayerWearHatPatch
         {
@@ -123,6 +157,8 @@ namespace SpeedMann.PvPRework
                 return true;
             }
         }
+        #endregion
+
         #endregion
     }
 }
