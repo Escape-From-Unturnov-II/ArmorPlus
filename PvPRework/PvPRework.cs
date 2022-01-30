@@ -58,8 +58,18 @@ namespace SpeedMann.PvPRework
 
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;
+
             // Cosmetics
-            UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
+            if (Conf.DisableCosmetics)
+            {
+                List<object> players = Provider.clients.Cast<object>().ToList();
+                foreach (Player player in players)
+                {
+                    disableCosmethics(player);
+                }
+                UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
+                
+            }
 
             // UI
             U.Events.OnPlayerConnected += OnPlayerConnected;
@@ -90,6 +100,12 @@ namespace SpeedMann.PvPRework
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput -= OnGetInput;
 
+            // Cosmetics
+            if (Conf.DisableCosmetics)
+            {
+                UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
+            }
+
             //UI
             U.Events.OnPlayerConnected -= OnPlayerConnected;
             UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
@@ -105,8 +121,11 @@ namespace SpeedMann.PvPRework
 
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-
-            disableCosmethics(player.Player);
+            if (Conf.DisableCosmetics)
+            {
+                disableCosmethics(player.Player);
+            }
+           
             StartCoroutine(waiter(player));
         }
 

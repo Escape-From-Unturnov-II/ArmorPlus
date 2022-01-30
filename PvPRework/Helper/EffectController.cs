@@ -62,7 +62,7 @@ namespace SpeedMann.PvPRework
             {
                 spawnUI(clothingExtension.EquipEffectId, effectKey, player.CSteamID);
                 if (conf.Debug)
-                    Logger.Log($"Clothing UI for Item: {equipedClothingId} enabled: {clothingExtension.EquipEffectId}");
+                    Logger.Log($"Clothing UI for Item: {clothingId} enabled: {clothingExtension.EquipEffectId}");
             }
         }
         public static void spawnUI(ushort effectId, short effectKey)
