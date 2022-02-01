@@ -17,7 +17,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.4.0";
+        public static string PluginVersion = "1.5.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
