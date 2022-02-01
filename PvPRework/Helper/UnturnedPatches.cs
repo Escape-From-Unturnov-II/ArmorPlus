@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Rocket.Unturned.Enumerations;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
@@ -56,6 +58,9 @@ namespace SpeedMann.PvPRework
             }
         }
         #region Events
+        public delegate void PrePreAddItem(UnturnedPlayer player, Items page, Item item, ref bool shouldAllow);
+        public static event PrePreAddItem OnPreAddItem;
+
         public delegate void PostGetInput(ref InputInfo inputInfo);
         public static event PostGetInput OnPostGetInput;
 
@@ -70,7 +75,30 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region Patches
-
+        [HarmonyPatch(typeof(Items), nameof(Items.tryAddItem), new Type[] { typeof(Item), typeof(bool) })]
+        class PageAddItem
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemsAddItemInvoker(Items __instance, Item item, ref bool __result)
+            {
+                bool shouldAllow = true;
+                object target = __instance.onStateUpdated.Target;
+                if (target is PlayerInventory)
+                {
+                    UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(((PlayerInventory)target).player);
+                    if (uPlayer != null)
+                    {
+                        
+                        OnPreAddItem?.Invoke(uPlayer, __instance, item, ref shouldAllow);
+                        if(shouldAllow == false)
+                        {
+                            __result = true;
+                        }
+                    }
+                }
+                return shouldAllow;
+            }
+        }
         // Hit Zones
         [HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
         class PlayerInputPatch

@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class GunExtension : ItemExtension
+    public class GunExtension : MagazineOverride
     {
-        public float Penetration = 0;
         public List<MagazineOverride> MagazineOverrides = new List<MagazineOverride>();
         public GunExtension()
         {

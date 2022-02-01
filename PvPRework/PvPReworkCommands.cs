@@ -52,6 +52,9 @@ namespace SpeedMann.PvPRework
             {
                 UnturnedChat.Say(caller, "Invalid! Try /armorplus help", UnityEngine.Color.red);
                 return;
+            }else if (!PvPRework.ModsLoaded)
+            {
+                UnturnedChat.Say(caller, "ArmorPlus is still loaded!", UnityEngine.Color.red);
             }
             else
             {
@@ -61,15 +64,15 @@ namespace SpeedMann.PvPRework
                         UnturnedChat.Say(caller, "These are all commands of the ArmorPlus-Plugin", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "[] indicate optional Parameters <> are essential", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(1) /armorplus help", UnityEngine.Color.cyan);
-                        UnturnedChat.Say(caller, "(2) /armorplus pen", UnityEngine.Color.cyan);
+                        UnturnedChat.Say(caller, "(2) /armorplus gunstats", UnityEngine.Color.cyan);
                         return;
                     #region commandStart
-                    case "pen":
+                    case "gunstats":
                         ItemWeaponAsset weapon;
-                        float pen = PvPRework.Inst.getCurrentPenetration(player.Player, out weapon);
+                        PvPRework.Inst.getGunStats(player.Player, out weapon, out float penetration, out float fleshDamage, out float armorDamage);
                         if(weapon != null)
                         {
-                            UnturnedChat.Say(caller, $"The Penetration of {weapon.name} is {pen}", UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} are Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.red);
                             return;
                         }
 

@@ -1,4 +1,5 @@
 ﻿using Rocket.API;
+using Rocket.Core.Logging;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Models.Config;
 using System;
@@ -49,6 +50,11 @@ namespace SpeedMann.PvPRework
         public List<GlassesExtension> GlassesExtensions;
         public List<VestExtension> VestExtensions;
         public List<GunExtension> GunExtensions;
+
+        [XmlArrayItem(ElementName = "HelmetCycle")]
+        public List<List<ItemExtension>> CyclableHelmets;
+        [XmlArrayItem(ElementName = "SightCycle")]
+        public List<List<ItemExtension>> CyclableSights;
 
         public void LoadDefaults()
         {
@@ -246,6 +252,10 @@ namespace SpeedMann.PvPRework
                     new GunExtension() { Id = 1394, Name = "HMG", Penetration = 25 },
                     new GunExtension() { Id = 1471, Name = "HMG_Fighter_Jet", Penetration = 25 },
                 };
+
+                CyclableHelmets = new List<List<ItemExtension>> {};
+
+                CyclableSights = new List<List<ItemExtension>> { };
             }
             else
             {
@@ -896,8 +906,12 @@ namespace SpeedMann.PvPRework
                     new GunExtension() { Id = 38086, Name = "", Penetration = 14},
                     #endregion
                 };
+
+                CyclableHelmets = new List<List<ItemExtension>> { };
+
+                CyclableSights = new List<List<ItemExtension>> { };
+
             }
-           
         }
 
         public void updateConfig()
@@ -1008,6 +1022,25 @@ namespace SpeedMann.PvPRework
 
                 Version = "1.3.0";
             }
+            if(Version == "1.3.0")
+            {
+                foreach(GunExtension gunExtension in GunExtensions)
+                {
+                    Asset asset = Assets.find(EAssetType.ITEM, gunExtension.Id);
+                    if(asset is ItemWeaponAsset)
+                    {
+                        gunExtension.FleshDamage = ((ItemWeaponAsset)asset).playerDamageMultiplier.damage;
+                        gunExtension.ArmorDamage = ((ItemWeaponAsset)asset).barricadeDamage;
+                        foreach (MagazineOverride magOverride in gunExtension.MagazineOverrides)
+                        {
+                            magOverride.FleshDamage = gunExtension.FleshDamage;
+                            magOverride.ArmorDamage = gunExtension.ArmorDamage;
+                        }
+                    }
+                }
+                
+                Version = "1.4.0";
+            }
 
             #region clearOldValues
             gunPenValues = null;
@@ -1027,7 +1060,16 @@ namespace SpeedMann.PvPRework
             addNames(GlassesExtensions);
             addNames(VestExtensions);
             addNames(GunExtensions);
-            foreach(GunExtension gunEx in GunExtensions)
+
+            foreach (List<ItemExtension> cycle in CyclableSights) 
+            {
+                addNames(cycle);
+            }
+            foreach (List<ItemExtension> cycle in CyclableHelmets)
+            {
+                addNames(cycle);
+            }
+            foreach (GunExtension gunEx in GunExtensions)
             {
                 if(gunEx.MagazineOverrides != null)
                 {

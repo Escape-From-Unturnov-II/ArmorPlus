@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using Rocket.Core.Plugins;
+﻿using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
@@ -18,11 +17,11 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.3.0";
+        public static string PluginVersion = "1.4.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
-        private static bool ModsLoaded = false;
+        public static bool ModsLoaded = false;
 
         private static TimeSpan PlayerHitMaxAge = new TimeSpan(0,0,2);
 
@@ -32,7 +31,11 @@ namespace SpeedMann.PvPRework
         private Dictionary<ushort, VestExtension> vestExtensions;
         private Dictionary<ushort, HatExtension> hatExtensions;
         private Dictionary<ushort, GlassesExtension> glassesExtensions;
+        private Dictionary<ushort, ushort> cyclableHelmets;
+        private Dictionary<ushort, ushort> cyclableSights;
+
         private List<PlayerHit> playerHits;
+        private Dictionary<CSteamID, ushort> hatSwaps;
 
         #region Load
         protected override void Load()
@@ -40,80 +43,59 @@ namespace SpeedMann.PvPRework
             Inst = this;
             Conf = Configuration.Instance;
 
-            Conf.updateConfig();
-
             playerHits = new List<PlayerHit>();
-            //converts lists to dictionarys to increase performance
-            gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
-            vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
-            hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
-            glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
+            hatSwaps = new Dictionary<CSteamID, ushort>();
 
-            UnturnedPrivateFields.Init();
-            UnturnedPatches.Init();
-
-            UnturnedPlayerEvents.OnPlayerUpdateStance += OnStanceChanged;
             Level.onPreLevelLoaded += OnPreLevelLoaded;
-            DamageTool.damagePlayerRequested += DamagePlayerRequested;
-
-            if (Conf.BetterArmor.BetterHitZones.Enabled)
-                UnturnedPatches.OnPostGetInput += OnGetInput;
-
-            // Cosmetics
-            if (Conf.DisableCosmetics)
-            {
-                List<object> players = Provider.clients.Cast<object>().ToList();
-                foreach (Player player in players)
-                {
-                    disableCosmethics(player);
-                }
-                UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
-                
-            }
-
-            // UI
-            U.Events.OnPlayerConnected += OnPlayerConnected;
-            UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
-            UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
-            UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
-
-
-            if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
-            {
-                Conf.BetterArmor.UseArmorClasses = false;
-            }
-            HasDuribility = Provider.modeConfigData.Items.Has_Durability;
 
             if (ModsLoaded)
             {
+                Conf.updateConfig();
+                createDictionaries();
+
+                linkEvents();
+
                 printPluginInfo();
             }
         }
         protected override void Unload()
         {
-            UnturnedPlayerEvents.OnPlayerUpdateStance -= OnStanceChanged;
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
-            DamageTool.damagePlayerRequested -= DamagePlayerRequested;
 
-            UnturnedPatches.Cleanup();
-
-            if (Conf.BetterArmor.BetterHitZones.Enabled)
-                UnturnedPatches.OnPostGetInput -= OnGetInput;
-
-            // Cosmetics
-            if (Conf.DisableCosmetics)
+            if (ModsLoaded)
             {
-                UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
-            }
+                UnturnedPlayerEvents.OnPlayerUpdateStance -= OnStanceChanged;
+                DamageTool.damagePlayerRequested -= DamagePlayerRequested;
+                U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
 
-            //UI
-            U.Events.OnPlayerConnected -= OnPlayerConnected;
-            UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
-            UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
+                // Plugin Keys
+                PlayerInput.onPluginKeyTick -= InpuHandler.OnPluginKeyDetected;
+                InpuHandler.OnPluginKeyPressed -= OnPluginKeyPressed;
+                UnturnedPatches.OnPreAddItem -= OnAddItem;
+
+                UnturnedPatches.Cleanup();
+
+                if (Conf.BetterArmor.BetterHitZones.Enabled)
+                    UnturnedPatches.OnPostGetInput -= OnGetInput;
+
+                // Cosmetics
+                if (Conf.DisableCosmetics)
+                {
+                    UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
+                }
+
+                //UI
+                U.Events.OnPlayerConnected -= OnPlayerConnected;
+                UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
+                UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
+            }
         }
         private void OnPreLevelLoaded(int level)
         {
             Conf.addNames();
+            Conf.updateConfig();
+            createDictionaries();
+            linkEvents();
             printPluginInfo();
             ModsLoaded = true;
         }
@@ -125,10 +107,52 @@ namespace SpeedMann.PvPRework
             {
                 disableCosmethics(player.Player);
             }
-           
+            
             StartCoroutine(waiter(player));
         }
 
+        private void OnPlayerDisconnected(UnturnedPlayer player)
+        {
+            InpuHandler.removePlayerEntry(player.CSteamID);
+        }
+
+        private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
+        {
+            switch (key)
+            {
+                case 2:
+                    PlayerEquipment equipment = player.Player.equipment;
+                    if(equipment != null && equipment.asset != null && equipment.asset is ItemGunAsset)
+                    {
+                        
+                        byte[] array = new byte[] { equipment.state[0], equipment.state[1] };
+                        ushort sightId = BitConverter.ToUInt16(array, 0);
+                        if (cyclableSights.TryGetValue(sightId, out ushort nextSight))
+                        {
+                            changeSight(equipment, nextSight);
+                        }
+                        else if(Conf.Debug)
+                            Logger.Log($"Sight key pressed but sight {sightId} can't be cycled");
+                        if (Conf.Debug)
+                            Logger.Log($"Sight changed to: {sightId}");
+                    }
+                    else if(Conf.Debug)
+                        Logger.Log($"Sight key pressed but no gun equiped");
+
+                    break;
+                case 3:
+                    PlayerClothing clothing = player.Player.clothing;
+                    
+                    if (cyclableHelmets.TryGetValue(clothing.hat, out ushort nextHelmet))
+                    {
+                        changeHat(clothing, nextHelmet);
+                    }
+                    else if (Conf.Debug)
+                        Logger.Log($"Helmet key pressed but helmet {clothing.hat} can't be cycled");
+
+                    break;
+            }
+        }
 
         private void OnPlayerDead(UnturnedPlayer player, Vector3 position)
         {
@@ -209,11 +233,19 @@ namespace SpeedMann.PvPRework
                 playerHits.Add(new PlayerHit(inputInfo));
             }
         }
-
+        private void OnAddItem(UnturnedPlayer player, Items page, Item item, ref bool shouldAllow)
+        {
+            if (hatSwaps.TryGetValue(player.CSteamID, out ushort oldHelmetId) && oldHelmetId == item.id)
+            {
+                hatSwaps.Remove(player.CSteamID);
+                shouldAllow = false;
+            }
+        }
         private void OnStanceChanged(UnturnedPlayer player, byte stance)
         {
             Logger.Log($"Changed Stance: {stance}");
         }
+       
 
         #region ArmorCheck
         private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
@@ -236,12 +268,11 @@ namespace SpeedMann.PvPRework
 
             ItemWeaponAsset oponentWeapon;
 
-            float pen = getCurrentPenetration(oponent.Player, out oponentWeapon);
-
-            float normalizedDamage = 0;
+            getGunStats(oponent.Player, out oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage);
 
             Vector3 currentlocalHit;
             float armorOverride = -1;
+            float damageMulti = 1;
             bool foundHit = tryGetCurrentHit(uPlayer, limb, out currentlocalHit);
 
             if(Conf.Debug)
@@ -257,6 +288,8 @@ namespace SpeedMann.PvPRework
                 case ELimb.LEFT_HAND:
                 case ELimb.RIGHT_HAND:
                     bool useOuterArmor = false;
+                    fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.arm : fleshDamage * 0.6f;
+
                     if (vest != null && vestExtensions.ContainsKey(vest.id))
                     {
                         
@@ -272,16 +305,15 @@ namespace SpeedMann.PvPRework
 
                     if (Conf.BetterArmor.UseArmorClasses)
                     {
-                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.arm : damage / 0.6f;
                         if (useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage, armorOverride);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
                         }
                         
 
                         if (didPenetrate && shirt != null)
                         {
-                            didPenetrate = penArmor(player, shirt, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, damageMulti);
                         }
                     }
                     else
@@ -296,6 +328,8 @@ namespace SpeedMann.PvPRework
                 case ELimb.LEFT_FOOT:
                 case ELimb.RIGHT_FOOT:
                     useOuterArmor = false;
+                    fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.leg : fleshDamage * 0.6f;
+
                     if (vest != null && vestExtensions.ContainsKey(vest.id))
                     {
 
@@ -311,17 +345,14 @@ namespace SpeedMann.PvPRework
 
                     if (Conf.BetterArmor.UseArmorClasses)
                     {
-
-                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.leg : damage / 0.6f;
-
                         if (useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage, armorOverride);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
                         }
 
                         if (didPenetrate && pants != null)
                         {
-                            didPenetrate = penArmor(player, pants, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, pants, ref armorDamage, ref penetration, ref fleshDamage);
                         }
                     }
                     else
@@ -332,45 +363,69 @@ namespace SpeedMann.PvPRework
                 #endregion
                 #region Skull
                 case ELimb.SKULL:
-                    useOuterArmor = false;
+                    useOuterArmor = true;
                     bool faceHit = foundHit && isFaceHit(limb, currentlocalHit);
+                    bool earHit = foundHit && isEarHit(limb, currentlocalHit);
+                    fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.skull : fleshDamage * 1.1f;
 
-                    if (faceHit && hat != null)
+                    if(hat != null)
                     {
-                        if (hatExtensions.ContainsKey(hat.id))
+                        if (faceHit)
                         {
-                            hatExtensions.TryGetValue(hat.id, out hatExtension);
-                            if (hatExtension != null && hatExtension.ProtectFace)
+                            if (hatExtensions.TryGetValue(hat.id, out hatExtension))
                             {
-                                armorOverride = hatExtension.ArmorFace;
-                                useOuterArmor = hatExtension.ProtectFace;
+                                if (hatExtension != null)
+                                {
+                                    useOuterArmor = hatExtension.ProtectFace;
+                                    if (useOuterArmor)
+                                    {
+                                        armorOverride = hatExtension.ArmorFace;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                useOuterArmor = Conf.BetterArmor.BetterHitZones.HatsProtectFace;
                             }
                         }
-                        else if (Conf.BetterArmor.BetterHitZones.HatsProtectFace)
+                        if (earHit)
                         {
-                            useOuterArmor = true;
+                            if (hatExtensions.TryGetValue(hat.id, out hatExtension))
+                            {
+                                if (hatExtension != null)
+                                {
+                                    useOuterArmor = hatExtension.ProtectEars;
+                                    if (useOuterArmor)
+                                    {
+                                        armorOverride = hatExtension.ArmorEars;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                useOuterArmor = Conf.BetterArmor.BetterHitZones.HatsProtectEars;
+                            }
                         }
                     }
 
+
                     if (Conf.BetterArmor.UseArmorClasses)
                     {
-                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.skull : damage / 1.1f;
-
-                        if (hat != null && !faceHit || useOuterArmor)
+                        if (hat != null && useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, hat, ref damage, ref pen, normalizedDamage, armorOverride);
+                            didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
                         }
 
                         if (didPenetrate && mask != null)
                         {
-                            didPenetrate = penArmor(player, mask, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, mask, ref armorDamage, ref penetration, ref fleshDamage);
                         }
                     }
                     else
                     {
-                        if (!faceHit || useOuterArmor)
+                        if (hat != null && useOuterArmor)
                         {
-                            armor = calcVanillaArmor(player, hat, mask, 1);
+                            armor = calcVanillaArmor(player, hat, mask, armorOverride);
                         }
                         else
                         {
@@ -384,7 +439,8 @@ namespace SpeedMann.PvPRework
                 case ELimb.SPINE:
                     useOuterArmor = false;
                     bool stomacheHit = foundHit && isStomachHit(limb, currentlocalHit);
-                    
+                    fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.spine : fleshDamage;
+
                     if (stomacheHit && vest != null)
                     {
                         if (vestExtensions.ContainsKey(vest.id))
@@ -403,16 +459,14 @@ namespace SpeedMann.PvPRework
 
                     if (Conf.BetterArmor.UseArmorClasses)
                     {
-                        normalizedDamage = oponentWeapon != null ? damage / oponentWeapon.playerDamageMultiplier.spine : damage;
-
                         if (vest != null && !stomacheHit || useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage);
                         }
 
                         if (didPenetrate && shirt != null)
                         {
-                            didPenetrate = penArmor(player, shirt, ref damage, ref pen, normalizedDamage);
+                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage);
                         }
                         if (didPenetrate && stomacheHit)
                         {
@@ -443,9 +497,9 @@ namespace SpeedMann.PvPRework
                 {
                     armor *= Provider.modeConfigData.Players.Armor_Multiplier;
                 }
-                damage *= armor;
+                damage = fleshDamage * armor;
             }
-            damage = (float)Math.Round(damage);
+            damage = (float)Math.Round(fleshDamage);
         }
         #endregion
 
@@ -670,38 +724,39 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region ArmorPenCalc
-        private bool penArmor(Player player, ItemClothingAsset clothingPart, ref float damage, ref float penDamage, float normalizedDamage, float armorOverride = -1)
+        private bool penArmor(Player player, ItemClothingAsset clothingPart, ref float armorDamage, ref float penPower, ref float fleshDamage, float armorOverride = -1)
         {
             float penChance = 1;
             bool didPenetrate = true;
             int armorClassIndex;
             float armorTier;
-            float oldPenDamage = penDamage;
+            float oldPenDamage = penPower;
+            float oldFleshDamage = fleshDamage;
 
             float armor = calcItemArmor(player, clothingPart, out armorClassIndex, out armorTier, false, armorOverride);
             
 
             if (armor > 0)
             {
-                penChance = calcPenChance(armor, penDamage);
+                penChance = calcPenChance(armor, penPower);
 
                 if (penChance > rand.NextDouble())
                 {
-                    penDamage = calcPenDamage(penDamage, penChance, armorClassIndex);
-                    damage = calcDamage(damage, penChance, armorClassIndex);
+                    penPower = calcPenDamage(penPower, penChance, armorClassIndex);
+                    fleshDamage = calcDamage(fleshDamage, penChance, armorClassIndex);
                 }
                 else
                 {
                     didPenetrate = false;
-                    damage *= Conf.ArmorClasses[armorClassIndex].StopDamageMulti;
+                    fleshDamage *= Conf.ArmorClasses[armorClassIndex].StopDamageMulti;
                 }
             }
 
-            damageArmor(player, clothingPart, armorClassIndex, normalizedDamage, didPenetrate);
+            damageArmor(player, clothingPart, armorClassIndex, armorDamage, didPenetrate);
 
             if (Conf.Debug)
             {
-                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " absDamage: " + normalizedDamage + " calcDamage: " + damage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
+                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " gunDamage: " + oldFleshDamage + " actualDamage: " + fleshDamage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
 
             }
 
@@ -757,8 +812,22 @@ namespace SpeedMann.PvPRework
             player.clothing.ServerSetVisualToggleState(EVisualToggleType.COSMETIC, false);
             player.clothing.ServerSetVisualToggleState(EVisualToggleType.MYTHIC, false);
         }
+        private void changeSight(PlayerEquipment equipment, ushort newSightId)
+        {
+            byte[] array = BitConverter.GetBytes(newSightId);
+            equipment.state[0] = array[0];
+            equipment.state[1] = array[1];
 
-        internal float getCurrentPenetration(Player player, out ItemWeaponAsset weapon)
+            equipment.sendUpdateState();
+        }
+        private void changeHat(PlayerClothing clothing, ushort newHelmetId)
+        {
+            CSteamID steamId = UnturnedPlayer.FromPlayer(clothing.player).CSteamID;
+            if(!hatSwaps.ContainsKey(steamId))
+                hatSwaps.Add(steamId, clothing.hat);
+            clothing.askWearHat(newHelmetId, clothing.hatQuality, clothing.hatState, true);
+        }
+        internal void getGunStats(Player player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage)
         {
             weapon = null;
             Attachments gunAttachments = null;
@@ -775,21 +844,27 @@ namespace SpeedMann.PvPRework
                 gunExtensions.TryGetValue(player.equipment.asset.id, out gunExtension);
             }
             
-            float pen = 0;
+            penetration = 0;
+            fleshDamage = weapon.playerDamageMultiplier.damage;
+            armorDamage = weapon.barricadeDamage;
+            
             if (gunExtension != null)
             {
-                pen = gunExtension.Penetration;
+                penetration = gunExtension.Penetration >= 0 ? gunExtension.Penetration : penetration;
+                fleshDamage = gunExtension.FleshDamage >= 0 ? gunExtension.FleshDamage : fleshDamage;
+                armorDamage = gunExtension.ArmorDamage >= 0 ? gunExtension.ArmorDamage : armorDamage;
+
                 if (gunAttachments != null && gunExtension.MagazineOverrides?.Count > 0)
                 {
                     MagazineOverride magOver = gunExtension.MagazineOverrides.Find(x => x.Id == gunAttachments.magazineID);
                     if (magOver != null)
                     {
-                        pen = magOver.Penetration;
+                        penetration = magOver.Penetration >= 0 ? magOver.Penetration : penetration;
+                        fleshDamage = magOver.FleshDamage >= 0 ? magOver.FleshDamage : fleshDamage;
+                        armorDamage = magOver.ArmorDamage >= 0 ? magOver.ArmorDamage : armorDamage;
                     }
                 }
             }
-
-            return pen;
         }
         private bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out Vector3 localPoint)
         {
@@ -817,11 +892,25 @@ namespace SpeedMann.PvPRework
             }
             return false;
         }
-        public bool isFaceHit(ELimb limb, Vector3 localPoint)
+
+        public static bool isEarHit(ELimb limb, Vector3 localPoint)
+        {
+            if (limb == ELimb.SKULL)
+            {
+                bool earsHit = localPoint.x > -0.5 && (localPoint.y >= 0.2 || localPoint.y <= -0.2) && localPoint.z > -0.05;
+                if (earsHit && Conf.Debug)
+                {
+                    Logger.Log("Raycast hit in the Ears");
+                }
+                return earsHit;
+            }
+            return false;
+        }
+        public static bool isFaceHit(ELimb limb, Vector3 localPoint)
         {
             if(limb == ELimb.SKULL)
             {
-                bool faceHit = localPoint.z > 0.25;
+                bool faceHit = localPoint.x > -0.55 && localPoint.z >= 0.2;
                 if (faceHit && Conf.Debug)
                 {
                     Logger.Log("Raycast hit in the Face");
@@ -830,7 +919,7 @@ namespace SpeedMann.PvPRework
             }
             return false;
         }
-        public bool isStomachHit(ELimb limb, Vector3 localPoint)
+        public static bool isStomachHit(ELimb limb, Vector3 localPoint)
         {
             if(limb == ELimb.SPINE)
             {
@@ -843,7 +932,7 @@ namespace SpeedMann.PvPRework
             }
             return false;
         }
-        private bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint)
+        private static bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint)
         {
             Transform limbTransform = null;
 
@@ -881,6 +970,33 @@ namespace SpeedMann.PvPRework
             float multi = 1 - (aActual - aMax) / (aMin - aMax);
             return bMin + multi * (bMax - bMin);
         }
+
+        private Dictionary<ushort, ushort> createCycleDictionary(List<List<ItemExtension>> cycles)
+        {
+            Dictionary<ushort, ushort> dict = new Dictionary<ushort, ushort>();
+            foreach(List<ItemExtension> cycle in cycles)
+            {
+                if(cycle != null && cycle.Count > 1)
+                {
+                    for(int i = 0; i < cycle.Count; i++)
+                    {
+                        if(i+1 < cycle.Count)
+                        {
+                            dict.Add(cycle[i].Id, cycle[i+1].Id);
+                        }
+                        else
+                        {
+                            dict.Add(cycle[i].Id, cycle[0].Id);
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning("Error in cycleable items, empty or only 1 item defined!");
+                }
+            }
+            return dict;
+        }
         private Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
@@ -903,6 +1019,59 @@ namespace SpeedMann.PvPRework
                 }
             }
             return itemExtensionsDict;
+        }
+        private void linkEvents()
+        {
+            UnturnedPrivateFields.Init();
+            UnturnedPatches.Init();
+
+            UnturnedPlayerEvents.OnPlayerUpdateStance += OnStanceChanged;
+            DamageTool.damagePlayerRequested += DamagePlayerRequested;
+            U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
+
+            // Plugin Keys
+            PlayerInput.onPluginKeyTick += InpuHandler.OnPluginKeyDetected;
+            InpuHandler.OnPluginKeyPressed += OnPluginKeyPressed;
+            UnturnedPatches.OnPreAddItem += OnAddItem;
+
+
+            if (Conf.BetterArmor.BetterHitZones.Enabled)
+                UnturnedPatches.OnPostGetInput += OnGetInput;
+
+            // Cosmetics
+            if (Conf.DisableCosmetics)
+            {
+                List<object> players = Provider.clients.Cast<object>().ToList();
+                foreach (Player player in players)
+                {
+                    disableCosmethics(player);
+                }
+                UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
+
+            }
+
+            // UI
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+            UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
+            UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
+            UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
+
+
+            if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
+            {
+                Conf.BetterArmor.UseArmorClasses = false;
+            }
+            HasDuribility = Provider.modeConfigData.Items.Has_Durability;
+        }
+        private void createDictionaries()
+        {
+            //converts lists to dictionarys to increase performance
+            gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
+            vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
+            hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
+            glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
+            cyclableHelmets = createCycleDictionary(Conf.CyclableHelmets);
+            cyclableSights = createCycleDictionary(Conf.CyclableSights);
         }
         private void printPluginInfo()
         {
@@ -970,12 +1139,18 @@ namespace SpeedMann.PvPRework
             {
                 Logger.Log("GunExtensions:\n" + String.Join(
                     "\n", gunExtensions.Select(
-                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] Penetration: {x.Value.Penetration}"+
-                         (x.Value.MagazineOverrides != null && x.Value.MagazineOverrides.Count() > 0 ? String.Join(
+                         x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] \n" +
+                         $"  Penetration: {x.Value.Penetration}\n" +
+                         $"  FleshDamage: {x.Value.FleshDamage}\n" +
+                         $"  ArmorDamage: {x.Value.ArmorDamage}" +
+                         (x.Value.MagazineOverrides != null && x.Value.MagazineOverrides.Count() > 0 ? "\n"+String.Join(
                              "", x.Value.MagazineOverrides.Select(
-                                 y => $"\n  {Assets.find(EAssetType.ITEM, y.Id)?.name ?? "> INVALID ID <"} [{y.Id}] PenetrationOverride: {y.Penetration}" 
+                                 y => $"\n   {Assets.find(EAssetType.ITEM, y.Id)?.name ?? "> INVALID ID <"} [{y.Id}] " +
+                                 $"   Penetration: {x.Value.Penetration}\n" +
+                                 $"   FleshDamage: {x.Value.FleshDamage}\n" +
+                                 $"   ArmorDamage: {x.Value.ArmorDamage}\n"
                              ).ToArray()
-                         ) : "")
+                         ) : "\n")
                     ).ToArray()
                 ) + "\n");
             }

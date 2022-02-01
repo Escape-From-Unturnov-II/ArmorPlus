@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\InpuHandler.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\EffectController.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
