@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Helper
 {
-    public class InpuHandler
+    public class InputHandler
     {
         public delegate void PluginKeyPressed(UnturnedPlayer player, byte key);
         public static event PluginKeyPressed OnPluginKeyPressed;

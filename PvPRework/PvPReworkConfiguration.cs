@@ -42,7 +42,9 @@ namespace SpeedMann.PvPRework
         public bool Debug; //to display debug information on server console
         public bool DisableCosmetics;
         public bool BreakLegs; //if bullets should be able to break legs
+        
         public BetterArmorConfig BetterArmor;
+        public MovementExtension MovementExtension;
 
         public List<ArmorClass> ArmorClasses;
         public List<BulletLimbDamageChance> BoneBreakingChances;
@@ -64,6 +66,7 @@ namespace SpeedMann.PvPRework
             if (useVanillaDefaults)
             {
                 BreakLegs = true;
+
                 BetterArmor = new BetterArmorConfig()
                 {
                     Enabled = true,
@@ -86,7 +89,11 @@ namespace SpeedMann.PvPRework
                     new BulletLimbDamageChance{ Limb = "SKULL", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                     new BulletLimbDamageChance{ Limb = "SPINE", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0}
                 };
-
+                MovementExtension = new MovementExtension
+                {
+                    PushupStaminaDrain = 10,
+                    ReequipGunsOnProne = true,
+                };
                 ArmorClasses = new List<ArmorClass>
                 {
                     new ArmorClass{
@@ -260,6 +267,7 @@ namespace SpeedMann.PvPRework
             else
             {
                 BreakLegs = true;
+
                 BetterArmor = new BetterArmorConfig()
                 {
                     Enabled = true,
@@ -282,7 +290,11 @@ namespace SpeedMann.PvPRework
                     new BulletLimbDamageChance{ Limb = "SKULL", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                     new BulletLimbDamageChance{ Limb = "SPINE", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0}
                 };
-
+                MovementExtension = new MovementExtension
+                {
+                    PushupStaminaDrain = 10,
+                    ReequipGunsOnProne = true,
+                };
                 ArmorClasses = new List<ArmorClass>
                 {
                     new ArmorClass{
@@ -915,8 +927,8 @@ namespace SpeedMann.PvPRework
         }
 
         public void updateConfig()
-        {           
-            if(Version == "")
+        {
+            if (Version == "")
             {
                 ArmorClasses = new List<ArmorClass>();
                 HatExtensions = new List<HatExtension>();
@@ -947,7 +959,7 @@ namespace SpeedMann.PvPRework
                             GunExtensions.Add(newGun);
                         }
                     }
-                    
+
                 }
 
                 if (vestsProtectingArms != null)
@@ -969,13 +981,13 @@ namespace SpeedMann.PvPRework
                             VestExtensions.Add(newVest);
                         }
                     }
-                    
+
                 }
                 if (vestsProtectingLegs != null)
                 {
                     foreach (KeyValueElement<ushort, float> vestValue in vestsProtectingLegs)
                     {
-                        if(vestValue.Key == 0)
+                        if (vestValue.Key == 0)
                             continue;
 
                         ItemVestAsset vestAsset = (ItemVestAsset)Assets.find(EAssetType.ITEM, vestValue.Key);
@@ -1003,10 +1015,10 @@ namespace SpeedMann.PvPRework
 
                 ArmorClasses = armorClasses;
                 BoneBreakingChances = boneBreakingChances;
-                
+
                 Version = "1.1.0";
             }
-            if(Version == "1.1.0"){
+            if (Version == "1.1.0") {
                 BetterArmor.GlassesEffectKey = 5210;
                 BetterArmor.HatEffectKey = 5211;
                 GlassesExtensions = new List<GlassesExtension>()
@@ -1022,12 +1034,12 @@ namespace SpeedMann.PvPRework
 
                 Version = "1.3.0";
             }
-            if(Version == "1.3.0")
+            if (Version == "1.3.0")
             {
-                foreach(GunExtension gunExtension in GunExtensions)
+                foreach (GunExtension gunExtension in GunExtensions)
                 {
                     Asset asset = Assets.find(EAssetType.ITEM, gunExtension.Id);
-                    if(asset is ItemWeaponAsset)
+                    if (asset is ItemWeaponAsset)
                     {
                         gunExtension.FleshDamage = ((ItemWeaponAsset)asset).playerDamageMultiplier.damage;
                         gunExtension.ArmorDamage = ((ItemWeaponAsset)asset).barricadeDamage;
@@ -1038,8 +1050,17 @@ namespace SpeedMann.PvPRework
                         }
                     }
                 }
-                
-                Version = "1.4.0";
+
+                Version = "1.5.0";
+            }
+            if (Version == "1.5.0")
+            {
+                MovementExtension = new MovementExtension
+                {
+                    PushupStaminaDrain = 10,
+                    ReequipGunsOnProne = true,
+                };
+                Version = "1.6.0";
             }
 
             #region clearOldValues

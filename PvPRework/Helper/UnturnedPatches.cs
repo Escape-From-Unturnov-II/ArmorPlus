@@ -61,6 +61,9 @@ namespace SpeedMann.PvPRework
         public delegate void PrePreAddItem(UnturnedPlayer player, Items page, Item item, ref bool shouldAllow);
         public static event PrePreAddItem OnPreAddItem;
 
+        public delegate void PostCheckHeightClearance(PlayerStance stance, ref bool shouldAllow);
+        public static event PostCheckHeightClearance OnPostCheckHeightClearance;
+
         public delegate void PostGetInput(ref InputInfo inputInfo);
         public static event PostGetInput OnPostGetInput;
 
@@ -75,8 +78,23 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region Patches
+        // Movement Patch
+        [HarmonyPatch(typeof(PlayerStance), nameof(PlayerStance.hasHeightClearanceAtPosition))]
+        class HeightClearancePatch{
+            [HarmonyPrefix]
+            internal static void OnPostCheckHeightClearanceInvoker(PlayerStance __instance, out PlayerStance __state)
+            {
+                __state = __instance;
+            }
+            [HarmonyPostfix]
+            internal static void OnPostCheckHeightClearanceInvoker(PlayerStance __state, ref bool __result)
+            {
+                OnPostCheckHeightClearance?.Invoke(__state, ref __result);
+            }
+        }
+        // Hat cycling
         [HarmonyPatch(typeof(Items), nameof(Items.tryAddItem), new Type[] { typeof(Item), typeof(bool) })]
-        class PageAddItem
+        class AddItemPatch
         {
             [HarmonyPrefix]
             internal static bool OnPreItemsAddItemInvoker(Items __instance, Item item, ref bool __result)

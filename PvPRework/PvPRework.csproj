@@ -78,7 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helper\InpuHandler.cs" />
+    <Compile Include="Helper\InputHandler.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\EffectController.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
@@ -92,8 +92,11 @@
     <Compile Include="Models\Config\ItemExtension.cs" />
     <Compile Include="Models\Config\ItemUIExtension.cs" />
     <Compile Include="Models\Config\MagazineOverride.cs" />
+    <Compile Include="Models\Config\MovementExtension.cs" />
     <Compile Include="Models\Config\VestExtension.cs" />
+    <Compile Include="Models\EquipItem.cs" />
     <Compile Include="Models\PlayerHit.cs" />
+    <Compile Include="Helper\StanceHandler.cs" />
     <Compile Include="PvPReworkCommands.cs" />
     <Compile Include="PvPRework.cs" />
     <Compile Include="PvPReworkConfiguration.cs" />

@@ -4,6 +4,7 @@ using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Helper;
+using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
 using Steamworks;
 using System;
@@ -17,7 +18,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.5.0";
+        public static string PluginVersion = "1.6.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         private static readonly System.Random rand = new System.Random();
@@ -33,9 +34,12 @@ namespace SpeedMann.PvPRework
         private Dictionary<ushort, GlassesExtension> glassesExtensions;
         private Dictionary<ushort, ushort> cyclableHelmets;
         private Dictionary<ushort, ushort> cyclableSights;
+        
 
         private List<PlayerHit> playerHits;
         private Dictionary<CSteamID, ushort> hatSwaps;
+        private Dictionary<CSteamID, StanceHandler> playerStances;
+        private List<EquipItem> reequipItems;
 
         #region Load
         protected override void Load()
@@ -45,6 +49,8 @@ namespace SpeedMann.PvPRework
 
             playerHits = new List<PlayerHit>();
             hatSwaps = new Dictionary<CSteamID, ushort>();
+            playerStances = new Dictionary<CSteamID, StanceHandler>();
+            reequipItems = new List<EquipItem>();
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
 
@@ -64,16 +70,16 @@ namespace SpeedMann.PvPRework
 
             if (ModsLoaded)
             {
-                UnturnedPlayerEvents.OnPlayerUpdateStance -= OnStanceChanged;
+                UnturnedPatches.OnPostCheckHeightClearance -= OnCheckClearance;
+                StanceHandler.OnStanceChanged -= OnStanceChanged;
+
                 DamageTool.damagePlayerRequested -= DamagePlayerRequested;
                 U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
 
                 // Plugin Keys
-                PlayerInput.onPluginKeyTick -= InpuHandler.OnPluginKeyDetected;
-                InpuHandler.OnPluginKeyPressed -= OnPluginKeyPressed;
+                PlayerInput.onPluginKeyTick -= InputHandler.OnPluginKeyDetected;
+                InputHandler.OnPluginKeyPressed -= OnPluginKeyPressed;
                 UnturnedPatches.OnPreAddItem -= OnAddItem;
-
-                UnturnedPatches.Cleanup();
 
                 if (Conf.BetterArmor.BetterHitZones.Enabled)
                     UnturnedPatches.OnPostGetInput -= OnGetInput;
@@ -88,6 +94,8 @@ namespace SpeedMann.PvPRework
                 U.Events.OnPlayerConnected -= OnPlayerConnected;
                 UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
+
+                UnturnedPatches.Cleanup();
             }
         }
         private void OnPreLevelLoaded(int level)
@@ -100,20 +108,39 @@ namespace SpeedMann.PvPRework
             ModsLoaded = true;
         }
         #endregion
-
+        private void Update()
+        {
+            while(reequipItems.Count > 0)
+            {
+                UnturnedPlayer player = UnturnedPlayer.FromCSteamID(reequipItems[0].steamId);
+                if(player != null)
+                {
+                    player.Player.equipment.tryEquip(reequipItems[0].page, reequipItems[0].x, reequipItems[0].y);
+                    reequipItems.RemoveAt(0);
+                }
+            }
+        }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
             if (Conf.DisableCosmetics)
             {
                 disableCosmethics(player.Player);
             }
-            
-            StartCoroutine(waiter(player));
+            StartCoroutine(playerJoinWaiter(player));
+
+            StanceHandler stanceHandler = new StanceHandler(player.Player.stance);
+            player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
+            playerStances.Add(player.CSteamID, stanceHandler);
         }
 
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            InpuHandler.removePlayerEntry(player.CSteamID);
+            if(playerStances.TryGetValue(player.CSteamID, out StanceHandler handler)){
+                player.Player.stance.onStanceUpdated -= handler.StanceChangeInvoker;
+                playerStances.Remove(player.CSteamID);
+            }
+            
+            InputHandler.removePlayerEntry(player.CSteamID);
         }
 
         private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
@@ -241,9 +268,52 @@ namespace SpeedMann.PvPRework
                 shouldAllow = false;
             }
         }
-        private void OnStanceChanged(UnturnedPlayer player, byte stance)
+        private void OnCheckClearance(PlayerStance stance, ref bool shouldAllow)
         {
-            Logger.Log($"Changed Stance: {stance}");
+            if(stance?.stance == EPlayerStance.PRONE && Conf.MovementExtension.PushupStaminaDrain > 0)
+            {
+                if (stance.player?.life.stamina < Conf.MovementExtension.PushupStaminaDrain)
+                {
+                    shouldAllow = false;
+                }
+            }
+        }
+        private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance)
+        {
+            switch (oldStance)
+            {
+                case EPlayerStance.PRONE:
+                    if(Conf.MovementExtension.PushupStaminaDrain > 0)
+                    {
+                        if (stance.player.life.stamina < Conf.MovementExtension.PushupStaminaDrain)
+                        {
+                            stance.stance = EPlayerStance.PRONE;
+                        }
+                        else
+                        {
+                            stance.player.life.serverModifyStamina(-Conf.MovementExtension.PushupStaminaDrain);
+                        }
+                    }
+                    break;
+            }
+
+            switch (stance.stance)
+            {
+                case EPlayerStance.PRONE:
+                    PlayerEquipment equipment = stance.player.equipment;
+                    if (equipment != null && equipment.useable is UseableGun && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
+                    {
+                        reequipItems.Add(new EquipItem
+                        {
+                            steamId = UnturnedPlayer.FromPlayer(equipment.player).CSteamID,
+                            page = equipment.equippedPage,
+                            x = equipment.equipped_x,
+                            y = equipment.equipped_y,
+                        });
+                        equipment.dequip();
+                    }
+                    break;
+            }
         }
        
 
@@ -1025,13 +1095,15 @@ namespace SpeedMann.PvPRework
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
 
-            UnturnedPlayerEvents.OnPlayerUpdateStance += OnStanceChanged;
+            UnturnedPatches.OnPostCheckHeightClearance += OnCheckClearance;
+            StanceHandler.OnStanceChanged += OnStanceChanged;
+
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
 
             // Plugin Keys
-            PlayerInput.onPluginKeyTick += InpuHandler.OnPluginKeyDetected;
-            InpuHandler.OnPluginKeyPressed += OnPluginKeyPressed;
+            PlayerInput.onPluginKeyTick += InputHandler.OnPluginKeyDetected;
+            InputHandler.OnPluginKeyPressed += OnPluginKeyPressed;
             UnturnedPatches.OnPreAddItem += OnAddItem;
 
 
@@ -1186,7 +1258,7 @@ namespace SpeedMann.PvPRework
                 ) + "\n");
             }
         }
-        private IEnumerator waiter(UnturnedPlayer player)
+        private IEnumerator playerJoinWaiter(UnturnedPlayer player)
         {
             yield return new WaitForSeconds(2);
             EffectController.checkClothingEffect(hatExtensions, player, player.Player.clothing.hat, true);
