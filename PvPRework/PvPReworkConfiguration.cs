@@ -42,7 +42,9 @@ namespace SpeedMann.PvPRework
         public bool Debug; //to display debug information on server console
         public bool DisableCosmetics;
         public bool BreakLegs; //if bullets should be able to break legs
-        
+        public bool UseNotificationUI = true;
+        public short NotificationEffectKey = 5230;
+
         public BetterArmorConfig BetterArmor;
         public MovementExtension MovementExtension;
 

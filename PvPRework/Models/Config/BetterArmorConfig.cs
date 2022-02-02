@@ -15,6 +15,7 @@ namespace SpeedMann.PvPRework.Models.Config
                                            //(1-0 where 0 would equal to no reduction on any penchance and 1 would be 50% penetration chance = 50% pendamage loss)
         public short HatEffectKey = 5210;
         public short GlassesEffectKey = 5211;
+        public ushort NotificationIncompatibleId = 52311;
 
         public BetterHitZonesConfig BetterHitZones = new BetterHitZonesConfig();
 

@@ -14,7 +14,8 @@ namespace SpeedMann.PvPRework.Models.Config
         public float ArmorFace = 1; // vanilla armor rating from (0-1 where 1 is no armor)
         public bool ProtectEars = false;
         public float ArmorEars = 1; // vanilla armor rating from (0-1 where 1 is no armor)
-
+        public bool PreventNVGs = false;
+        public List<ItemExtension> WhitelistedNVGs = new List<ItemExtension>();
         /*
         public bool ProtetctCheaks = false;
         public float ArmorCheaks = 1; // vanilla armor rating from (0-1 where 1 is no armor)

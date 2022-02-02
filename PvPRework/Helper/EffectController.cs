@@ -65,6 +65,7 @@ namespace SpeedMann.PvPRework
                     Logger.Log($"Clothing UI for Item: {clothingId} enabled: {clothingExtension.EquipEffectId}");
             }
         }
+
         public static void spawnUI(ushort effectId, short effectKey)
         {
             EffectManager.sendUIEffect(effectId, effectKey, true);

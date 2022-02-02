@@ -70,8 +70,11 @@ namespace SpeedMann.PvPRework
         public delegate void PostVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle);
         public static event PostVisualToggle OnPostVisualToggle;
 
-        public delegate void PreWearHat(Player player, ushort newHatId);
+        public delegate void PreWearHat(Player player, ushort newHatId, byte quality, byte[] state, ref bool shouldAllow);
         public static event PreWearHat OnPreChangeHat;
+
+        public delegate void PreWearGlasses(Player player, ushort newGlassesId, byte quality, byte[] state, ref bool shouldAllow);
+        public static event PreWearGlasses OnPreChangeGlasses;
 
         public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
         public static event PreVisionChanged OnPreVisionChanged;
@@ -162,25 +165,28 @@ namespace SpeedMann.PvPRework
         class PlayerWearHatPatch
         {
             [HarmonyPrefix]
-            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, Guid id)
+            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, Guid id, byte quality, byte[] state)
             {
+                bool shouldAllow = true;
                 Asset asset = Assets.find(id);
                 if (asset != null)
                 {
-                    OnPreChangeHat?.Invoke(__instance.player, asset.id);
+                    OnPreChangeHat?.Invoke(__instance.player, asset.id, quality, state, ref shouldAllow);
                 }
 
-                return true;
+                return shouldAllow;
             }
         }
+
         [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearHat), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
         class PlayerWearHatPatch2
         {
             [HarmonyPrefix]
-            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, ushort id)
+            internal static bool OnPreWearHatInvoker(PlayerClothing __instance, ushort id, byte quality, byte[] state)
             {
-                OnPreChangeHat?.Invoke(__instance.player, id);
-                return true;
+                bool shouldAllow = true;
+                OnPreChangeHat?.Invoke(__instance.player, id, quality, state, ref shouldAllow);
+                return shouldAllow;
             }
         }
         [HarmonyPatch(typeof(Player), nameof(Player.updateGlassesLights))]
@@ -193,14 +199,33 @@ namespace SpeedMann.PvPRework
                 return true;
             }
         }
-        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearGlasses), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]
         class PlayerWearGlassesPatch
         {
             [HarmonyPrefix]
-            internal static bool OnPreWearGlassesInvoker(PlayerClothing __instance, ushort id)
+            internal static bool OnPreWearGlassesInvoker(PlayerClothing __instance, Guid id, byte quality, byte[] state)
             {
-                OnPreVisionChanged?.Invoke(__instance.player, __instance.player.clothing.glasses, false);
-                return true;
+                bool shouldAllow = true;
+                Asset asset = Assets.find(id);
+                if (asset != null)
+                {
+                    OnPreChangeGlasses?.Invoke(__instance.player, asset.id, quality, state, ref shouldAllow);
+                }
+
+                return shouldAllow;
+            }
+        }
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.askWearGlasses), new Type[] { typeof(ushort), typeof(byte), typeof(byte[]), typeof(bool) })]
+        class PlayerWearGlassesPatch2
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreWearGlassesInvoker(PlayerClothing __instance, ushort id, byte quality, byte[] state)
+            {
+                bool shouldAllow = true;
+                OnPreChangeGlasses?.Invoke(__instance.player, id, quality, state, ref shouldAllow);
+                if(shouldAllow)
+                    OnPreVisionChanged?.Invoke(__instance.player, __instance.player.clothing.glasses, false);
+                return shouldAllow;
             }
         }
         #endregion

@@ -1,5 +1,7 @@
-﻿using Rocket.Core.Plugins;
+﻿using Rocket.API.Collections;
+using Rocket.Core.Plugins;
 using Rocket.Unturned;
+using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
@@ -25,6 +27,12 @@ namespace SpeedMann.PvPRework
         public static bool ModsLoaded = false;
 
         private static TimeSpan PlayerHitMaxAge = new TimeSpan(0,0,2);
+
+        public override TranslationList DefaultTranslations =>
+            new TranslationList
+            {
+                        { "item_restricted_nvg", "You are not allowed to wear this helmet in combination with NVG!" },
+            };
 
         private static bool HasDuribility;
 
@@ -90,9 +98,11 @@ namespace SpeedMann.PvPRework
                     UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
                 }
 
-                //UI
+                // UI / preventNVG
                 U.Events.OnPlayerConnected -= OnPlayerConnected;
-                UnturnedPatches.OnPreChangeHat -= OnPreHatChanged;
+                UnturnedPatches.OnPreChangeHat -= OnHatChanged;
+                UnturnedPatches.OnPreChangeGlasses -= OnGlassesChanged;
+                UnturnedPatches.OnPreVisionChanged -= OnVisionChanged;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
                 UnturnedPatches.Cleanup();
@@ -200,10 +210,55 @@ namespace SpeedMann.PvPRework
                 disableCosmethics(playerClothing.player);
             }
         }
-        private void OnPreHatChanged(Player player, ushort newHatId)
+        private void OnHatChanged(Player player, ushort newHatId, byte quality, byte[] state, ref bool shouldAllow)
         {
-            EffectController.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
+            //check preventNVGs
+            if (hatExtensions.TryGetValue(newHatId, out HatExtension hatExtension) && hatExtension.PreventNVGs)
+            {
+                Asset asset = Assets.find(EAssetType.ITEM, player.clothing.glasses);
+                if (asset != null && asset is ItemGlassesAsset)
+                {
+                    ItemGlassesAsset gAsset = (ItemGlassesAsset)asset;
+                    if (gAsset.vision == ELightingVision.CIVILIAN || gAsset.vision == ELightingVision.MILITARY && hatExtension.WhitelistedNVGs.Find(x => x.Id == player.clothing.glasses) == null)
+                    {
+                        shouldAllow = false;
+                        UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
+                        Item item = new Item(newHatId, 1, quality, state);
+                        if (!uPlayer.GiveItem(item))
+                        {
+                            uPlayer.Inventory.forceAddItem(item, false);
+                        }
+                        notifyIncompatibleHelmet(uPlayer);
+                    }
+                }
+            }
+            if(shouldAllow)
+                EffectController.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
         }
+        private void OnGlassesChanged(Player player, ushort newGlassesId, byte quality, byte[] state, ref bool shouldAllow)
+        {
+            Asset asset = Assets.find(EAssetType.ITEM, newGlassesId);
+            if (asset != null && asset is ItemGlassesAsset)
+            {
+                ItemGlassesAsset gAsset = (ItemGlassesAsset)asset;
+                if (gAsset.vision == ELightingVision.CIVILIAN || gAsset.vision == ELightingVision.MILITARY)
+                {
+                    if(hatExtensions.TryGetValue(player.clothing.hat, out HatExtension hatExtension) && hatExtension.PreventNVGs && hatExtension.WhitelistedNVGs.Find(x => x.Id == player.clothing.glasses) == null)
+                    {
+                        shouldAllow = false;
+                        UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
+                        Item item = new Item(newGlassesId, 1, quality, state);
+                        if (!uPlayer.GiveItem(item))
+                        {
+                            uPlayer.Inventory.forceAddItem(item, false);
+                        }
+                        
+                        notifyIncompatibleHelmet(uPlayer);
+                    }
+                }
+            }
+        }
+        
         private void OnVisionChanged(Player player, ushort glassesId, bool activate)
         {
             if (activate)
@@ -877,6 +932,18 @@ namespace SpeedMann.PvPRework
         #endregion
 
         #region HelperFunctions
+        private void notifyIncompatibleHelmet(UnturnedPlayer player)
+        {
+            if (Conf.UseNotificationUI)
+            {
+                EffectController.spawnUI(Conf.BetterArmor.NotificationIncompatibleId, Conf.NotificationEffectKey, player.CSteamID);
+            }
+            else
+            {
+                UnturnedChat.Say(player, Util.Translate("item_restricted_nvg"), Color.red);
+            }
+            
+        }
         internal void disableCosmethics(Player player)
         {
             player.clothing.ServerSetVisualToggleState(EVisualToggleType.COSMETIC, false);
@@ -1122,9 +1189,10 @@ namespace SpeedMann.PvPRework
 
             }
 
-            // UI
+            // UI / preventNVG
             U.Events.OnPlayerConnected += OnPlayerConnected;
-            UnturnedPatches.OnPreChangeHat += OnPreHatChanged;
+            UnturnedPatches.OnPreChangeHat += OnHatChanged;
+            UnturnedPatches.OnPreChangeGlasses += OnGlassesChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
