@@ -2,6 +2,7 @@
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Models.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,19 +67,53 @@ namespace SpeedMann.PvPRework
                         UnturnedChat.Say(caller, "(1) /armorplus help", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(2) /armorplus gunstats", UnityEngine.Color.cyan);
                         return;
-                    #region commandStart
                     case "gunstats":
                         ItemWeaponAsset weapon;
                         PvPRework.Inst.getGunStats(player.Player, out weapon, out float penetration, out float fleshDamage, out float armorDamage);
                         if(weapon != null)
                         {
-                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} are Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} [{weapon.id}] are\n Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.cyan);
                             return;
                         }
 
                         UnturnedChat.Say(caller, "No Weapon Equiped!", UnityEngine.Color.red);
                         return;
-                    #endregion
+                    case "veststats":
+
+                        Asset asset = Assets.find(EAssetType.ITEM, player.Player.clothing.vest);
+                        if(asset != null && asset is ItemVestAsset)
+                        {
+                            ItemVestAsset vest = (ItemVestAsset)asset;
+
+                            float armor = PvPRework.Inst.calcItemArmor(player.Player, vest, out int armorClassIndex, out float armorTier, PvPRework.Conf.BetterArmor.Enabled && PvPRework.Conf.BetterArmor.UseArmorClasses, -1);
+
+                            bool protectStomach = true;
+                            bool protectArms = false;
+                            float armorArms = vest.armor;
+                            bool protectLegs = false;
+                            float armorLegs = vest.armor;
+
+
+                            if (PvPRework.Conf.BetterArmor.BetterHitZones.Enabled)
+                            {
+                                protectStomach = PvPRework.Conf.BetterArmor.BetterHitZones.VestsProtectStomach;
+                            }
+                            
+                            if(PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out VestExtension vestExtension))
+                            {
+                                protectStomach = vestExtension.ProtectStomach;
+                                protectArms = vestExtension.ShoulderPlateLength > 0;
+                                protectLegs = vestExtension.ThighPlateLength > 0;
+                                armorArms = vestExtension.ArmorShoulderPlate > 0 ? vestExtension.ArmorShoulderPlate : armorArms;
+                                armorLegs = vestExtension.ArmorThighPlate > 0 ? vestExtension.ArmorThighPlate : armorLegs;
+                            }
+
+                            UnturnedChat.Say(caller, $"The Stats of {vest.name} [{vest.id}] are\n Armor: {vest.armor}, Tier: {armorTier}, ProtectStomach: {protectStomach}", UnityEngine.Color.cyan);
+                            return;
+                        }
+
+                        UnturnedChat.Say(caller, "No Vest Equiped!", UnityEngine.Color.red);
+                        return;
                     default:
                         UnturnedChat.Say(caller, "Invalid Command parameters", UnityEngine.Color.red);
                         throw new WrongUsageOfCommandException(caller, this);

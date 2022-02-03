@@ -51,6 +51,7 @@ namespace SpeedMann.PvPRework
         public List<ArmorClass> ArmorClasses;
         public List<BulletLimbDamageChance> BoneBreakingChances;
         public List<HatExtension> HatExtensions;
+        public List<MaskExtension> MaskExtensions;
         public List<GlassesExtension> GlassesExtensions;
         public List<VestExtension> VestExtensions;
         public List<GunExtension> GunExtensions;
@@ -142,17 +143,6 @@ namespace SpeedMann.PvPRework
                         StopDamageMulti = 0.02f, PenLossMulti = 0.35f},
                 };
 
-                GlassesExtensions = new List<GlassesExtension>
-                {
-                    new GlassesExtension()
-                    {
-                        Id = 334,
-                        Name = "Military Nightvision",
-                        EquipEffectId = 0,
-                        UnequipEffectId = 0,
-                    }
-                };
-
                 HatExtensions = new List<HatExtension>
                 {
                     new HatExtension()
@@ -161,6 +151,19 @@ namespace SpeedMann.PvPRework
                         Name = "Spec Ops Helmet",
                         ProtectFace = true,
                         ArmorFace = 0.85f,
+                    }
+                };
+
+                MaskExtensions = new List<MaskExtension> { };
+
+                GlassesExtensions = new List<GlassesExtension>
+                {
+                    new GlassesExtension()
+                    {
+                        Id = 334,
+                        Name = "Military Nightvision",
+                        EquipEffectId = 0,
+                        UnequipEffectId = 0,
                     }
                 };
 
@@ -264,7 +267,7 @@ namespace SpeedMann.PvPRework
 
                 CyclableHelmets = new List<List<ItemExtension>> {};
 
-                CyclableSights = new List<List<ItemExtension>> { };
+                CyclableSights = new List<List<ItemExtension>> {};
             }
             else
             {
@@ -292,11 +295,13 @@ namespace SpeedMann.PvPRework
                     new BulletLimbDamageChance{ Limb = "SKULL", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                     new BulletLimbDamageChance{ Limb = "SPINE", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0}
                 };
+
                 MovementExtension = new MovementExtension
                 {
                     PushupStaminaDrain = 10,
                     ReequipGunsOnProne = true,
                 };
+
                 ArmorClasses = new List<ArmorClass>
                 {
                     new ArmorClass{
@@ -371,31 +376,6 @@ namespace SpeedMann.PvPRework
                         MinArmorDamage = 1, MaxArmorDamage = 3,
                         StopDamageMulti = 0.02f, PenLossMulti = 0.35f
                     },
-                };
-
-                GlassesExtensions = new List<GlassesExtension>
-                {
-                    new GlassesExtension()
-                    {
-                        Id = 37555,
-                        Name = "GPNVG-18_Nightvision_Tan",
-                        EquipEffectId = 52211,
-                        UnequipEffectId = 0,
-                    },
-                    new GlassesExtension()
-                    {
-                        Id = 37556,
-                        Name = "GPNVG-18_Nightvision_Black",
-                        EquipEffectId = 52211,
-                        UnequipEffectId = 0,
-                    },
-                    new GlassesExtension()
-                    {
-                        Id = 37557,
-                        Name = "PNV-10T_Nightvision",
-                        EquipEffectId = 52210,
-                        UnequipEffectId = 0,
-                    }
                 };
 
                 HatExtensions = new List<HatExtension>
@@ -553,6 +533,33 @@ namespace SpeedMann.PvPRework
                         EquipEffectId = 52112,
                         UnequipEffectId = 52113,
                     },
+                };
+
+                MaskExtensions = new List<MaskExtension> { };
+
+                GlassesExtensions = new List<GlassesExtension>
+                {
+                    new GlassesExtension()
+                    {
+                        Id = 37555,
+                        Name = "GPNVG-18_Nightvision_Tan",
+                        EquipEffectId = 52211,
+                        UnequipEffectId = 0,
+                    },
+                    new GlassesExtension()
+                    {
+                        Id = 37556,
+                        Name = "GPNVG-18_Nightvision_Black",
+                        EquipEffectId = 52211,
+                        UnequipEffectId = 0,
+                    },
+                    new GlassesExtension()
+                    {
+                        Id = 37557,
+                        Name = "PNV-10T_Nightvision",
+                        EquipEffectId = 52210,
+                        UnequipEffectId = 0,
+                    }
                 };
 
                 VestExtensions = new List<VestExtension>
@@ -1062,6 +1069,9 @@ namespace SpeedMann.PvPRework
                     PushupStaminaDrain = 10,
                     ReequipGunsOnProne = true,
                 };
+
+                MaskExtensions = new List<MaskExtension>();
+
                 Version = "1.6.0";
             }
 
@@ -1083,6 +1093,7 @@ namespace SpeedMann.PvPRework
             addNames(GlassesExtensions);
             addNames(VestExtensions);
             addNames(GunExtensions);
+            addNames(MaskExtensions);
 
             foreach (List<ItemExtension> cycle in CyclableSights) 
             {

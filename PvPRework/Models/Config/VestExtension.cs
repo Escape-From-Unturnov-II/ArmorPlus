@@ -8,8 +8,19 @@ using UnityEngine;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class VestExtension : ItemExtension
+    public class VestExtension : ItemClothingExtension
     {
+        public new float Armor
+        {
+            get
+            {
+                return base.Armor;
+            }
+            set
+            {
+                base.Armor = value;
+            }
+        }
         public bool ProtectStomach = true; // if this vest should protect the stomach
         public float ShoulderPlateLength = 0; // 0 - 0.9 (0 is disabled, 0.23 is only shoulder , 0.4 is upper arm, 0.9 is full arm)
         public float ArmorShoulderPlate = 1; // vanilla armor rating for shoulders / arms from (0-1 where 1 is no armor)

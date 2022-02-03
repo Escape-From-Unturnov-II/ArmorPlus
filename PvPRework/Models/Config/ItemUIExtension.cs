@@ -6,13 +6,9 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class ItemUIExtension : ItemExtension
+    public class ItemUIExtension : ItemClothingExtension
     {
         public ushort EquipEffectId = 0;
         public ushort UnequipEffectId = 0;
-        public ItemUIExtension()
-        {
-
-        }
     }
 }

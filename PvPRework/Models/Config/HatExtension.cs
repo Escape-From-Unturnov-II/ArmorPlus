@@ -10,6 +10,17 @@ namespace SpeedMann.PvPRework.Models.Config
 {
     public class HatExtension : ItemUIExtension
     {
+        public new float Armor
+        {
+            get
+            {
+                return base.Armor;
+            }
+            set
+            {
+                base.Armor = value;
+            }
+        }
         public bool ProtectFace = false; // if this hat should protect the face
         public float ArmorFace = 1; // vanilla armor rating from (0-1 where 1 is no armor)
         public bool ProtectEars = false;

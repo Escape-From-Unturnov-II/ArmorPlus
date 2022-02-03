@@ -86,11 +86,13 @@
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
+    <Compile Include="Models\Config\ItemUIExtension.cs" />
+    <Compile Include="Models\Config\MaskExtension.cs" />
     <Compile Include="Models\Config\GlassesExtension.cs" />
     <Compile Include="Models\Config\GunExtension.cs" />
     <Compile Include="Models\Config\HatExtension.cs" />
     <Compile Include="Models\Config\ItemExtension.cs" />
-    <Compile Include="Models\Config\ItemUIExtension.cs" />
+    <Compile Include="Models\Config\ItemClothingExtension.cs" />
     <Compile Include="Models\Config\MagazineOverride.cs" />
     <Compile Include="Models\Config\MovementExtension.cs" />
     <Compile Include="Models\Config\VestExtension.cs" />

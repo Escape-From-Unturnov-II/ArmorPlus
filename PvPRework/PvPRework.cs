@@ -36,12 +36,12 @@ namespace SpeedMann.PvPRework
 
         private static bool HasDuribility;
 
-        private Dictionary<ushort, GunExtension> gunExtensions;
-        private Dictionary<ushort, VestExtension> vestExtensions;
-        private Dictionary<ushort, HatExtension> hatExtensions;
-        private Dictionary<ushort, GlassesExtension> glassesExtensions;
-        private Dictionary<ushort, ushort> cyclableHelmets;
-        private Dictionary<ushort, ushort> cyclableSights;
+        internal Dictionary<ushort, GunExtension> gunExtensions;
+        internal Dictionary<ushort, VestExtension> vestExtensions;
+        internal Dictionary<ushort, HatExtension> hatExtensions;
+        internal Dictionary<ushort, GlassesExtension> glassesExtensions;
+        internal Dictionary<ushort, ushort> cyclableHelmets;
+        internal Dictionary<ushort, ushort> cyclableSights;
         
 
         private List<PlayerHit> playerHits;
@@ -64,14 +64,10 @@ namespace SpeedMann.PvPRework
 
             if (ModsLoaded)
             {
-                Conf.updateConfig();
-                createDictionaries();
-
-                linkEvents();
-
-                printPluginInfo();
+                Init();
             }
         }
+
         protected override void Unload()
         {
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
@@ -110,14 +106,26 @@ namespace SpeedMann.PvPRework
         }
         private void OnPreLevelLoaded(int level)
         {
+            Init();
+            ModsLoaded = true;
+        }
+        private void Init()
+        {
+            UnturnedPrivateFields.Init();
+            UnturnedPatches.Init();
+
             Conf.addNames();
             Conf.updateConfig();
             createDictionaries();
+
+            overrideArmorValues();
+
             linkEvents();
             printPluginInfo();
-            ModsLoaded = true;
         }
         #endregion
+
+        #region Events
         private void Update()
         {
             while(reequipItems.Count > 0)
@@ -370,7 +378,7 @@ namespace SpeedMann.PvPRework
                     break;
             }
         }
-       
+        #endregion
 
         #region ArmorCheck
         private void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
@@ -786,7 +794,8 @@ namespace SpeedMann.PvPRework
                     return i;
                 }
             }
-            return 0;
+            armorTier = armorClasses[armorClasses.Count() - 1].Tier;
+            return armorClasses.Count()-1;
         }
         private float calcVanillaArmor(Player player, ItemClothingAsset top, ItemClothingAsset bottom, float armorOverride = 1)
         {
@@ -800,7 +809,7 @@ namespace SpeedMann.PvPRework
             return calcRes;
         }
 
-        private float calcItemArmor(Player player, ItemClothingAsset clothing, out int armorClassIndex, out float armorTier, bool vanilla = false, float armorOverride = -1)
+        internal float calcItemArmor(Player player, ItemClothingAsset clothing, out int armorClassIndex, out float armorTier, bool vanilla = false, float armorOverride = -1)
         {
             float defaultReturn = vanilla ? 1 : 0;
             armorTier = 0;
@@ -1159,9 +1168,6 @@ namespace SpeedMann.PvPRework
         }
         private void linkEvents()
         {
-            UnturnedPrivateFields.Init();
-            UnturnedPatches.Init();
-
             UnturnedPatches.OnPostCheckHeightClearance += OnCheckClearance;
             StanceHandler.OnStanceChanged += OnStanceChanged;
 
@@ -1212,6 +1218,23 @@ namespace SpeedMann.PvPRework
             glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
             cyclableHelmets = createCycleDictionary(Conf.CyclableHelmets);
             cyclableSights = createCycleDictionary(Conf.CyclableSights);
+        }
+        private void overrideArmorValues()
+        {
+            overrideArmorValues(Conf.VestExtensions);
+            overrideArmorValues(Conf.HatExtensions);
+            overrideArmorValues(Conf.MaskExtensions);
+        }
+        private void overrideArmorValues<T>(List<T> clothingExtensions) where T : ItemClothingExtension
+        {
+            foreach (ItemClothingExtension clothing in clothingExtensions)
+            {
+                ItemClothingAsset asset = (ItemClothingAsset)Assets.find(EAssetType.ITEM, clothing.Id);
+                if(!UnturnedPrivateFields.setClothingArmor(asset, clothing.Armor))
+                {
+                    Logger.LogError($"Could not modify armor for: {clothing.Id}");
+                }
+            }
         }
         private void printPluginInfo()
         {

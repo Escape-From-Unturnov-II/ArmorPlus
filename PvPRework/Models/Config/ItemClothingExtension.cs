@@ -7,9 +7,9 @@ using System.Xml.Serialization;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class GlassesExtension : ItemUIExtension
+    public class ItemClothingExtension : ItemExtension
     {
         [XmlIgnore]
-        public new float Armor = -1;
+        public float Armor = -1; // vanilla armor -1 is no override
     }
 }
