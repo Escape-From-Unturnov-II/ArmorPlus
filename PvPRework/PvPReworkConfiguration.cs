@@ -1095,6 +1095,13 @@ namespace SpeedMann.PvPRework
             addNames(GunExtensions);
             addNames(MaskExtensions);
 
+            foreach (HatExtension hat in HatExtensions)
+            {
+                if(hat.WhitelistedNVGs != null)
+                {
+                    addNames(hat.WhitelistedNVGs);
+                }
+            }
             foreach (List<ItemExtension> cycle in CyclableSights) 
             {
                 addNames(cycle);
