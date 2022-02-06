@@ -69,10 +69,10 @@ namespace SpeedMann.PvPRework
                         return;
                     case "gunstats":
                         ItemWeaponAsset weapon;
-                        PvPRework.Inst.getGunStats(player.Player, out weapon, out float penetration, out float fleshDamage, out float armorDamage);
+                        PvPRework.Inst.getGunStats(player.Player, out weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
                         if(weapon != null)
                         {
-                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} [{weapon.id}] are\n Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.cyan);
+                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} [{weapon.id}] are\n {(caliber != null ? "Ammo: "+caliber.Name: "")} Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.cyan);
                             return;
                         }
 

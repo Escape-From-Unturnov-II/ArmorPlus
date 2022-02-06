@@ -86,6 +86,7 @@
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
+    <Compile Include="Models\Config\Caliber.cs" />
     <Compile Include="Models\Config\ItemUIExtension.cs" />
     <Compile Include="Models\Config\MaskExtension.cs" />
     <Compile Include="Models\Config\GlassesExtension.cs" />

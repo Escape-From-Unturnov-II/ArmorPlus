@@ -36,13 +36,14 @@ namespace SpeedMann.PvPRework
 
         private static bool HasDuribility;
 
+        internal Dictionary<ushort, Caliber> bulletCalibers;
         internal Dictionary<ushort, GunExtension> gunExtensions;
         internal Dictionary<ushort, VestExtension> vestExtensions;
         internal Dictionary<ushort, HatExtension> hatExtensions;
         internal Dictionary<ushort, GlassesExtension> glassesExtensions;
         internal Dictionary<ushort, ushort> cyclableHelmets;
         internal Dictionary<ushort, ushort> cyclableSights;
-        
+
 
         private List<PlayerHit> playerHits;
         private Dictionary<CSteamID, ushort> hatSwaps;
@@ -401,7 +402,7 @@ namespace SpeedMann.PvPRework
 
             ItemWeaponAsset oponentWeapon;
 
-            getGunStats(oponent.Player, out oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage);
+            getGunStats(oponent.Player, out oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
 
             Vector3 currentlocalHit;
             float armorOverride = -1;
@@ -973,8 +974,9 @@ namespace SpeedMann.PvPRework
                 hatSwaps.Add(steamId, clothing.hat);
             clothing.askWearHat(newHelmetId, clothing.hatQuality, clothing.hatState, true);
         }
-        internal void getGunStats(Player player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage)
+        internal void getGunStats(Player player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber)
         {
+            caliber = null;
             weapon = null;
             Attachments gunAttachments = null;
             GunExtension gunExtension = null;
@@ -989,19 +991,38 @@ namespace SpeedMann.PvPRework
                 }
                 gunExtensions.TryGetValue(player.equipment.asset.id, out gunExtension);
             }
+
             
+            // set asset values
             penetration = 0;
             fleshDamage = weapon.playerDamageMultiplier.damage;
             armorDamage = weapon.barricadeDamage;
-            
+
+            // check Calibers
+            if (gunAttachments?.magazineAsset?.calibers != null)
+            {
+                foreach (ushort magCaliberId in gunAttachments.magazineAsset.calibers)
+                {
+                    if (bulletCalibers.TryGetValue(magCaliberId, out caliber))
+                    {
+                        penetration = caliber.Penetration;
+                        fleshDamage = caliber.FleshDamage;
+                        armorDamage = caliber.ArmorDamage;
+                    }
+                }
+            }
+
+            // check gun extensions
             if (gunExtension != null)
             {
-                penetration = gunExtension.Penetration >= 0 ? gunExtension.Penetration : penetration;
-                fleshDamage = gunExtension.FleshDamage >= 0 ? gunExtension.FleshDamage : fleshDamage;
-                armorDamage = gunExtension.ArmorDamage >= 0 ? gunExtension.ArmorDamage : armorDamage;
 
-                if (gunAttachments != null && gunExtension.MagazineOverrides?.Count > 0)
-                {
+                penetration = gunExtension.Penetration >= 0 ? gunExtension.Penetration : penetration * gunExtension.PenetrationMultiplier;
+                fleshDamage = gunExtension.FleshDamage >= 0 ? gunExtension.FleshDamage : fleshDamage * gunExtension.FleshDamageMultiplier;
+                armorDamage = gunExtension.ArmorDamage >= 0 ? gunExtension.ArmorDamage : armorDamage * gunExtension.ArmorDamageMultiplier;
+
+                // check mag override
+                if (gunAttachments != null)
+                {                  
                     MagazineOverride magOver = gunExtension.MagazineOverrides.Find(x => x.Id == gunAttachments.magazineID);
                     if (magOver != null)
                     {
@@ -1117,6 +1138,26 @@ namespace SpeedMann.PvPRework
             return bMin + multi * (bMax - bMin);
         }
 
+        private Dictionary<ushort, Caliber> createCaliberDictionary(List<Caliber> calibers)
+        {
+            Dictionary<ushort, Caliber> dict = new Dictionary<ushort, Caliber>();
+            foreach(Caliber cal in calibers)
+            {
+                foreach(ushort magCalId in cal.MagazineCalibers)
+                {
+                    if (dict.ContainsKey(magCalId))
+                    {
+                        Logger.LogWarning("MagazineCalliber with Id:" + magCalId + " is used in multiple Calibers!");
+                    }
+                    else
+                    {
+                        dict.Add(magCalId, cal);
+                    }
+                }
+            }
+
+            return dict;
+        }
         private Dictionary<ushort, ushort> createCycleDictionary(List<List<ItemExtension>> cycles)
         {
             Dictionary<ushort, ushort> dict = new Dictionary<ushort, ushort>();
@@ -1128,11 +1169,25 @@ namespace SpeedMann.PvPRework
                     {
                         if(i+1 < cycle.Count)
                         {
-                            dict.Add(cycle[i].Id, cycle[i+1].Id);
+                            if (dict.ContainsKey(cycle[i].Id))
+                            {
+                                Logger.LogWarning("Cyclic Item with Id:" + cycle[i].Id + " is already used in other cycle!");
+                            }
+                            else
+                            {
+                                dict.Add(cycle[i].Id, cycle[i + 1].Id);
+                            } 
                         }
                         else
                         {
-                            dict.Add(cycle[i].Id, cycle[0].Id);
+                            if (dict.ContainsKey(cycle[i].Id))
+                            {
+                                Logger.LogWarning("Cyclic Item with Id:" + cycle[i].Id + " is already used in other cycle!");
+                            }
+                            else
+                            {
+                                dict.Add(cycle[i].Id, cycle[0].Id);
+                            }
                         }
                     }
                 }
@@ -1212,6 +1267,7 @@ namespace SpeedMann.PvPRework
         private void createDictionaries()
         {
             //converts lists to dictionarys to increase performance
+            bulletCalibers = createCaliberDictionary(Conf.BulletCalibers);
             gunExtensions = createDictionaryFromItemExtensions(Conf.GunExtensions);
             vestExtensions = createDictionaryFromItemExtensions(Conf.VestExtensions);
             hatExtensions = createDictionaryFromItemExtensions(Conf.HatExtensions);
@@ -1230,6 +1286,7 @@ namespace SpeedMann.PvPRework
             foreach (ItemClothingExtension clothing in clothingExtensions)
             {
                 ItemClothingAsset asset = (ItemClothingAsset)Assets.find(EAssetType.ITEM, clothing.Id);
+                //TODO: store original value to restore later
                 if(!UnturnedPrivateFields.setClothingArmor(asset, clothing.Armor))
                 {
                     Logger.LogError($"Could not modify armor for: {clothing.Id}");
@@ -1305,26 +1362,45 @@ namespace SpeedMann.PvPRework
                          x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] \n" +
                          $"  Penetration: {x.Value.Penetration}\n" +
                          $"  FleshDamage: {x.Value.FleshDamage}\n" +
-                         $"  ArmorDamage: {x.Value.ArmorDamage}" +
-                         (x.Value.MagazineOverrides != null && x.Value.MagazineOverrides.Count() > 0 ? "\n"+String.Join(
+                         $"  ArmorDamage: {x.Value.ArmorDamage}\n" +
+                         $"  PenetrationMultiplier: {x.Value.PenetrationMultiplier}\n" +
+                         $"  FleshDamageMultiplier: {x.Value.FleshDamageMultiplier}\n" +
+                         $"  ArmorDamageMultiplier: {x.Value.ArmorDamageMultiplier}" +
+                         (x.Value.MagazineOverrides != null && x.Value.MagazineOverrides.Count() > 0 ? String.Join(
                              "", x.Value.MagazineOverrides.Select(
-                                 y => $"\n   {Assets.find(EAssetType.ITEM, y.Id)?.name ?? "> INVALID ID <"} [{y.Id}] " +
+                                 y => $"\n   {Assets.find(EAssetType.ITEM, y.Id)?.name ?? "> INVALID ID <"} [{y.Id}]\n" +
                                  $"   Penetration: {x.Value.Penetration}\n" +
                                  $"   FleshDamage: {x.Value.FleshDamage}\n" +
-                                 $"   ArmorDamage: {x.Value.ArmorDamage}\n"
+                                 $"   ArmorDamage: {x.Value.ArmorDamage}"
                              ).ToArray()
-                         ) : "\n")
+                         )+"\n" : "\n")
                     ).ToArray()
                 ) + "\n");
             }
-
+            if(Conf.BulletCalibers != null && Conf.BulletCalibers.Count() >= 0)
+            {
+                Logger.Log("BulletCallibers:\n" + String.Join(
+                  "\n", Conf.BulletCalibers.Select(
+                       x => $" {x.Name} \n" +
+                       $"  Penetration: {x.Penetration}\n" +
+                       $"  FleshDamage: {x.FleshDamage}\n" +
+                       $"  ArmorDamage: {x.ArmorDamage}" +
+                       (x.MagazineCalibers != null && x.MagazineCalibers.Count() > 0 ? "\n  MagazineCalibers:" + String.Join(
+                             "", x.MagazineCalibers.Select(
+                                    y => $"\n   {y}"
+                             ).ToArray()
+                         ) + "\n" : "\n")
+                  ).ToArray()
+              ) + "\n");
+            }
             if (hatExtensions != null && hatExtensions.Count() >= 0)
             {
                 Logger.Log("HatExtensions:\n" + String.Join(
                     "\n", hatExtensions.Select(
                          x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}]\n" +
                          $"  ProtectFace: {x.Value.ProtectFace} FaceArmor: {x.Value.ArmorFace} \n"+
-                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
+                         $"  ProtectEars: {x.Value.ProtectEars} EarArmor: {x.Value.ArmorEars} \n" +
+                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}\n"
                     ).ToArray()
                 ) + "\n");
             }
@@ -1333,7 +1409,7 @@ namespace SpeedMann.PvPRework
                 Logger.Log("GlassesExtensions:\n" + String.Join(
                     "\n", glassesExtensions.Select(
                          x => $" {Assets.find(EAssetType.ITEM, x.Key)?.name ?? "> INVALID ID <"} [{x.Key}] \n" +
-                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}"
+                         $"  EquipEffectId: {x.Value.EquipEffectId} UnequipEffectId: {x.Value.UnequipEffectId}\n"
                     ).ToArray()
                 ) + "\n");
             }
@@ -1345,6 +1421,7 @@ namespace SpeedMann.PvPRework
                          + $"  ProtectsStomach: {x.Value.ProtectStomach}"
                          + (x.Value.ShoulderPlateLength > 0 ? $"\n  ShoulderPlateLength: {x.Value.ShoulderPlateLength} Armor: {x.Value.ArmorShoulderPlate}" : "") 
                          + (x.Value.ThighPlateLength > 0 ? $"\n  ShoulderPlateLength: {x.Value.ThighPlateLength} Armor: {x.Value.ArmorThighPlate}" : "")
+                         + "\n"
                     ).ToArray()
                 ) + "\n");
             }

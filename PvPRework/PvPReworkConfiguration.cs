@@ -55,7 +55,7 @@ namespace SpeedMann.PvPRework
         public List<GlassesExtension> GlassesExtensions;
         public List<VestExtension> VestExtensions;
         public List<GunExtension> GunExtensions;
-
+        public List<Caliber> BulletCalibers; 
         [XmlArrayItem(ElementName = "HelmetCycle")]
         public List<List<ItemExtension>> CyclableHelmets;
         [XmlArrayItem(ElementName = "SightCycle")]
@@ -1073,6 +1073,34 @@ namespace SpeedMann.PvPRework
                 MaskExtensions = new List<MaskExtension>();
 
                 Version = "1.6.0";
+            }
+            if(Version == "1.6.0")
+            {
+                BulletCalibers = new List<Caliber>
+                {
+                    new Caliber
+                    {
+                        Name = "9x39 SPP",
+                        Penetration = 49,
+                        FleshDamage = 64,
+                        ArmorDamage = 20,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            939
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x39 SP-5",
+                        Penetration = 33,
+                        FleshDamage = 58,
+                        ArmorDamage = 20,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            938
+                        }
+                    }
+                };
             }
 
             #region clearOldValues
