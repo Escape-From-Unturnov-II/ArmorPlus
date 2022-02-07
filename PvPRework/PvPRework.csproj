@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\ArmorLogic.cs" />
     <Compile Include="Helper\InputHandler.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\EffectController.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
     <Compile Include="Models\Config\Caliber.cs" />
     <Compile Include="Models\Config\ItemUIExtension.cs" />
+    <Compile Include="Models\Config\KillFeed.cs" />
     <Compile Include="Models\Config\MaskExtension.cs" />
     <Compile Include="Models\Config\GlassesExtension.cs" />
     <Compile Include="Models\Config\GunExtension.cs" />

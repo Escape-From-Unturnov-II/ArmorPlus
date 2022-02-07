@@ -65,6 +65,10 @@ namespace SpeedMann.PvPRework
                     Logger.Log($"Clothing UI for Item: {clothingId} enabled: {clothingExtension.EquipEffectId}");
             }
         }
+        public static void spawnKillFeed(Player player, Player killer)
+        {
+
+        }
 
         public static void spawnUI(ushort effectId, short effectKey)
         {

@@ -45,6 +45,7 @@ namespace SpeedMann.PvPRework
         public bool UseNotificationUI = true;
         public short NotificationEffectKey = 5230;
 
+        public KillFeed KillFeed;
         public BetterArmorConfig BetterArmor;
         public MovementExtension MovementExtension;
 
@@ -66,6 +67,8 @@ namespace SpeedMann.PvPRework
             Version = PvPRework.PluginVersion;
             Debug = true;
             DisableCosmetics = true;
+            KillFeed = new KillFeed();
+
             if (useVanillaDefaults)
             {
                 BreakLegs = true;
@@ -1101,6 +1104,7 @@ namespace SpeedMann.PvPRework
                         }
                     }
                 };
+                KillFeed = new KillFeed();
             }
 
             #region clearOldValues
