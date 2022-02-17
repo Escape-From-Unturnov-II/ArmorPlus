@@ -67,7 +67,14 @@ namespace SpeedMann.PvPRework
             Version = PvPRework.PluginVersion;
             Debug = true;
             DisableCosmetics = true;
-            KillFeed = new KillFeed();
+            KillFeed = new KillFeed
+            {
+                Enabled = true,
+                MessageColor = "yellow",
+                UseCustomUI = false,
+                UI_ID = 52313,
+                UI_Key = 5255,
+            };
 
             if (useVanillaDefaults)
             {

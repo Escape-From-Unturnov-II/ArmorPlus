@@ -1,6 +1,7 @@
 ﻿using Rocket.Core.Logging;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
 using Steamworks;
 using System;
@@ -16,8 +17,7 @@ namespace SpeedMann.PvPRework.Helper
     public static class ArmorLogic
     {
         internal static PVPReworkConfiguration Conf = PvPRework.Conf;
-        internal static List<PlayerHit> playerHits = new List<PlayerHit>();
-
+       
 
         #region ArmorCheck
         internal static void ArmorPenCheck(Player player, ELimb limb, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
@@ -40,9 +40,10 @@ namespace SpeedMann.PvPRework.Helper
 
             ItemWeaponAsset oponentWeapon;
 
-            PvPRework.getGunStats(oponent.Player, out oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
+            PvPRework.Inst.getGunStats(oponent.Player, out oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
 
             Vector3 currentlocalHit;
+            ExtendetHitLocation currentHitLocation = ExtendetHitLocations.getExtendetHitlocation(limb);
             float armorOverride = -1;
             float damageMulti = 1;
             bool foundHit = tryGetCurrentHit(uPlayer, limb, out currentlocalHit);
@@ -51,7 +52,7 @@ namespace SpeedMann.PvPRework.Helper
             {
                 Logger.Log(oponent.CharacterName + " hit " + uPlayer.CharacterName + " in the " + limb + (foundHit ? " [" + currentlocalHit.x + ", " + currentlocalHit.y + ", " + currentlocalHit.z + "]" : ""));
             }
-
+            
             switch (limb)
             {
                 #region Arms
@@ -140,9 +141,10 @@ namespace SpeedMann.PvPRework.Helper
                     bool earHit = foundHit && isEarHit(limb, currentlocalHit);
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.skull : fleshDamage * 1.1f;
 
-                    if (hat != null)
+                    if (faceHit)
                     {
-                        if (faceHit)
+                        currentHitLocation = ExtendetHitLocation.FACE;
+                        if (hat != null)
                         {
                             if (PvPRework.Inst.hatExtensions.TryGetValue(hat.id, out hatExtension))
                             {
@@ -160,7 +162,11 @@ namespace SpeedMann.PvPRework.Helper
                                 useOuterArmor = Conf.BetterArmor.BetterHitZones.HatsProtectFace;
                             }
                         }
-                        if (earHit)
+                    }
+                    if (earHit)
+                    {
+                        currentHitLocation = ExtendetHitLocation.EARS;
+                        if (hat != null)
                         {
                             if (PvPRework.Inst.hatExtensions.TryGetValue(hat.id, out hatExtension))
                             {
@@ -213,19 +219,23 @@ namespace SpeedMann.PvPRework.Helper
                     bool stomacheHit = foundHit && isStomachHit(limb, currentlocalHit);
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.spine : fleshDamage;
 
-                    if (stomacheHit && vest != null)
+                    if (stomacheHit)
                     {
-                        if (PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
+                        currentHitLocation = ExtendetHitLocation.STOMACH;
+                        if (vest != null)
                         {
-                            PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out vestExtension);
-                            if (vestExtension != null)
+                            if (PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
                             {
-                                useOuterArmor = vestExtension.ProtectStomach;
+                                PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out vestExtension);
+                                if (vestExtension != null)
+                                {
+                                    useOuterArmor = vestExtension.ProtectStomach;
+                                }
                             }
-                        }
-                        else if (Conf.BetterArmor.BetterHitZones.VestsProtectStomach)
-                        {
-                            useOuterArmor = true;
+                            else if (Conf.BetterArmor.BetterHitZones.VestsProtectStomach)
+                            {
+                                useOuterArmor = true;
+                            }
                         }
                     }
 
@@ -263,14 +273,18 @@ namespace SpeedMann.PvPRework.Helper
                 default:
                     return;
             }
+
+            PvPRework.Inst.setLastHitLocation(uPlayer.CSteamID, currentHitLocation);
+
             if (!Conf.BetterArmor.UseArmorClasses)
             {
                 if (applyGlobalArmorMultiplier)
                 {
                     armor *= Provider.modeConfigData.Players.Armor_Multiplier;
                 }
-                damage = fleshDamage * armor;
+                fleshDamage = fleshDamage * armor;
             }
+
             damage = (float)Math.Round(fleshDamage);
         }
         #endregion
@@ -524,11 +538,11 @@ namespace SpeedMann.PvPRework.Helper
             localPoint = Vector3.zero;
             if (Conf.BetterArmor.BetterHitZones.Enabled)
             {
-                foreach (PlayerHit hit in playerHits)
+                foreach (PlayerHit hit in PvPRework.playerHits)
                 {
                     if (hit.isCorrectHit(uPlayer.CSteamID, limb))
                     {
-                        playerHits.Remove(hit);
+                        PvPRework.playerHits.Remove(hit);
 
                         Transform skeleton = hit.imputInfo.transform.GetChild(0).GetChild(0);
 

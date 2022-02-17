@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
@@ -12,5 +13,6 @@ namespace SpeedMann.PvPRework.Models.Config
         public bool UseCustomUI = true;
         public short UI_Key = 5255;
         public ushort UI_ID = 52313;
+        public string MessageColor = "yellow";
     }
 }

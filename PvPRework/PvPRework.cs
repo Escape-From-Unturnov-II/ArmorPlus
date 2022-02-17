@@ -31,7 +31,43 @@ namespace SpeedMann.PvPRework
         public override TranslationList DefaultTranslations =>
             new TranslationList
             {
-                        { "item_restricted_nvg", "You are not allowed to wear this helmet in combination with NVG!" },
+                // Restriction        
+                { "item_restricted_nvg", "You are not allowed to wear this helmet in combination with NVG!" },
+
+                // Kill feed
+                {"DEATH_BLEEDING", "{0} bled to death!"},
+                {"DEATH_BONES", "{0} fell to their death!"},
+                {"DEATH_FREEZING", "{0} froze to death!"},
+                {"DEATH_BURNING", "{0} burned to death!"},
+                {"DEATH_FOOD", "{0} starved to death!"},
+                {"DEATH_BREATH", "{0} ran out of air."},
+                {"DEATH_WATER", "{0} dehydrated to death!"},
+                {"DEATH_INFECTION", "{0} died of infection!"},
+
+                {"DEATH_GUN", "{1} [\u2719 {2}] shot {0} int the {3} using a {4}! [{6}m]"},
+                {"DEATH_MELEE", "{1} [\u2719 {2}] meleed {0} in the {3} using a {4}!"},
+                {"DEATH_PUNCH", "{1} [\u2719 {2}] punched {0} in the {3}!"},
+                {"DEATH_ROADKILL", "{1} [\u2719 {2}] ran over {0} using a {5}!"},
+                
+                {"DEATH_VEHICLE", "{0} has died due to an explosion of a vehicle!"},
+                {"DEATH_GRENADE", "{0} was obliterated by a grenade!"},
+                {"DEATH_LANDMINE", "{0} was blown up by a landmine!"},
+                {"DEATH_MISSILE", "{0} was annihilated by a missile!"},
+                {"DEATH_CHARGE", "{0} was obliterated by a breaching charge!"},
+                {"DEATH_SPLASH", "{0} was killed by a weak nearby explosion!"},
+                {"DEATH_SHRED", "{0} was shredded to bits!"},
+                {"DEATH_SENTRY", "{0} was shot by a turret!"},
+
+                {"DEATH_ANIMAL", "{0} got demolished when an animal attacked them."},
+                {"DEATH_ZOMBIE", "{0} has been mauled by a zombie!"},
+                {"DEATH_ACID", "{0} was melted alive!"},
+                {"DEATH_BOULDER", "{0} was crushed by a boulder!"},
+                {"DEATH_BURNING", "{0} gave a hug to a zombie in flames!"},
+                {"DEATH_SPIT", "{0} died of shame from spits!"},
+                {"DEATH_SPARK", "{0} was shocked to his death!"},
+                {"DEATH_SUICIDE", "{0} killed themselves!"},
+                {"DEATH_KILL", "{0} was killed by a higher force."},
+                {"DEATH_ARENA", "{0} was killed by the arena."},
             };
 
         internal static bool HasDuribility;
@@ -44,10 +80,12 @@ namespace SpeedMann.PvPRework
         internal Dictionary<ushort, ushort> cyclableHelmets;
         internal Dictionary<ushort, ushort> cyclableSights;
 
+        internal static List<PlayerHit> playerHits = new List<PlayerHit>();
 
-        
+        internal Dictionary<CSteamID, ExtendetHitLocation> lastHit;
         private Dictionary<CSteamID, ushort> hatSwaps;
         private Dictionary<CSteamID, StanceHandler> playerStances;
+       
         private List<EquipItem> reequipItems;
 
         #region Load
@@ -56,10 +94,11 @@ namespace SpeedMann.PvPRework
             Inst = this;
             Conf = Configuration.Instance;
 
-            ArmorLogic.playerHits = new List<PlayerHit>();
+            playerHits = new List<PlayerHit>();
             hatSwaps = new Dictionary<CSteamID, ushort>();
             playerStances = new Dictionary<CSteamID, StanceHandler>();
             reequipItems = new List<EquipItem>();
+            lastHit = new Dictionary<CSteamID, ExtendetHitLocation>();
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
 
@@ -100,6 +139,7 @@ namespace SpeedMann.PvPRework
                 UnturnedPatches.OnPreChangeHat -= OnHatChanged;
                 UnturnedPatches.OnPreChangeGlasses -= OnGlassesChanged;
                 UnturnedPatches.OnPreVisionChanged -= OnVisionChanged;
+                UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
                 UnturnedPatches.Cleanup();
@@ -151,7 +191,6 @@ namespace SpeedMann.PvPRework
             player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
             playerStances.Add(player.CSteamID, stanceHandler);
         }
-
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             if(playerStances.TryGetValue(player.CSteamID, out StanceHandler handler)){
@@ -161,7 +200,6 @@ namespace SpeedMann.PvPRework
             
             InputHandler.removePlayerEntry(player.CSteamID);
         }
-
         private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
         {
             switch (key)
@@ -179,7 +217,7 @@ namespace SpeedMann.PvPRework
                         }
                         else if(Conf.Debug)
                             Logger.Log($"Sight key pressed but sight {sightId} can't be cycled");
-                        if (Conf.Debug)
+                        if (Conf.Debug && sightId == nextSight)
                             Logger.Log($"Sight changed to: {sightId}");
                     }
                     else if(Conf.Debug)
@@ -199,7 +237,31 @@ namespace SpeedMann.PvPRework
                     break;
             }
         }
+        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murdererId)
+        {
+            if (!Conf.KillFeed.Enabled)
+                return;
 
+            UnturnedPlayer murderer = UnturnedPlayer.FromCSteamID(murdererId);
+            string limbWord;
+
+            if (lastHit.TryGetValue(player.CSteamID, out ExtendetHitLocation hitLocation))
+                limbWord = Enum.GetName(typeof(ExtendetHitLocation), hitLocation).ToLower();
+            else
+                limbWord = Enum.GetName(typeof(ELimb), limb).ToLower();
+
+            UnturnedChat.Say(Translate(
+                $"DEATH_{cause}",
+                player?.CharacterName ?? "Someone",
+                murderer?.CharacterName ?? "Anonymous",
+                murderer?.Health ?? 0,
+                limbWord,
+                murderer?.Player?.equipment?.asset?.itemName ?? "N/A",
+                murderer?.CurrentVehicle?.asset?.vehicleName ?? "N/A",
+                Math.Round(Vector3.Distance(player?.Position ?? Vector3.zero, murderer?.Position ?? Vector3.zero))),
+                UnturnedChat.GetColorFromName(Conf.KillFeed.MessageColor, Color.red)
+            );
+        }
         private void OnPlayerDead(UnturnedPlayer player, Vector3 position)
         {
             if(player.Player.clothing.hat == 0)
@@ -211,7 +273,6 @@ namespace SpeedMann.PvPRework
                 EffectController.spawnUI(0, Conf.BetterArmor.GlassesEffectKey, player.CSteamID);
             }
         }
-        
         private void OnVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle)
         {
             if (toggle)
@@ -267,7 +328,6 @@ namespace SpeedMann.PvPRework
                 }
             }
         }
-        
         private void OnVisionChanged(Player player, ushort glassesId, bool activate)
         {
             if (activate)
@@ -280,19 +340,20 @@ namespace SpeedMann.PvPRework
             }
             
         }
-
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
 
             if (Conf.Debug && !Conf.BetterArmor.Enabled)
                 Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + " Times: " + parameters.times + "!");
 
+            setLastHitLocation(UnturnedPlayer.FromPlayer(parameters.player).CSteamID, ExtendetHitLocations.getExtendetHitlocation(parameters.limb));
+
             switch (parameters.cause)
             {
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
                     if (Conf.BetterArmor.Enabled)
-                        ArmorPenCheck(parameters.player, parameters.limb, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
+                        ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
                     if (Conf.BreakLegs)
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
                     break;
@@ -314,7 +375,7 @@ namespace SpeedMann.PvPRework
                         playerHits.RemoveAt(0);
                         if (Conf.Debug)
                         {
-                            Logger.Log("PlayerHit timedout: " + removedHit.player.name +" in the "+ removedHit.limb);
+                            Logger.Log("PlayerHit timedout: " + removedHit.player.name + " in the " + removedHit.limb);
                         }
                     }
                     else
@@ -342,8 +403,10 @@ namespace SpeedMann.PvPRework
                 }
             }
         }
-        private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance)
+        private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
+            newStance = stance.stance;
+
             switch (oldStance)
             {
                 case EPlayerStance.PRONE:
@@ -352,6 +415,8 @@ namespace SpeedMann.PvPRework
                         if (stance.player.life.stamina < Conf.MovementExtension.PushupStaminaDrain)
                         {
                             stance.stance = EPlayerStance.PRONE;
+                            newStance = EPlayerStance.PRONE;
+                            UnturnedPrivateFields.setPalyerStance(stance);
                         }
                         else
                         {
@@ -380,8 +445,6 @@ namespace SpeedMann.PvPRework
             }
         }
         #endregion
-
-        
 
         #region BoneBreackCheck
         private void BreakBoneCheck(Player player, ELimb limb, float damage)
@@ -446,6 +509,17 @@ namespace SpeedMann.PvPRework
 
 
         #region HelperFunctions
+        internal void setLastHitLocation(CSteamID steamID, ExtendetHitLocation hitLocation)
+        {
+            if (!Conf.BetterArmor.BetterHitZones.Enabled)
+            {
+                return;
+            }
+            if (!lastHit.ContainsKey(steamID))
+                lastHit.Add(steamID, hitLocation);
+            else
+                lastHit[steamID] = hitLocation;
+        }
         private void notifyIncompatibleHelmet(UnturnedPlayer player)
         {
             if (Conf.UseNotificationUI)
@@ -478,7 +552,7 @@ namespace SpeedMann.PvPRework
                 hatSwaps.Add(steamId, clothing.hat);
             clothing.askWearHat(newHelmetId, clothing.hatQuality, clothing.hatState, true);
         }
-        internal static void getGunStats(Player player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber)
+        internal void getGunStats(Player player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber)
         {
             caliber = null;
             weapon = null;
@@ -647,20 +721,21 @@ namespace SpeedMann.PvPRework
             // Cosmetics
             if (Conf.DisableCosmetics)
             {
-                List<object> players = Provider.clients.Cast<object>().ToList();
-                foreach (Player player in players)
+                List<SteamPlayer> players = Provider.clients;
+                foreach (SteamPlayer player in players)
                 {
-                    disableCosmethics(player);
+                    disableCosmethics(player.player);
                 }
                 UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
 
             }
 
-            // UI / preventNVG
+            // UI / preventNVG / killfeed
             U.Events.OnPlayerConnected += OnPlayerConnected;
             UnturnedPatches.OnPreChangeHat += OnHatChanged;
             UnturnedPatches.OnPreChangeGlasses += OnGlassesChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
+            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
 

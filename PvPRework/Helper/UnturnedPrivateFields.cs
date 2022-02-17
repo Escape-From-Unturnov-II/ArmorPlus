@@ -12,6 +12,8 @@ namespace SpeedMann.PvPRework.Helper
     {
         private static FieldInfo Gun_Attachments;
         private static FieldInfo Clothing_Armor;
+
+        private static MethodInfo ReplicateStance;
         public static bool getGunAttachments(UseableGun gun, out Attachments result)
         {
             if (Gun_Attachments != null)
@@ -35,7 +37,16 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
+        public static bool setPalyerStance(PlayerStance playerStance)
+        {
+            if (ReplicateStance != null)
+            {
+                ReplicateStance.Invoke(playerStance, new object[] { true });
 
+                return true;
+            }
+            return false;
+        }
 
         public static void Init()
         {
@@ -46,6 +57,9 @@ namespace SpeedMann.PvPRework.Helper
 
             type = typeof(ItemClothingAsset);
             Clothing_Armor = type.GetField("_armor", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            type = typeof(PlayerStance);
+            ReplicateStance = type.GetMethod("replicateStance", BindingFlags.NonPublic | BindingFlags.Instance);
         }
     }
 }

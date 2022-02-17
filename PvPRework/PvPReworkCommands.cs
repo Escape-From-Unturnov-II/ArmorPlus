@@ -2,6 +2,7 @@
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models.Config;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,7 @@ namespace SpeedMann.PvPRework
                         UnturnedChat.Say(caller, "[] indicate optional Parameters <> are essential", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(1) /armorplus help", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(2) /armorplus gunstats", UnityEngine.Color.cyan);
+                        UnturnedChat.Say(caller, "(2) /armorplus veststats", UnityEngine.Color.cyan);
                         return;
                     case "gunstats":
                         ItemWeaponAsset weapon;
@@ -85,7 +87,7 @@ namespace SpeedMann.PvPRework
                         {
                             ItemVestAsset vest = (ItemVestAsset)asset;
 
-                            float armor = PvPRework.Inst.calcItemArmor(player.Player, vest, out int armorClassIndex, out float armorTier, PvPRework.Conf.BetterArmor.Enabled && PvPRework.Conf.BetterArmor.UseArmorClasses, -1);
+                            float armor = ArmorLogic.calcItemArmor(player.Player, vest, out int armorClassIndex, out float armorTier, PvPRework.Conf.BetterArmor.Enabled && PvPRework.Conf.BetterArmor.UseArmorClasses, -1);
 
                             bool protectStomach = true;
                             bool protectArms = false;
