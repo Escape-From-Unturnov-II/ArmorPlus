@@ -430,7 +430,7 @@ namespace SpeedMann.PvPRework
             {
                 case EPlayerStance.PRONE:
                     PlayerEquipment equipment = stance.player.equipment;
-                    if (equipment != null && equipment.useable is UseableGun && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
+                    if (equipment != null && equipment.useable is UseableGun && !equipment.isBusy && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
                     {
                         reequipItems.Add(new EquipItem
                         {
