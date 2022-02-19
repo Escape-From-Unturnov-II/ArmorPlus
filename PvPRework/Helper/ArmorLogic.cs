@@ -315,7 +315,7 @@ namespace SpeedMann.PvPRework.Helper
             return totalReduction;
         }
 
-        internal static void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float normalizedDamage, bool didPenetrate)
+        internal static void damageArmor(Player player, ItemClothingAsset partToDamage, int armorClassIndex, float armorDamageIn, bool didPenetrate)
         {
             List<ArmorClass> armorClasses = Conf.ArmorClasses;
             ArmorClass armorClass = armorClasses[armorClassIndex];
@@ -323,41 +323,49 @@ namespace SpeedMann.PvPRework.Helper
 
             if (clothing != null)
             {
-                float armorDamage = 0;
-                if (normalizedDamage > armorClass.DamageToDamageArmorMin)
+                float trueArmorDamage = 0;
+                if (armorDamageIn >= armorClass.DamageToDamageArmorMin)
                 {
-                    armorDamage = armorClass.MaxArmorDamage;
-                    if (normalizedDamage < armorClass.DamageToDamageArmorMax && armorClassIndex < armorClasses.Count() - 1)
+                    trueArmorDamage = armorClass.MaxArmorDamage;
+                    if (armorDamageIn < armorClass.DamageToDamageArmorMax)
                     {
-                        armorDamage = PvPRework.calcMean(
+                        trueArmorDamage = PvPRework.calcMean(
                             armorClass.DamageToDamageArmorMin, armorClass.DamageToDamageArmorMax,
-                            armorClasses[armorClassIndex].Tier, armorClasses[armorClassIndex + 1].Tier, normalizedDamage);
+                            armorClass.MinArmorDamage, armorClass.MaxArmorDamage, armorDamageIn);
                     }
                 }
 
+                // round armor damage with chance
+                if (trueArmorDamage % 0 > PvPRework.rand.NextDouble())
+                {
+                    trueArmorDamage++;
+                }
+                trueArmorDamage = (float)Math.Floor(trueArmorDamage);
+
+                // damage armor
                 if (partToDamage is ItemHatAsset)
                 {
-                    clothing.hatQuality -= calcArmorDamage(ref clothing.hatQuality, armorDamage, didPenetrate, PvPRework.HasDuribility);
+                    clothing.hatQuality -= calcArmorDamage(ref clothing.hatQuality, trueArmorDamage, didPenetrate, PvPRework.HasDuribility);
                     clothing.sendUpdateHatQuality();
                 }
                 else if (partToDamage is ItemMaskAsset)
                 {
-                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, armorDamage, didPenetrate, false);
+                    clothing.maskQuality -= calcArmorDamage(ref clothing.maskQuality, trueArmorDamage, didPenetrate, false);
                     clothing.sendUpdateMaskQuality();
                 }
                 else if (partToDamage is ItemVestAsset)
                 {
-                    clothing.vestQuality -= calcArmorDamage(ref clothing.vestQuality, armorDamage, didPenetrate, PvPRework.HasDuribility);
+                    clothing.vestQuality -= calcArmorDamage(ref clothing.vestQuality, trueArmorDamage, didPenetrate, PvPRework.HasDuribility);
                     clothing.sendUpdateVestQuality();
                 }
                 else if (partToDamage is ItemShirtAsset)
                 {
-                    clothing.shirtQuality -= calcArmorDamage(ref clothing.shirtQuality, armorDamage, didPenetrate, PvPRework.HasDuribility);
+                    clothing.shirtQuality -= calcArmorDamage(ref clothing.shirtQuality, trueArmorDamage, didPenetrate, PvPRework.HasDuribility);
                     clothing.sendUpdateShirtQuality();
                 }
                 else if (partToDamage is ItemPantsAsset)
                 {
-                    clothing.pantsQuality -= calcArmorDamage(ref clothing.pantsQuality, armorDamage, didPenetrate, PvPRework.HasDuribility);
+                    clothing.pantsQuality -= calcArmorDamage(ref clothing.pantsQuality, trueArmorDamage, didPenetrate, PvPRework.HasDuribility);
                     clothing.sendUpdatePantsQuality();
                 }
             }
@@ -454,12 +462,10 @@ namespace SpeedMann.PvPRework.Helper
         {
             float penChance = 1;
             bool didPenetrate = true;
-            int armorClassIndex;
-            float armorTier;
             float oldPenDamage = penPower;
             float oldFleshDamage = fleshDamage;
 
-            float armor = calcItemArmor(player, clothingPart, out armorClassIndex, out armorTier, false, armorOverride);
+            float armor = calcItemArmor(player, clothingPart, out int armorClassIndex, out float armorTier, false, armorOverride);
 
 
             if (armor > 0)
