@@ -87,7 +87,7 @@ namespace SpeedMann.PvPRework
                         {
                             ItemVestAsset vest = (ItemVestAsset)asset;
 
-                            float armor = ArmorLogic.calcItemArmor(player.Player, vest, out int armorClassIndex, out float armorTier, PvPRework.Conf.BetterArmor.Enabled && PvPRework.Conf.BetterArmor.UseArmorClasses, -1);
+                            float armor = ArmorLogic.calcItemArmor(player.Player, vest, out int armorClassIndex, out float armorTier, !PvPRework.Conf.BetterArmor.Enabled || !PvPRework.Conf.BetterArmor.UseArmorClasses, -1);
 
                             bool protectStomach = true;
                             bool protectArms = false;

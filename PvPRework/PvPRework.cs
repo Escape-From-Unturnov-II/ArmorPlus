@@ -44,7 +44,7 @@ namespace SpeedMann.PvPRework
                 {"DEATH_WATER", "{0} dehydrated to death!"},
                 {"DEATH_INFECTION", "{0} died of infection!"},
 
-                {"DEATH_GUN", "{1} [\u2719 {2}] shot {0} int the {3} using a {4}! [{6}m]"},
+                {"DEATH_GUN", "{1} [\u2719 {2}] shot {0} in the {3} using a {4}! [{6}m]"},
                 {"DEATH_MELEE", "{1} [\u2719 {2}] meleed {0} in the {3} using a {4}!"},
                 {"DEATH_PUNCH", "{1} [\u2719 {2}] punched {0} in the {3}!"},
                 {"DEATH_ROADKILL", "{1} [\u2719 {2}] ran over {0} using a {5}!"},

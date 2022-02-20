@@ -375,16 +375,17 @@ namespace SpeedMann.PvPRework.Helper
         #region ArmorCalc
         internal static int getArmorClassIndex(float armor, out float armorTier)
         {
+
             armorTier = 0;
             List<ArmorClass> armorClasses = Conf.ArmorClasses;
-
+            
             for (int i = 0; i < armorClasses.Count(); i++)
             {
                 if (armor >= armorClasses[i].Armor)
                 {
                     armorTier = armorClasses[i].Tier;
 
-                    if (armor > armorClasses[i].Armor && i > 0)
+                    if (i > 0 && armor > armorClasses[i-1].Armor)
                     {
                         armorTier = PvPRework.calcMean(
                             armorClasses[i - 1].Armor, armorClasses[i].Armor,
@@ -394,6 +395,7 @@ namespace SpeedMann.PvPRework.Helper
                     return i;
                 }
             }
+
             armorTier = armorClasses[armorClasses.Count() - 1].Tier;
             return armorClasses.Count() - 1;
         }
@@ -419,7 +421,6 @@ namespace SpeedMann.PvPRework.Helper
             if (clothing != null)
             {
                 int quality = 100;
-                Type clothingType = clothing.GetType();
                 if (clothing is ItemHatAsset)
                 {
                     quality = player.clothing.hatQuality;
@@ -445,7 +446,7 @@ namespace SpeedMann.PvPRework.Helper
                 {
                     return 1 - (1 - armor) * (int)quality / 100;
                 }
-                else if (quality > 0)
+                if (quality > 0)
                 {
                     armorClassIndex = getArmorClassIndex(armor, out armorTier);
 
