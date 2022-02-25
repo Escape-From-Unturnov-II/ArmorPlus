@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework
 {
-    public class CommandKit : IRocketCommand
+    public class ArmorPlusCommands : IRocketCommand
     {
         public string Help
         {
@@ -56,7 +56,7 @@ namespace SpeedMann.PvPRework
                 return;
             }else if (!PvPRework.ModsLoaded)
             {
-                UnturnedChat.Say(caller, "ArmorPlus is still loaded!", UnityEngine.Color.red);
+                UnturnedChat.Say(caller, "ArmorPlus is still loading!", UnityEngine.Color.red);
             }
             else
             {
@@ -67,14 +67,13 @@ namespace SpeedMann.PvPRework
                         UnturnedChat.Say(caller, "[] indicate optional Parameters <> are essential", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(1) /armorplus help", UnityEngine.Color.cyan);
                         UnturnedChat.Say(caller, "(2) /armorplus gunstats", UnityEngine.Color.cyan);
-                        UnturnedChat.Say(caller, "(2) /armorplus veststats", UnityEngine.Color.cyan);
+                        UnturnedChat.Say(caller, "(3) /armorplus veststats", UnityEngine.Color.cyan);
                         return;
                     case "gunstats":
-                        ItemWeaponAsset weapon;
-                        PvPRework.Inst.getGunStats(player.Player, out weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
-                        if(weapon != null)
+                        if (player.Player.equipment?.asset is ItemWeaponAsset)
                         {
-                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} [{weapon.id}] are\n {(caliber != null ? "Ammo: "+caliber.Name: "")} Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.cyan);
+                            PvPRework.Inst.getGunStats(player.Player, out ItemWeaponAsset weapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
+                            UnturnedChat.Say(caller, $"The Stats of {weapon.name} [{weapon.id}] are\n {(caliber != null ? "Ammo: " + caliber.Name : "")} Penetration: {penetration}, FleshDamage: {fleshDamage}, ArmorDamage: {armorDamage}", UnityEngine.Color.cyan);
                             return;
                         }
 

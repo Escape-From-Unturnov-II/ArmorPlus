@@ -1112,6 +1112,7 @@ namespace SpeedMann.PvPRework
                     }
                 };
                 KillFeed = new KillFeed();
+                Version = "1.7.0";
             }
 
             #region clearOldValues

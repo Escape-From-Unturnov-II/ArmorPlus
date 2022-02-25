@@ -10,8 +10,8 @@
         public float DamageMultiplierMin { get; set; } //damage multiplier for minimal damage (0-1)
         public float DamageMultiplierNormal { get; set; } //damage multiplier normal damage (0-1)
 
-        public int MinArmorDamage { get; set; } //min damage done to armor (1 = 1%)
-        public int MaxArmorDamage { get; set; } //max damage done to armor (1 = 1%)
+        public float MinArmorDamage { get; set; } //min damage done to armor (1 = 1%)
+        public float MaxArmorDamage { get; set; } //max damage done to armor (1 = 1%)
         public float DamageToDamageArmorMin { get; set; } //damage required to do MinArmorDamage
         public float DamageToDamageArmorMax { get; set; } //damage required to do MaxArmorDamage
 

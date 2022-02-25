@@ -20,7 +20,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.6.0";
+        public static string PluginVersion = "1.7.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         internal static readonly System.Random rand = new System.Random();
@@ -169,7 +169,7 @@ namespace SpeedMann.PvPRework
         #region Events
         private void Update()
         {
-            while(reequipItems.Count > 0)
+            while(reequipItems?.Count > 0)
             {
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(reequipItems[0].steamId);
                 if(player != null)
@@ -217,7 +217,7 @@ namespace SpeedMann.PvPRework
                         }
                         else if(Conf.Debug)
                             Logger.Log($"Sight key pressed but sight {sightId} can't be cycled");
-                        if (Conf.Debug && sightId == nextSight)
+                        if (sightId == nextSight)
                             Logger.Log($"Sight changed to: {sightId}");
                     }
                     else if(Conf.Debug)
@@ -246,9 +246,12 @@ namespace SpeedMann.PvPRework
             string limbWord;
 
             if (lastHit.TryGetValue(player.CSteamID, out ExtendetHitLocation hitLocation))
-                limbWord = Enum.GetName(typeof(ExtendetHitLocation), hitLocation).ToLower();
+                limbWord = Enum.GetName(typeof(ExtendetHitLocation), hitLocation).Replace('_', ' ').ToLower();
             else
                 limbWord = Enum.GetName(typeof(ELimb), limb).ToLower();
+
+            string deathLocation = LevelNodes.nodes.OfType<LocationNode>()
+                .OrderBy(k => Vector3.Distance(k.point, player.Player.transform.position)).FirstOrDefault()?.name ?? "Unknown";
 
             UnturnedChat.Say(Translate(
                 $"DEATH_{cause}",
@@ -342,7 +345,6 @@ namespace SpeedMann.PvPRework
         }
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
-
             if (Conf.Debug && !Conf.BetterArmor.Enabled)
                 Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + " Times: " + parameters.times + "!");
 
@@ -353,7 +355,7 @@ namespace SpeedMann.PvPRework
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
                     if (Conf.BetterArmor.Enabled)
-                        ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
+                        ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
                     if (Conf.BreakLegs)
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
                     break;
@@ -367,12 +369,12 @@ namespace SpeedMann.PvPRework
         {
             if (inputInfo != null && inputInfo.type == ERaycastInfoType.PLAYER && inputInfo.player != null && inputInfo.transform != null)
             {
-                while (playerHits.Count > 0)
+                for(int i=0; i < playerHits.Count; i++)
                 {
-                    if (playerHits[0].isOlderThan(PlayerHitMaxAge))
+                    if (playerHits[i].isOlderThan(PlayerHitMaxAge))
                     {
-                        InputInfo removedHit = playerHits[0].imputInfo;
-                        playerHits.RemoveAt(0);
+                        InputInfo removedHit = playerHits[i].imputInfo;
+                        playerHits.RemoveAt(i--);
                         if (Conf.Debug)
                         {
                             Logger.Log("PlayerHit timedout: " + removedHit.player.name + " in the " + removedHit.limb);
@@ -406,6 +408,9 @@ namespace SpeedMann.PvPRework
         private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
             newStance = stance.stance;
+
+            if(Conf.Debug)
+                Logger.Log($"Changed Stance: {oldStance} to {newStance}");
 
             switch (oldStance)
             {
@@ -498,10 +503,8 @@ namespace SpeedMann.PvPRework
                     {
                         player.life.breakLegs();
                     }
-                    if (Conf.Debug)
-                    {
-                        Logger.Log("breakChance: " + breakChance + " Damage: " + damage + "!");
-                    }
+
+                    Logger.Log("breakChance: " + breakChance + " Damage: " + damage + "!");
                 }
             }
         }
