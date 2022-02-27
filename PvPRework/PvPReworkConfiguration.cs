@@ -91,6 +91,45 @@ namespace SpeedMann.PvPRework
                         Enabled = true,
                         HatsProtectFace = false,
                         VestsProtectStomach = true,
+                        PlayerPenetration = new PlayerPenetrationConfig
+                        {
+                            Enabled = true,
+                            Arm = new PenResistence
+                            {
+                                RequiredPenetration = 10,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.3f,
+                                MinPenReduction = 0.1f,
+                            },
+                            Leg = new PenResistence
+                            {
+                                RequiredPenetration = 10,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.3f,
+                                MinPenReduction = 0.1f,
+                            },
+                            Skull = new PenResistence
+                            {
+                                RequiredPenetration = 20,
+                                PenetrationForMinReduction = 45,
+                                MaxPenReduction = 0.4f,
+                                MinPenReduction = 0.2f,
+                            },
+                            Spine = new PenResistence
+                            {
+                                RequiredPenetration = 25,
+                                PenetrationForMinReduction = 50,
+                                MaxPenReduction = 0.5f,
+                                MinPenReduction = 0.2f,
+                            },
+                            Stomach = new PenResistence
+                            {
+                                RequiredPenetration = 15,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.35f,
+                                MinPenReduction = 0.15f,
+                            },
+                        }
                     },
                 };
                 BoneBreakingChances = new List<BulletLimbDamageChance>
@@ -294,6 +333,46 @@ namespace SpeedMann.PvPRework
                         Enabled = true,
                         HatsProtectFace = false,
                         VestsProtectStomach = true,
+                        PlayerPenetration = new PlayerPenetrationConfig
+                        {
+                            Enabled = true,
+                            MaxPenetrations = 2,
+                            Arm = new PenResistence
+                            {
+                                RequiredPenetration = 10,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.3f,
+                                MinPenReduction = 0.1f,
+                            },
+                            Leg = new PenResistence
+                            {
+                                RequiredPenetration = 10,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.3f,
+                                MinPenReduction = 0.1f,
+                            },
+                            Skull = new PenResistence
+                            {
+                                RequiredPenetration = 20,
+                                PenetrationForMinReduction = 45,
+                                MaxPenReduction = 0.4f,
+                                MinPenReduction = 0.2f,
+                            },
+                            Spine = new PenResistence
+                            {
+                                RequiredPenetration = 25,
+                                PenetrationForMinReduction = 50,
+                                MaxPenReduction = 0.5f,
+                                MinPenReduction = 0.2f,
+                            },
+                            Stomach = new PenResistence
+                            {
+                                RequiredPenetration = 15,
+                                PenetrationForMinReduction = 40,
+                                MaxPenReduction = 0.35f,
+                                MinPenReduction = 0.15f,
+                            },
+                        }
                     },
                 };
                 BoneBreakingChances = new List<BulletLimbDamageChance>
@@ -1114,7 +1193,50 @@ namespace SpeedMann.PvPRework
                 KillFeed = new KillFeed();
                 Version = "1.7.0";
             }
-
+            if (Version == "1.7.0")
+            {
+                BetterArmor.BetterHitZones.PlayerPenetration = new PlayerPenetrationConfig
+                {
+                    Enabled = true,
+                    MaxPenetrations = 2,
+                    Arm = new PenResistence
+                    {
+                        RequiredPenetration = 10,
+                        PenetrationForMinReduction = 40,
+                        MaxPenReduction = 0.3f,
+                        MinPenReduction = 0.1f,
+                    },
+                    Leg = new PenResistence
+                    {
+                        RequiredPenetration = 10,
+                        PenetrationForMinReduction = 40,
+                        MaxPenReduction = 0.3f,
+                        MinPenReduction = 0.1f,
+                    },
+                    Skull = new PenResistence
+                    {
+                        RequiredPenetration = 20,
+                        PenetrationForMinReduction = 45,
+                        MaxPenReduction = 0.4f,
+                        MinPenReduction = 0.2f,
+                    },
+                    Spine = new PenResistence
+                    {
+                        RequiredPenetration = 25,
+                        PenetrationForMinReduction = 50,
+                        MaxPenReduction = 0.5f,
+                        MinPenReduction = 0.2f,
+                    },
+                    Stomach = new PenResistence
+                    {
+                        RequiredPenetration = 15,
+                        PenetrationForMinReduction = 40,
+                        MaxPenReduction = 0.35f,
+                        MinPenReduction = 0.15f,
+                    },
+                };
+                Version = "1.8.0";
+            }
             #region clearOldValues
             gunPenValues = null;
             vestsProtectingArms = null;

@@ -23,6 +23,7 @@ namespace SpeedMann.PvPRework.Helper
             respectArmor = false;
             bool didPenetrate = true; // set penetrate to true to avoid cancle on no vest or no helmet
 
+            float penReducationMulti = 1;
             float armor = 1;
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
             UnturnedPlayer oponent = UnturnedPlayer.FromCSteamID(oponentId);
@@ -41,35 +42,14 @@ namespace SpeedMann.PvPRework.Helper
             Vector3 currentlocalHit = Vector3.zero;
             ExtendetHitLocation currentHitLocation = ExtendetHitLocations.getExtendetHitlocation(limb);
             float armorOverride = -1;
-            float damageMulti = 1;
             bool foundHit = false;
 
             if (tryGetCurrentHit(uPlayer, limb, out PlayerHit currentHit))
             {
                 foundHit = tryGetHitLocation(currentHit, out currentlocalHit);
-                // try penetrate Arms
-                if (limb == ELimb.LEFT_ARM || limb == ELimb.RIGHT_ARM)
+                if(currentHit.penCount > 0)
                 {
-                    Vector3 newStartpoint = currentHit.imputInfo.point + (currentHit.imputInfo.direction.normalized * 0.1f);
-                    Logger.Log("old hit: " + currentHit.imputInfo.point);
-                    Logger.Log("new start: "+newStartpoint);
-                    RaycastInfo info = DamageTool.raycast(new Ray(newStartpoint, currentHit.imputInfo.direction), 512f, RayMasks.DAMAGE_CLIENT, null);
-                    
-                    Logger.Log("Hit: "+ (info.transform ? info.transform.tag:"no_Tag"));
-                    if(info.player != null)
-                    {
-                        Logger.Log("Penetrating Arm and hit player " + oponentWeapon?.name );
-                        DamagePlayerParameters damageparam = new DamagePlayerParameters {
-                            player = info.player,
-                            cause = cause,
-                            limb = info.limb,
-                            direction = currentHit.imputInfo.direction,
-                            damage = oponentWeapon.playerDamageMultiplier.multiply(limb),
-                            times = 1,
-                            killer = oponent.CSteamID,
-                        };
-                        DamageTool.damagePlayer(damageparam, out EPlayerKill kill);
-                    }
+                    penetration = currentHit.penetrationOverride;
                 }
             }
 
@@ -107,13 +87,17 @@ namespace SpeedMann.PvPRework.Helper
                     {
                         if (useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
                         }
 
 
                         if (didPenetrate && shirt != null)
                         {
-                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, damageMulti);
+                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                        }
+                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
+                        {
+                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
                         }
                     }
                     else
@@ -147,12 +131,16 @@ namespace SpeedMann.PvPRework.Helper
                     {
                         if (useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
                         }
 
                         if (didPenetrate && pants != null)
                         {
-                            didPenetrate = penArmor(player, pants, ref armorDamage, ref penetration, ref fleshDamage);
+                            didPenetrate = penArmor(player, pants, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                        }
+                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
+                        {
+                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
                         }
                     }
                     else
@@ -218,12 +206,16 @@ namespace SpeedMann.PvPRework.Helper
                     {
                         if (hat != null && useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, armorOverride);
+                            didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
                         }
 
                         if (didPenetrate && mask != null)
                         {
-                            didPenetrate = penArmor(player, mask, ref armorDamage, ref penetration, ref fleshDamage);
+                            didPenetrate = penArmor(player, mask, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                        }
+                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
+                        {
+                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
                         }
                     }
                     else
@@ -270,17 +262,21 @@ namespace SpeedMann.PvPRework.Helper
                     {
                         if (vest != null && !stomacheHit || useOuterArmor)
                         {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage);
+                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
                         }
 
                         if (didPenetrate && shirt != null)
                         {
-                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage);
+                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
                         }
                         if (didPenetrate && stomacheHit)
                         {
                             if (PvPRework.Conf.Debug)
                                 Logger.Log("Stomach got hit!");
+                        }
+                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
+                        {
+                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
                         }
                     }
                     else
@@ -486,11 +482,11 @@ namespace SpeedMann.PvPRework.Helper
         #endregion
 
         #region ArmorPenCalc
-        internal static bool penArmor(Player player, ItemClothingAsset clothingPart, ref float armorDamage, ref float penPower, ref float fleshDamage, float armorOverride = -1)
+        internal static bool penArmor(Player player, ItemClothingAsset clothingPart, ref float armorDamage, ref float penetartion, ref float fleshDamage, ref float penReducation, float armorOverride = -1)
         {
-            float penChance = 1;
+            float penChance = 1;         
             bool didPenetrate = true;
-            float oldPenDamage = penPower;
+            float oldPenetation = penetartion;
             float oldFleshDamage = fleshDamage;
 
             float armor = calcItemArmor(player, clothingPart, out int armorClassIndex, out float armorTier, false, armorOverride);
@@ -498,11 +494,12 @@ namespace SpeedMann.PvPRework.Helper
 
             if (armor > 0)
             {
-                penChance = calcPenChance(armor, penPower);
+                penChance = calcPenChance(armor, penetartion);
 
                 if (penChance > PvPRework.rand.NextDouble())
                 {
-                    penPower = calcPenDamage(penPower, penChance, armorClassIndex);
+                    penetartion = calcPenDamage(penetartion, penChance, armorClassIndex);
+                    penReducation = penReducation + oldPenetation / penetartion;
                     fleshDamage = calcDamage(fleshDamage, penChance, armorClassIndex);
                 }
                 else
@@ -516,7 +513,7 @@ namespace SpeedMann.PvPRework.Helper
 
             if (PvPRework.Conf.Debug)
             {
-                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenDamage + " gunDamage: " + oldFleshDamage + " actualDamage: " + fleshDamage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
+                Logger.Log("penChance: " + penChance + " GunPenetration: " + oldPenetation + " gunDamage: " + oldFleshDamage + " actualDamage: " + fleshDamage + " Armor: " + clothingPart.name + " [T:" + armorTier + " A:" + armor + "]!");
 
             }
 
@@ -524,17 +521,17 @@ namespace SpeedMann.PvPRework.Helper
             return didPenetrate;
         }
 
-        internal static float calcPenDamage(float penDamage, float penChance, int armorClassIndex)
+        internal static float calcPenDamage(float penetration, float penChance, int armorClassIndex)
         {
             ArmorClass armorClass = PvPRework.Conf.ArmorClasses[armorClassIndex];
 
             float chanceWithDelta = 1 - (1 - penChance) * PvPRework.Conf.BetterArmor.PenDamgeDelta;
             float fixedChance = chanceWithDelta > 1 ? 1 : penChance;
-            float newPenDamage = penDamage * fixedChance - penDamage * armorClass.PenLossMulti;
+            float newPenetration = penetration * fixedChance - penetration * armorClass.PenLossMulti;
 
             if (PvPRework.Conf.Debug)
-                Logger.Log("newPenDamage: " + newPenDamage + " oldPenDamage: " + penDamage + " penChance: " + fixedChance + " PenLossMulti: " + armorClass.PenLossMulti);
-            return newPenDamage;
+                Logger.Log("newPenDamage: " + newPenetration + " oldPenDamage: " + penetration + " penChance: " + fixedChance + " PenLossMulti: " + armorClass.PenLossMulti);
+            return newPenetration;
         }
 
         internal static float calcDamage(float damage, float penChance, int armorClassIndex)
@@ -565,20 +562,93 @@ namespace SpeedMann.PvPRework.Helper
             return penCalc > 0 ? 0 : (penCalc * penCalc) / 100;
         }
         #endregion
+        internal static void TryPenetratePlayer(PlayerHit currentHit, UnturnedPlayer shooter, ItemWeaponAsset weapon, EDeathCause cause, ExtendetHitLocation hitBodypart, float penetration)
+        {
+            if(currentHit == null || shooter == null)
+            {
+                Logger.LogError($"Could not shooter or hit not found");
+                return;
+            }
+            PenResistence penResistance = null;
+            switch (hitBodypart)
+            {
+                case ExtendetHitLocation.EARS:
+                case ExtendetHitLocation.FACE:
+                case ExtendetHitLocation.SKULL:
+                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Skull;
+                    break;
+                case ExtendetHitLocation.RIGHT_ARM:
+                case ExtendetHitLocation.LEFT_ARM:
+                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Arm;
+                    break;
+                case ExtendetHitLocation.RIGHT_LEG:
+                case ExtendetHitLocation.LEFT_LEG:
+                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Leg;
+                    break;
+                case ExtendetHitLocation.SPINE:
+                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Spine;
+                    break;
+                case ExtendetHitLocation.STOMACH:
+                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Stomach;
+                    break;
+            }
+            
+            if (penResistance == null)
+            {
+                Logger.LogError($"Could not find penResistance for {hitBodypart}");
+                return;
+            }
 
+            if (currentHit.penCount <= PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.MaxPenetrations && penetration >= penResistance.RequiredPenetration)
+            {
+
+                Vector3 newStartpoint = currentHit.imputInfo.point + (currentHit.imputInfo.direction.normalized * 0.1f);
+                RaycastInfo info = DamageTool.raycast(new Ray(newStartpoint, currentHit.imputInfo.direction), 512f, RayMasks.DAMAGE_CLIENT, null);
+
+                if (info?.player != null)
+                {
+
+                    // calc pen reduction
+                    float penReduction = PvPRework.calcMean(penResistance.RequiredPenetration, penResistance.PenetrationForMinReduction, penResistance.MaxPenReduction, penResistance.MinPenReduction, penetration);
+                    penReduction = penReduction > 1 ? 1 : penReduction < 0 ? 0 : penReduction;
+                    float remainingPenetration = penReduction * penetration;
+
+
+                    Logger.Log($"Penetrated and hit {info.player.name} in the {info.limb} penReduction: {penReduction}");
+                    PvPRework.playerHits.Add(new PlayerHit(new InputInfo
+                    {
+                        type = ERaycastInfoType.PLAYER,
+                        player = info.player,
+                        transform = info.transform,
+                        point = info.point,
+                        limb = info.limb,
+                    }, currentHit.penCount+1, remainingPenetration));
+
+                    DamagePlayerParameters damageparam = new DamagePlayerParameters
+                    {
+                        player = info.player,
+                        cause = cause,
+                        limb = info.limb,
+                        direction = currentHit.imputInfo.direction,
+                        damage = weapon.playerDamageMultiplier.multiply(info.limb),
+                        times = 1,
+                        killer = shooter.CSteamID,
+                    };
+                    PvPRework.Inst.playerPenetrations.Add(damageparam);
+                }
+            }
+        }
         #region Helper Functions
         private static bool tryGetHitLocation(PlayerHit hit, out Vector3 localPoint)
         {
             localPoint = Vector3.zero;
-            Transform skeleton = hit.imputInfo.transform.GetChild(0).GetChild(0);
-
-            if (!getLocalPoint(skeleton, hit.imputInfo.point, hit.imputInfo.limb, out localPoint))
+            Transform skeleton = hit?.imputInfo?.player?.transform?.GetChild(0)?.GetChild(0);
+            if (skeleton != null && getLocalPoint(skeleton, hit.imputInfo.point, hit.imputInfo.limb, out localPoint))
             {
-                Logger.LogError("Error in BetterHitZones: No localPoint found for " + hit.imputInfo.limb + " of " + hit.imputInfo.transform.name);
-                return false;
+                return true;
             }
-            return true;
-
+            Logger.LogError("Error in BetterHitZones: No localPoint found for " + hit.imputInfo.limb + " of " + hit.imputInfo.transform.name);
+            return false;
         }
         private static bool tryGetCurrentHit(UnturnedPlayer uPlayer, ELimb limb, out PlayerHit playerHit)
         {

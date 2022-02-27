@@ -12,6 +12,7 @@ namespace SpeedMann.PvPRework.Models.Config
         public bool HatsProtectFace = true;
         public bool HatsProtectEars = true;
         public bool VestsProtectStomach = true;
+        public PlayerPenetrationConfig PlayerPenetration;
         public BetterHitZonesConfig()
         {
 

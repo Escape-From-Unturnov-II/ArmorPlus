@@ -85,6 +85,8 @@
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\ArmorClass.cs" />
+    <Compile Include="Models\Config\PenResistence.cs" />
+    <Compile Include="Models\Config\PlayerPenetrationConfig.cs" />
     <Compile Include="Models\ExtendetHitLocations.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />

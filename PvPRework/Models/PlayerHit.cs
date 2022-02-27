@@ -13,10 +13,14 @@ namespace SpeedMann.PvPRework
     {
         public DateTime timeStamp;
         public InputInfo imputInfo;
-        public PlayerHit(InputInfo imputInfo)
+        public float penCount;
+        public float penetrationOverride;
+        public PlayerHit(InputInfo imputInfo, float penCount = 0, float penetrationOverride = 0)
         {
             timeStamp = DateTime.Now;
             this.imputInfo = imputInfo;
+            this.penCount = penCount;
+            this.penetrationOverride = penetrationOverride;
         }
 
         public bool Equals(PlayerHit other)

@@ -20,7 +20,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.7.0";
+        public static string PluginVersion = "1.8.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         internal static readonly System.Random rand = new System.Random();
@@ -35,39 +35,39 @@ namespace SpeedMann.PvPRework
                 { "item_restricted_nvg", "You are not allowed to wear this helmet in combination with NVG!" },
 
                 // Kill feed
-                {"DEATH_BLEEDING", "{0} bled to death!"},
-                {"DEATH_BONES", "{0} fell to their death!"},
-                {"DEATH_FREEZING", "{0} froze to death!"},
-                {"DEATH_BURNING", "{0} burned to death!"},
-                {"DEATH_FOOD", "{0} starved to death!"},
-                {"DEATH_BREATH", "{0} ran out of air."},
-                {"DEATH_WATER", "{0} dehydrated to death!"},
-                {"DEATH_INFECTION", "{0} died of infection!"},
+                {"DEATH_BLEEDING", "{0} bled to death near {7}!"},
+                {"DEATH_BONES", "{0} fell to their death near {7}!"},
+                {"DEATH_FREEZING", "{0} froze to death near {7}!"},
+                {"DEATH_BURNING", "{0} burned to death near {7}!"},
+                {"DEATH_FOOD", "{0} starved to death near {7}!"},
+                {"DEATH_BREATH", "{0} ran out of air near {7}."},
+                {"DEATH_WATER", "{0} dehydrated to death near {7}!"},
+                {"DEATH_INFECTION", "{0} died of infection near {7}!"},
 
-                {"DEATH_GUN", "{1} [\u2719 {2}] shot {0} in the {3} using a {4}! [{6}m]"},
-                {"DEATH_MELEE", "{1} [\u2719 {2}] meleed {0} in the {3} using a {4}!"},
-                {"DEATH_PUNCH", "{1} [\u2719 {2}] punched {0} in the {3}!"},
-                {"DEATH_ROADKILL", "{1} [\u2719 {2}] ran over {0} using a {5}!"},
+                {"DEATH_GUN", "{1} [\u2719 {2}] shot {0} in the {3} using a {4}! [{6}m] near {7}"},
+                {"DEATH_MELEE", "{1} [\u2719 {2}] meleed {0} in the {3} using a {4} near {7}!"},
+                {"DEATH_PUNCH", "{1} [\u2719 {2}] punched {0} in the {3} near {7}!"},
+                {"DEATH_ROADKILL", "{1} [\u2719 {2}] ran over {0} using a {5} near {7}!"},
                 
-                {"DEATH_VEHICLE", "{0} has died due to an explosion of a vehicle!"},
-                {"DEATH_GRENADE", "{0} was obliterated by a grenade!"},
-                {"DEATH_LANDMINE", "{0} was blown up by a landmine!"},
-                {"DEATH_MISSILE", "{0} was annihilated by a missile!"},
-                {"DEATH_CHARGE", "{0} was obliterated by a breaching charge!"},
-                {"DEATH_SPLASH", "{0} was killed by a weak nearby explosion!"},
-                {"DEATH_SHRED", "{0} was shredded to bits!"},
-                {"DEATH_SENTRY", "{0} was shot by a turret!"},
+                {"DEATH_VEHICLE", "{0} has died due to an explosion of a vehicle near {7}!"},
+                {"DEATH_GRENADE", "{0} was obliterated by a grenade near {7}!"},
+                {"DEATH_LANDMINE", "{0} was blown up by a landmine near {7}!"},
+                {"DEATH_MISSILE", "{0} was annihilated by a missile near {7}!"},
+                {"DEATH_CHARGE", "{0} was obliterated by a breaching charge near {7}!"},
+                {"DEATH_SPLASH", "{0} was killed by a weak nearby explosion near {7}!"},
+                {"DEATH_SHRED", "{0} was shredded to bits near {7}!"},
+                {"DEATH_SENTRY", "{0} was shot by a turret near {7}!"},
 
-                {"DEATH_ANIMAL", "{0} got demolished when an animal attacked them."},
-                {"DEATH_ZOMBIE", "{0} has been mauled by a zombie!"},
-                {"DEATH_ACID", "{0} was melted alive!"},
-                {"DEATH_BOULDER", "{0} was crushed by a boulder!"},
-                {"DEATH_BURNING", "{0} gave a hug to a zombie in flames!"},
-                {"DEATH_SPIT", "{0} died of shame from spits!"},
-                {"DEATH_SPARK", "{0} was shocked to his death!"},
-                {"DEATH_SUICIDE", "{0} killed themselves!"},
-                {"DEATH_KILL", "{0} was killed by a higher force."},
-                {"DEATH_ARENA", "{0} was killed by the arena."},
+                {"DEATH_ANIMAL", "{0} got killed by an animal near {7}."},
+                {"DEATH_ZOMBIE", "{0} has been mauled by a zombie near {7}!"},
+                {"DEATH_ACID", "{0} was melted alive near {7}!"},
+                {"DEATH_BOULDER", "{0} was crushed by a boulder near {7}!"},
+                {"DEATH_BURNING", "{0} gave a hug to a zombie in flames near {7}!"},
+                {"DEATH_SPIT", "{0} died of shame from spits near {7}!"},
+                {"DEATH_SPARK", "{0} was shocked to his death near {7}!"},
+                {"DEATH_SUICIDE", "{0} killed themselves near {7}!"},
+                {"DEATH_KILL", "{0} was killed by a higher force near {7}."},
+                {"DEATH_ARENA", "{0} was killed by the arena near {7}."},
             };
 
         internal static bool HasDuribility;
@@ -81,6 +81,7 @@ namespace SpeedMann.PvPRework
         internal Dictionary<ushort, ushort> cyclableSights;
 
         internal static List<PlayerHit> playerHits = new List<PlayerHit>();
+        internal List<DamagePlayerParameters> playerPenetrations = new List<DamagePlayerParameters>();
 
         internal Dictionary<CSteamID, ExtendetHitLocation> lastHit;
         private Dictionary<CSteamID, ushort> hatSwaps;
@@ -139,7 +140,7 @@ namespace SpeedMann.PvPRework
                 UnturnedPatches.OnPreChangeHat -= OnHatChanged;
                 UnturnedPatches.OnPreChangeGlasses -= OnGlassesChanged;
                 UnturnedPatches.OnPreVisionChanged -= OnVisionChanged;
-                UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
+                PlayerLife.onPlayerDied -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
                 UnturnedPatches.Cleanup();
@@ -177,6 +178,11 @@ namespace SpeedMann.PvPRework
                     player.Player.equipment.tryEquip(reequipItems[0].page, reequipItems[0].x, reequipItems[0].y);
                     reequipItems.RemoveAt(0);
                 }
+            }
+            while(playerPenetrations?.Count > 0)
+            {
+                DamageTool.damagePlayer(playerPenetrations[0], out EPlayerKill kill);
+                playerPenetrations.RemoveAt(0);
             }
         }
         private void OnPlayerConnected(UnturnedPlayer player)
@@ -237,31 +243,33 @@ namespace SpeedMann.PvPRework
                     break;
             }
         }
-        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murdererId)
+        private void OnPlayerDeath(PlayerLife sender, EDeathCause cause, ELimb limb, CSteamID instigator)
         {
             if (!Conf.KillFeed.Enabled)
                 return;
 
-            UnturnedPlayer murderer = UnturnedPlayer.FromCSteamID(murdererId);
+            Player murderer = PlayerTool.getPlayer(instigator);
+
             string limbWord;
 
-            if (lastHit.TryGetValue(player.CSteamID, out ExtendetHitLocation hitLocation))
+            if (lastHit.TryGetValue(sender.channel.owner.playerID.steamID, out ExtendetHitLocation hitLocation))
                 limbWord = Enum.GetName(typeof(ExtendetHitLocation), hitLocation).Replace('_', ' ').ToLower();
             else
-                limbWord = Enum.GetName(typeof(ELimb), limb).ToLower();
+                limbWord = Enum.GetName(typeof(ELimb), limb).Replace('_', ' ').ToLower();
 
             string deathLocation = LevelNodes.nodes.OfType<LocationNode>()
-                .OrderBy(k => Vector3.Distance(k.point, player.Player.transform.position)).FirstOrDefault()?.name ?? "Unknown";
+                .OrderBy(k => Vector3.Distance(k.point, sender.player.transform.position)).FirstOrDefault()?.name ?? "Unknown";
 
-            UnturnedChat.Say(Translate(
+            UnturnedChat.Say(
+              Translate(
                 $"DEATH_{cause}",
-                player?.CharacterName ?? "Someone",
-                murderer?.CharacterName ?? "Anonymous",
-                murderer?.Health ?? 0,
+                sender?.channel?.owner?.playerID?.characterName ?? "Someone",
+                murderer?.channel?.owner?.playerID?.characterName ?? "Anonymous",
+                murderer?.life?.health ?? 0,
                 limbWord,
-                murderer?.Player?.equipment?.asset?.itemName ?? "N/A",
-                murderer?.CurrentVehicle?.asset?.vehicleName ?? "N/A",
-                Math.Round(Vector3.Distance(player?.Position ?? Vector3.zero, murderer?.Position ?? Vector3.zero))),
+                murderer?.equipment?.asset?.itemName ?? "N/A",
+                murderer?.movement?.getVehicle()?.asset?.vehicleName ?? "N/A",
+                Math.Round(Vector3.Distance(sender?.player?.transform?.position ?? Vector3.zero, murderer?.transform?.position ?? Vector3.zero))),
                 UnturnedChat.GetColorFromName(Conf.KillFeed.MessageColor, Color.red)
             );
         }
@@ -617,8 +625,8 @@ namespace SpeedMann.PvPRework
        
         internal static float calcMean(float aMin, float aMax, float bMin, float bMax, float aActual)
         {
-            float multi = 1 - (aActual - aMax) / (aMin - aMax);
-            return bMin + multi * (bMax - bMin);
+            float innerMulti = 1 - (aActual - aMax) / (aMin - aMax);
+            return bMin + innerMulti * (bMax - bMin);
         }
 
         private Dictionary<ushort, Caliber> createCaliberDictionary(List<Caliber> calibers)
@@ -738,7 +746,7 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.OnPreChangeHat += OnHatChanged;
             UnturnedPatches.OnPreChangeGlasses += OnGlassesChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
-            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
+            PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
 
