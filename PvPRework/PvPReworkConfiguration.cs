@@ -37,7 +37,7 @@ namespace SpeedMann.PvPRework
         public List<BulletLimbDamageChance> boneBreakingChances;
         #endregion
 
-        private static bool useVanillaDefaults = true;
+        private static bool useVanillaDefaults = false;
         public string Version; //auto updating Version Number
         public bool Debug; //to display debug information on server console
         public bool DisableCosmetics;
@@ -332,6 +332,7 @@ namespace SpeedMann.PvPRework
                     {
                         Enabled = true,
                         HatsProtectFace = false,
+                        HatsProtectEars = false,
                         VestsProtectStomach = true,
                         PlayerPenetration = new PlayerPenetrationConfig
                         {
@@ -375,10 +376,11 @@ namespace SpeedMann.PvPRework
                         }
                     },
                 };
+
                 BoneBreakingChances = new List<BulletLimbDamageChance>
                 {
-                    new BulletLimbDamageChance{ Limb = "LEG", BreakChanceMin = 10, BreakChanceMax = 98, BreakChanceDamageMin = 30, BreakChanceDamageMax = 90},
-                    new BulletLimbDamageChance{ Limb = "FOOT", BreakChanceMin = 10, BreakChanceMax = 98, BreakChanceDamageMin = 30, BreakChanceDamageMax = 90},
+                    new BulletLimbDamageChance{ Limb = "LEG", BreakChanceMin = 10, BreakChanceMax = 98, BreakChanceDamageMin = 10, BreakChanceDamageMax = 40},
+                    new BulletLimbDamageChance{ Limb = "FOOT", BreakChanceMin = 10, BreakChanceMax = 98, BreakChanceDamageMin = 10, BreakChanceDamageMax = 40},
                     new BulletLimbDamageChance{ Limb = "ARM", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                     new BulletLimbDamageChance{ Limb = "HAND", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
                     new BulletLimbDamageChance{ Limb = "SKULL", BreakChanceMin = 0, BreakChanceMax = 0, BreakChanceDamageMin = 0, BreakChanceDamageMax = 0},
@@ -398,71 +400,71 @@ namespace SpeedMann.PvPRework
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.2f,
                         DamageMultiplierMin = 1f,    DamageMultiplierNormal = 1f,
                         DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 40,
-                        MinArmorDamage = 1, MaxArmorDamage = 2,
+                        MinArmorDamage = 1, MaxArmorDamage = 14,
                         StopDamageMulti = 0.4f, PenLossMulti = 0
                     },
                     new ArmorClass{
                         Tier=0.0f, Armor = 0.9f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.2f,
                         DamageMultiplierMin = 1f,    DamageMultiplierNormal = 1f,
-                        DamageToDamageArmorMin = 20, DamageToDamageArmorMax = 40,
-                        MinArmorDamage = 1, MaxArmorDamage = 4,
+                        DamageToDamageArmorMin = 0, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 1, MaxArmorDamage = 14,
                         StopDamageMulti = 0.4f, PenLossMulti = 0
                     },
                     new ArmorClass{
                         Tier=1f, Armor =  0.8f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 20, DamageToDamageArmorMax = 40,
-                        MinArmorDamage = 1, MaxArmorDamage = 4,
+                        DamageToDamageArmorMin = 2, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.4f, PenLossMulti = 0.1f
                     },
                     new ArmorClass{
                         Tier=2f, Armor =  0.7f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 20, DamageToDamageArmorMax = 40,
-                        MinArmorDamage = 1, MaxArmorDamage = 4,
+                        DamageToDamageArmorMin = 5, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.2f, PenLossMulti = 0.1f
                     },
                     new ArmorClass{
                         Tier=3f, Armor = 0.6f,
                         PercentForNormalDamage =  0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 30, DamageToDamageArmorMax = 50,
-                        MinArmorDamage = 1, MaxArmorDamage = 3,
+                        DamageToDamageArmorMin = 10, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.1f, PenLossMulti = 0.2f
                     },
                     new ArmorClass{
                         Tier=4f, Armor = 0.5f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 40, DamageToDamageArmorMax = 65,
-                        MinArmorDamage = 1, MaxArmorDamage = 3,
+                        DamageToDamageArmorMin = 12, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.1f, PenLossMulti = 0.25f
                     },
                     new ArmorClass{
                         Tier=5f, Armor = 0.4f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 45, DamageToDamageArmorMax = 80,
-                        MinArmorDamage = 1, MaxArmorDamage = 3,
+                        DamageToDamageArmorMin = 16, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.05f, PenLossMulti = 0.3f
                     },
                     new ArmorClass{
                         Tier=6f, Armor = 0.3f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 50, DamageToDamageArmorMax = 100,
-                        MinArmorDamage = 1, MaxArmorDamage = 3,
+                        DamageToDamageArmorMin = 20, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.02f, PenLossMulti = 0.35f
                     },
                     new ArmorClass{
                         Tier=7f, Armor = 0.2f,
                         PercentForNormalDamage = 0.2f, PercentForMaxDamage = 0.8f,
                         DamageMultiplierMin = 0.4f,    DamageMultiplierNormal = 0.8f,
-                        DamageToDamageArmorMin = 50, DamageToDamageArmorMax = 100,
-                        MinArmorDamage = 1, MaxArmorDamage = 3,
+                        DamageToDamageArmorMin = 20, DamageToDamageArmorMax = 90,
+                        MinArmorDamage = 0.3f, MaxArmorDamage = 14,
                         StopDamageMulti = 0.02f, PenLossMulti = 0.35f
                     },
                 };
@@ -473,10 +475,20 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37430,
                         Name = "Kolpak-1S Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
                         ArmorFace = 0.8f,
+                        PreventNVGs = true,
                         EquipEffectId = 52114,
                         UnequipEffectId = 52115,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37416,
+                        Name = "Fast MT Kek Helmet + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.7f,
                     },
                     new HatExtension()
                     {
@@ -491,19 +503,71 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37418,
                         Name = "Fast MT Kek Helmet + TM + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.7f,
                         ProtectFace = true,
-                        ArmorFace = 0.73f,
+                        ArmorFace = 0.7f,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
                     },
                     new HatExtension()
                     {
+                        Id = 37437,
+                        Name = "UNTAR Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37400,
+                        Name = "6B47 Ratnik-BSh Flora Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37401,
+                        Name = "6B47 Ratnik-BSh Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
+                    },
+                    new HatExtension()
+                    {
                         Id = 37434,
                         Name = "DEVTAC Ronin ballistic Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
-                        ArmorFace = 0.6f,
+                        ArmorFace = -1,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37441,
+                        Name = "ULACH IIIA Black Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
+                        EquipEffectId = 52116,
+                        UnequipEffectId = 52117,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37442,
+                        Name = "ULACH IIIA Tan Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
+                        EquipEffectId = 52116,
+                        UnequipEffectId = 52117,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37405,
+                        Name = "Airframe Helmet + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
+                        EquipEffectId = 52116,
+                        UnequipEffectId = 52117,
                     },
                     new HatExtension()
                     {
@@ -518,24 +582,24 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37404,
                         Name = "Airframe Helmet + FS + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
                         ProtectFace = true,
-                        ArmorFace = 0.65f,
+                        ArmorFace = 0.6f,
                         EquipEffectId = 52116,
                         UnequipEffectId = 52117,
                     },
                     new HatExtension()
                     {
-                        Id = 37413,
-                        Name = "Fast MT Black Helmet + TM",
-                        ProtectFace = true,
-                        ArmorFace = 0.8f,
-                        EquipEffectId = 52120,
-                        UnequipEffectId = 52121,
+                        Id = 37412,
+                        Name = "Fast MT Tan Helmet + SLAAP + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
                     },
                     new HatExtension()
                     {
-                        Id = 37414,
-                        Name = "Fast MT Black Helmet + TM + SA",
+                        Id = 37413,
+                        Name = "Fast MT Black Helmet + TM",
                         ProtectFace = true,
                         ArmorFace = 0.7f,
                         EquipEffectId = 52120,
@@ -543,12 +607,21 @@ namespace SpeedMann.PvPRework
                     },
                     new HatExtension()
                     {
-                        Id = 37423,
-                        Name = "Fast MT Tan Helmet + TM",
+                        Id = 37414,
+                        Name = "Fast MT Black Helmet + TM + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
                         ProtectFace = true,
-                        ArmorFace = 0.73f,
+                        ArmorFace = 0.7f,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
+                    },
+                    new HatExtension()
+                    {
+                        Id = 37422,
+                        Name = "Fast MT Tan Helmet + SLAAP + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
                     },
                     new HatExtension()
                     {
@@ -563,8 +636,10 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37424,
                         Name = "Fast MT Tan Helmet + TM + SA",
+                        ProtectEars = true,
+                        ArmorEars = 0.6f,
                         ProtectFace = true,
-                        ArmorFace = 0.73f,
+                        ArmorFace = 0.7f,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
                     },
@@ -572,6 +647,8 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37426,
                         Name = "Ops-Core Light Trooper Helmet ",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
                         ArmorFace = -1f,
                         EquipEffectId = 52120,
@@ -581,8 +658,10 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37425,
                         Name = "Ops-Core Heavy Trooper Helmet ",
+                         ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
-                        ArmorFace = -1,
+                        ArmorFace = -1f,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
                     },
@@ -590,8 +669,10 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37435,
                         Name = "Ops-Core Fast MT Samurai Helmet ",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
-                        ArmorFace = 0.5f,
+                        ArmorFace = -1f,
                         EquipEffectId = 52120,
                         UnequipEffectId = 52121,
                     },
@@ -599,8 +680,11 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37431,
                         Name = "Maska 1Sch Helmet ",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
                         ArmorFace = -1f,
+                        PreventNVGs = true,
                         EquipEffectId = 52110,
                         UnequipEffectId = 52111,
                     },
@@ -608,8 +692,11 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37432,
                         Name = "Maska 1Sch KILLA Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
                         ArmorFace = -1f,
+                        PreventNVGs = true,
                         EquipEffectId = 52110,
                         UnequipEffectId = 52111,
                     },
@@ -617,8 +704,11 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37408,
                         Name = "Altyn Helmet",
+                        ProtectEars = true,
+                        ArmorEars = -1f,
                         ProtectFace = true,
                         ArmorFace = -1f,
+                        PreventNVGs = true,
                         EquipEffectId = 52112,
                         UnequipEffectId = 52113,
                     },
@@ -658,130 +748,120 @@ namespace SpeedMann.PvPRework
                         Id = 37328,
                         Name = "PACA Soft Armor",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37329,
                         Name = "PACA Soft Armor + DIY",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37330,
                         Name = "PACA Soft Armor + SOE",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37331,
                         Name = "PACA Soft Armor + Triton",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37332,
                         Name = "PACA Soft Armor + Wartech",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37315,
                         Name = "Highcom Trooper TFO Armor Multicam",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37316,
                         Name = "Highcom Trooper TFO Armor Multicam + Bags",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37317,
                         Name = "Highcom Trooper TFO Armor Tropic",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37318,
                         Name = "Highcom Trooper TFO Armor Tropic + Bags",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37337,
                         Name = "TV-110 Plate Carrier",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37338,
                         Name = "TV-110 Plate Carrier + All Bags",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37339,
                         Name = "TV-110 Plate Carrier + Magazine Bags",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
                     },
                     new VestExtension()
                     {
                         Id = 37340,
                         Name = "TV-110 Plate Carrier + Side Bags",
                         ProtectStomach = false,
-                        ShoulderPlateLength = 0f,
-                        ArmorShoulderPlate = -1f,
-                        ThighPlateLength = 0f,
-                        ArmorThighPlate = -1f,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37357,
+                        Name = "5.11 Hexgrid Plate Carrier",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37360,
+                        Name = "CPC MOD.2 Platecarrier Normal",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37361,
+                        Name = "CPC MOD.2 Platecarrier Mag Bags",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37362,
+                        Name = "CPC MOD.2 Platecarrier Side Bags",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37363,
+                        Name = "CPC MOD.2 Platecarrier All Bags",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37366,
+                        Name = "LBT 6094A Slick Platecarrier",
+                        ProtectStomach = false,
+                    },
+                    new VestExtension()
+                    {
+                        Id = 37348,
+                        Name = "Crye Precision AVS MBAV Tagilla",
+                        ProtectStomach = false,
                     },
                     new VestExtension()
                     {
@@ -830,196 +910,565 @@ namespace SpeedMann.PvPRework
                 {
                     #region Assault Rifles AKs 
                     // AK-74N 5.45x39
-                    new GunExtension() { Id = 37621, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37622, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37623, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37624, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37625, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37626, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37627, Name = "", Penetration = 35},
-                    new GunExtension() { Id = 37628, Name = "", Penetration = 35},
+                    new GunExtension() { Id = 37621, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37622, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37623, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37624, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37625, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37626, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37627, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37628, Name = "", Penetration = -1},
                     // AK-101 5.56x45
-                    new GunExtension() { Id = 37651, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37652, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37653, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37654, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37655, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37656, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37657, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37658, Name = "", Penetration = 37},
+                    new GunExtension() { Id = 37651, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37652, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37653, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37654, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37655, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37656, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37657, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37658, Name = "", Penetration = -1},
                     // AKM 7.62x39
-                    new GunExtension() { Id = 37661, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37662, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37663, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37664, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37665, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37666, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37667, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37668, Name = "", Penetration = 32},
+                    new GunExtension() { Id = 37661, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37662, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37663, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37664, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37665, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37666, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37667, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37668, Name = "", Penetration = -1},
                     // AKMS 7.62x39
-                    new GunExtension() { Id = 37670, Name = "", Penetration = 32},
+                    new GunExtension() { Id = 37670, Name = "", Penetration = -1},
                     // AKS-74U 5.45x39
-                    new GunExtension() { Id = 37631, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37632, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37633, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37634, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37635, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37636, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37637, Name = "", Penetration = 33},
-                    new GunExtension() { Id = 37638, Name = "", Penetration = 33},
+                    new GunExtension() { Id = 37631, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37632, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37633, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37634, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37635, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37636, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37637, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37638, Name = "", Penetration = -1},
                     #endregion
                     #region Assault Rifles ARs 
                     // ADAR 2-15 5.56x45
-                    new GunExtension() { Id = 37611, Name = "", Penetration = 37},
+                    new GunExtension() { Id = 37611, Name = "", Penetration = -1},
                     // M4A1 5.56x45
-                    new GunExtension() { Id = 37601, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37602, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37603, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37604, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37605, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37606, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37607, Name = "", Penetration = 37},
-                    new GunExtension() { Id = 37608, Name = "", Penetration = 37},
+                    new GunExtension() { Id = 37601, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37602, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37603, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37604, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37605, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37606, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37607, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37608, Name = "", Penetration = -1},
                     // MK47 7.62x39
-                    new GunExtension() { Id = 37646, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37647, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37648, Name = "", Penetration = 32},
-                    new GunExtension() { Id = 37649, Name = "", Penetration = 32},
+                    new GunExtension() { Id = 37646, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37647, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37648, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37649, Name = "", Penetration = -1},
                     // SA-58 7.62x51
-                    new GunExtension() { Id = 38031, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38032, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38033, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38034, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38035, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38036, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38037, Name = "", Penetration = 54},
-                    new GunExtension() { Id = 38038, Name = "", Penetration = 54},
+                    new GunExtension() { Id = 38031, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38032, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38033, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38034, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38035, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38036, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38037, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38038, Name = "", Penetration = -1},
                     #endregion
                     #region Assault Rifles Others 
                     // ASh-12 12.7x55
-                    new GunExtension() { Id = 37676, Name = "", Penetration = 28},
+                    new GunExtension() { Id = 37676, Name = "", Penetration = -1},
                     // AS-Val 9x39 
-                    new GunExtension() { Id = 38070, Name = "", Penetration = 50},
-                    new GunExtension() { Id = 38071, Name = "", Penetration = 50},
-                    new GunExtension() { Id = 38072, Name = "", Penetration = 50},
-                    new GunExtension() { Id = 38073, Name = "", Penetration = 50},
+                    new GunExtension() { Id = 38070, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38071, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38072, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38073, Name = "", Penetration = -1},
                     // VPO-209 .366 TKM
-                    new GunExtension() { Id = 38131, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38137, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38133, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38135, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38138, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38134, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38136, Name = "", Penetration = 30},
-                    new GunExtension() { Id = 38132, Name = "", Penetration = 30},
+                    new GunExtension() { Id = 38131, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38137, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38133, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38135, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38138, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38134, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38136, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38132, Name = "", Penetration = -1},
                     #endregion
                     #region Designated Marksman Rifles 
                     // SKS 7.62x39
-                    new GunExtension() { Id = 38051, Name = "", Penetration = 38},
-                    new GunExtension() { Id = 38052, Name = "", Penetration = 38},
-                    new GunExtension() { Id = 38053, Name = "", Penetration = 38},
+                    new GunExtension() { Id = 38051, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38052, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38053, Name = "", Penetration = -1},
                     // VPO-101 7.62x51
-                    new GunExtension() { Id = 38046, Name = "", Penetration = 54},
+                    new GunExtension() { Id = 38046, Name = "", Penetration = -1},
                     // SVDS 7.62x54R
-                    new GunExtension() { Id = 38061, Name = "", Penetration = 59},
+                    new GunExtension() { Id = 38061, Name = "", Penetration = -1},
                     // RFB 7.62x51
-                    new GunExtension() { Id = 38093, Name = "", Penetration = 54},
+                    new GunExtension() { Id = 38093, Name = "", Penetration = -1},
                     // VSS Vintorez 9x39
-                    new GunExtension() { Id = 38067, Name = "", Penetration = 50},
-                    new GunExtension() { Id = 38068, Name = "", Penetration = 50},
+                    new GunExtension() { Id = 38067, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38068, Name = "", Penetration = -1},
                     #endregion
                     #region Bolt Action Rifles 
                     // M700 7.62x51
-                    new GunExtension() { Id = 38043, Name = "", Penetration = 64},
-                    new GunExtension() { Id = 38044, Name = "", Penetration = 64},
+                    new GunExtension() { Id = 38043, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38044, Name = "", Penetration = -1},
                     // Mosin Nagant 7.62x54R
-                    new GunExtension() { Id = 38119, Name = "", Penetration = 59},
+                    new GunExtension() { Id = 38119, Name = "", Penetration = -1},
                     // Mosin Infantry 7.62x54R
-                    new GunExtension() { Id = 38101, Name = "", Penetration = 57},
-                    new GunExtension() { Id = 38102, Name = "", Penetration = 57},
+                    new GunExtension() { Id = 38101, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38102, Name = "", Penetration = -1},
                     // Mosin Infantry Obrez 7.62x54R
-                    new GunExtension() { Id = 38103, Name = "", Penetration = 50},
-                    new GunExtension() { Id = 38104, Name = "", Penetration = 50},
+                    new GunExtension() { Id = 38103, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38104, Name = "", Penetration = -1},
                     #endregion
                     #region Shotguns 
                     // M870 12ga
-                    new GunExtension() { Id = 38021, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38022, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38023, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38024, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38025, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38026, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38027, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38028, Name = "", Penetration = 3},
+                    new GunExtension() { Id = 38021, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38022, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38023, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38024, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38025, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38026, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38027, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38028, Name = "", Penetration = -1},
                     // MP-153 12ga
-                    new GunExtension() { Id = 38011, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38012, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38013, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38014, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38015, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38016, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38017, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38018, Name = "", Penetration = 3},
+                    new GunExtension() { Id = 38011, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38012, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38013, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38014, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38015, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38016, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38017, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38018, Name = "", Penetration = -1},
                     // Saiga 12ga 
-                    new GunExtension() { Id = 38001, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38002, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38003, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38004, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38005, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38006, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38007, Name = "", Penetration = 3},
-                    new GunExtension() { Id = 38008, Name = "", Penetration = 3},
+                    new GunExtension() { Id = 38001, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38002, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38003, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38004, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38005, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38006, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38007, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38008, Name = "", Penetration = -1},
                     #endregion
                     #region Submachine Guns 
                     // MP5 9x19
-                    new GunExtension() { Id = 37683, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37685, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37686, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37687, Name = "", Penetration = 16},
+                    new GunExtension() { Id = 37683, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37685, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37686, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37687, Name = "", Penetration = -1},
                     // PP-19-01 9x19
-                    new GunExtension() { Id = 37981, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37983, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37984, Name = "", Penetration = 16},
-                    new GunExtension() { Id = 37987, Name = "", Penetration = 16},
+                    new GunExtension() { Id = 37981, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37983, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37984, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37987, Name = "", Penetration = -1},
                     // PP-91 9x18PM
-                    new GunExtension() { Id = 37991, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 37992, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 37991, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 37992, Name = "", Penetration = -1},
                     // MP9 9x19
-                    new GunExtension() { Id = 37691, Name = "", Penetration = 16},
+                    new GunExtension() { Id = 37691, Name = "", Penetration = -1},
                     // PPSH 7.62x25
                     new GunExtension() { Id = 37978, Name = "", Penetration =  18},
                     #endregion
                     #region Pistols 
                     // Colt 1911 .45 ACP
-                    new GunExtension() { Id = 38094, Name = "", Penetration = 19},
+                    new GunExtension() { Id = 38094, Name = "", Penetration = -1},
                     // Colt M45A1 .45 ACP
-                    new GunExtension() { Id = 38096, Name = "", Penetration = 19},
+                    new GunExtension() { Id = 38096, Name = "", Penetration = -1},
                     // Glock 17 9x19
-                    new GunExtension() { Id = 38121, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38122, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38123, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 38121, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38122, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38123, Name = "", Penetration = -1},
                     // Glock 18C 9x19
-                    new GunExtension() { Id = 38124, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38125, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38127, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38126, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 38124, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38125, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38127, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38126, Name = "", Penetration = -1},
                     // MP-443 9x19
-                    new GunExtension() { Id = 38081, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 38081, Name = "", Penetration = -1},
                     // P226R 9x19
-                    new GunExtension() { Id = 38083, Name = "", Penetration = 14},
-                    new GunExtension() { Id = 38084, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 38083, Name = "", Penetration = -1},
+                    new GunExtension() { Id = 38084, Name = "", Penetration = -1},
                     // PM 9x18PM
-                    new GunExtension() { Id = 38079, Name = "", Penetration = 12},
+                    new GunExtension() { Id = 38079, Name = "", Penetration = -1},
                     // Rhino 60DS .357 Magnum
-                    new GunExtension() { Id = 38091, Name = "", Penetration = 25},
+                    new GunExtension() { Id = 38091, Name = "", Penetration = -1},
                     // TT 7.62x25 
-                    new GunExtension() { Id = 38086, Name = "", Penetration = 14},
+                    new GunExtension() { Id = 38086, Name = "", Penetration = -1},
                     #endregion
+                };
+
+                BulletCalibers = new List<Caliber>
+                {
+                    new Caliber
+                    {
+                        Name = "9x19 AP-6.3",
+                        Penetration = 30,
+                        FleshDamage = 48,
+                        ArmorDamage = 48,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            910,
+                            912,
+                            913,
+                            914,
+                            919,
+                            923,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x19 Pst",
+                        Penetration = 19,
+                        FleshDamage = 54,
+                        ArmorDamage = 33,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            909,
+                            901,
+                            903,
+                            905,
+                            911,
+                            907,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x18 BZT",
+                        Penetration = 16,
+                        FleshDamage = 50,
+                        ArmorDamage = 28,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            803,
+                            801,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x18 PBM",
+                        Penetration = 32,
+                        FleshDamage = 40,
+                        ArmorDamage = 30,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            804,
+                            802,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = ".45 FMJ",
+                        Penetration = 25,
+                        FleshDamage = 76,
+                        ArmorDamage = 36,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            451,
+                            452,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x25 FMJ",
+                        Penetration = 11,
+                        FleshDamage = 56,
+                        ArmorDamage = 29,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            726,
+                            725,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = ".357 Magnum",
+                        Penetration = 26,
+                        FleshDamage = 61,
+                        ArmorDamage = 52,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            357
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = ".366 AP",
+                        Penetration = 40,
+                        FleshDamage = 69,
+                        ArmorDamage = 60,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            362
+                        }
+                    },
+                    new Caliber
+                    {
+                         Name = ".366 FMJ",
+                        Penetration = 73,
+                        FleshDamage = 23,
+                        ArmorDamage = 48,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            361
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x39 SPP",
+                        Penetration = 43,
+                        FleshDamage = 54,
+                        ArmorDamage = 56,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            939,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "9x39 SP-5",
+                        Penetration = 31,
+                        FleshDamage = 58,
+                        ArmorDamage = 52,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            938,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "5.56x45 M855",
+                        Penetration = 28,
+                        FleshDamage = 50,
+                        ArmorDamage = 37,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            55601,
+                            55603,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "5.56x45 M856A1",
+                        Penetration = 38,
+                        FleshDamage = 47,
+                        ArmorDamage = 52,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            55602,
+                            55604,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "5.45x39 BT",
+                        Penetration = 39,
+                        FleshDamage = 44,
+                        ArmorDamage = 49,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            54502,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "5.45x39 PS",
+                        Penetration = 27,
+                        FleshDamage = 50,
+                        ArmorDamage = 35,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            54501,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x39 BP",
+                        Penetration = 41,
+                        FleshDamage = 51,
+                        ArmorDamage = 63,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            702,
+                            713,
+                            715,
+
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x39 PS",
+                        Penetration = 30,
+                        FleshDamage = 55,
+                        ArmorDamage = 84,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            701,
+                            712,
+                            714,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x54 BT",
+                        Penetration = 45,
+                        FleshDamage = 68,
+                        ArmorDamage = 87,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            711,
+                            709,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x54 PS",
+                        Penetration = 36,
+                        FleshDamage = 71,
+                        ArmorDamage = 32,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            710,
+                            708,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x51 M62",
+                        Penetration = 43,
+                        FleshDamage = 57,
+                        ArmorDamage = 75,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            704,
+                            706,
+                            717,
+                            721,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x51 M80",
+                        Penetration = 35,
+                        FleshDamage = 60,
+                        ArmorDamage = 66,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            703,
+                            705,
+                            716,
+                            720,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "7.62x51 M993",
+                        Penetration = 70,
+                        FleshDamage = 80,
+                        ArmorDamage = 85,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            707,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "12.7x55 PS12B",
+                        Penetration = 34,
+                        FleshDamage = 75,
+                        ArmorDamage = 57,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            122,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "12.7x55 PS12",
+                        Penetration = 28,
+                        FleshDamage = 83,
+                        ArmorDamage = 60,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            121,
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "12x70 Buckshot",
+                        Penetration = 4,
+                        FleshDamage = 31,
+                        ArmorDamage = 10,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            12707,
+                            12642,
+                            12641,
+
+                        }
+                    },
+                    new Caliber
+                    {
+                        Name = "12x70 Slug",
+                        Penetration = 23,
+                        FleshDamage = 127,
+                        ArmorDamage = 55,
+                        MagazineCalibers = new List<ushort>
+                        {
+                            12643,
+                            12644,
+                            12708,
+                        }
+                    },
                 };
 
                 CyclableHelmets = new List<List<ItemExtension>> { };
 
-                CyclableSights = new List<List<ItemExtension>> { };
+                CyclableSights = new List<List<ItemExtension>> 
+                {
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Black_ELCAN_1x", Id = 37820},
+                        new ItemExtension{Name = "Black_ELCAN_4x", Id = 37888},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Black_ELCAN_1x_Mount", Id = 37878},
+                        new ItemExtension{Name = "Black_ELCAN_4x_Mount", Id = 37890},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Tan_ELCAN_1x", Id = 37877},
+                        new ItemExtension{Name = "Tan_ELCAN_4x", Id = 37889},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Tan_ELCAN_1x_Mount", Id = 37879},
+                        new ItemExtension{Name = "Tan_ELCAN_4x_Mount", Id = 37891},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Hensoldt_4x", Id = 37843},
+                        new ItemExtension{Name = "Hensoldt_12x", Id = 37893},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Hensoldt+Romeo", Id = 37897},
+                        new ItemExtension{Name = "Hensoldt_4x+Romeo", Id = 37898},
+                        new ItemExtension{Name = "Hensoldt_12x+Romeo", Id = 37899},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Nightforce_2x", Id = 37842},
+                        new ItemExtension{Name = "Nightforce_8x", Id = 37892},
+                    },
+                    new List<ItemExtension>
+                    {
+                        new ItemExtension{Name = "Nightforce+Delta", Id = 37894},
+                        new ItemExtension{Name = "Nightforce_2x+Delta", Id = 37895},
+                        new ItemExtension{Name = "Nightforce_8x+Delta", Id = 37896},
+                    },
+
+                };
 
             }
         }

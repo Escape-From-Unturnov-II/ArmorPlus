@@ -46,7 +46,7 @@ namespace SpeedMann.PvPRework.Helper
 
             if (tryGetCurrentHit(uPlayer, limb, out PlayerHit currentHit))
             {
-                foundHit = tryGetHitLocation(currentHit, out currentlocalHit);
+                foundHit = tryGetLocalHitLocation(currentHit, out currentlocalHit);
                 if(currentHit.penCount > 0)
                 {
                     penetration = currentHit.penetrationOverride;
@@ -206,6 +206,9 @@ namespace SpeedMann.PvPRework.Helper
                     {
                         if (hat != null && useOuterArmor)
                         {
+                           
+                            //doesRicochet(currentHit);
+
                             didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
                         }
 
@@ -566,7 +569,7 @@ namespace SpeedMann.PvPRework.Helper
         {
             if(currentHit == null || shooter == null)
             {
-                Logger.LogError($"Could not shooter or hit not found");
+                Logger.LogError($"Could not find shooter or hit not found");
                 return;
             }
             PenResistence penResistance = null;
@@ -638,12 +641,54 @@ namespace SpeedMann.PvPRework.Helper
                 }
             }
         }
+        internal static bool doesRicochet(PlayerHit currentHit)
+        {
+            Transform skeleton = currentHit?.imputInfo?.player?.transform?.GetChild(0)?.GetChild(0);
+            float radius = 1f;
+            Vector3 correction = Vector3.zero;
+            Vector3 center = Vector3.zero;
+
+            switch (currentHit.imputInfo.limb)
+            {
+                case ELimb.SKULL:
+                    radius = 0.35f;
+                    correction = new Vector3(0.8f, 0.36f, 0.36f);
+                    // create center defined as circle with radius
+                    center = new Vector3(radius, radius, radius);
+                    break;
+                case ELimb.SPINE:
+                case ELimb.LEFT_ARM:
+                case ELimb.RIGHT_ARM:
+                case ELimb.LEFT_LEG:
+                case ELimb.RIGHT_LEG:
+                    Logger.LogWarning($"Ricochet is not implemented for {currentHit.imputInfo.limb}");
+                    return false;
+            }
+            
+            
+            
+            if (skeleton != null && getLocalPoint(skeleton, currentHit.imputInfo.point, currentHit.imputInfo.limb, out Vector3 localPoint, out Transform limbTransform))
+            {
+                // correct point to enable simpler center
+                Vector3 correctedPoint = new Vector3(localPoint.x + correction.x, localPoint.y + correction.y, localPoint.z + correction.z);
+                Vector3 extendedHitPoint = localPoint + limbTransform.TransformDirection(currentHit.imputInfo.direction.normalized) * Vector3.Distance(correctedPoint, center);
+
+                float distance = Vector3.Distance(center, extendedHitPoint);
+                if (PvPRework.Conf.Debug)
+                {
+                    Logger.Log($"center: {center} extendedhitLocal: {extendedHitPoint} distance: {distance}");
+                }
+                
+                return true;
+            }
+            return false;
+        }
         #region Helper Functions
-        private static bool tryGetHitLocation(PlayerHit hit, out Vector3 localPoint)
+        private static bool tryGetLocalHitLocation(PlayerHit hit, out Vector3 localPoint)
         {
             localPoint = Vector3.zero;
             Transform skeleton = hit?.imputInfo?.player?.transform?.GetChild(0)?.GetChild(0);
-            if (skeleton != null && getLocalPoint(skeleton, hit.imputInfo.point, hit.imputInfo.limb, out localPoint))
+            if (skeleton != null && getLocalPoint(skeleton, hit.imputInfo.point, hit.imputInfo.limb, out localPoint, out Transform limbTransform))
             {
                 return true;
             }
@@ -708,9 +753,9 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
-        private static bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint)
+        private static bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint, out Transform limbTransform)
         {
-            Transform limbTransform = null;
+            limbTransform = null;
 
             switch (limb)
             {

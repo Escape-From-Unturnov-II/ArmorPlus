@@ -10,9 +10,9 @@ namespace SpeedMann.PvPRework.Models.Config
     public class Caliber
     {
         public string Name = "";
-        public float Penetration = 0;
-        public float FleshDamage = 0;
-        public float ArmorDamage = 0;
+        public float Penetration = -1;
+        public float FleshDamage = -1;
+        public float ArmorDamage = -1;
 
         [XmlArrayItem(ElementName = "MagCaliberId")]
         public List<ushort> MagazineCalibers = new List<ushort>();

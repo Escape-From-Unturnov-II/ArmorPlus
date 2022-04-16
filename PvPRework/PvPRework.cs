@@ -115,7 +115,6 @@ namespace SpeedMann.PvPRework
 
             if (ModsLoaded)
             {
-                UnturnedPatches.OnPostCheckHeightClearance -= OnCheckClearance;
                 StanceHandler.OnStanceChanged -= OnStanceChanged;
 
                 DamageTool.damagePlayerRequested -= DamagePlayerRequested;
@@ -269,7 +268,8 @@ namespace SpeedMann.PvPRework
                 limbWord,
                 murderer?.equipment?.asset?.itemName ?? "N/A",
                 murderer?.movement?.getVehicle()?.asset?.vehicleName ?? "N/A",
-                Math.Round(Vector3.Distance(sender?.player?.transform?.position ?? Vector3.zero, murderer?.transform?.position ?? Vector3.zero))),
+                Math.Round(Vector3.Distance(sender?.player?.transform?.position ?? Vector3.zero, murderer?.transform?.position ?? Vector3.zero)),
+                deathLocation),
                 UnturnedChat.GetColorFromName(Conf.KillFeed.MessageColor, Color.red)
             );
         }
@@ -403,22 +403,9 @@ namespace SpeedMann.PvPRework
                 shouldAllow = false;
             }
         }
-        private void OnCheckClearance(PlayerStance stance, ref bool shouldAllow)
-        {
-            if(stance?.stance == EPlayerStance.PRONE && Conf.MovementExtension.PushupStaminaDrain > 0)
-            {
-                if (stance.player?.life.stamina < Conf.MovementExtension.PushupStaminaDrain)
-                {
-                    shouldAllow = false;
-                }
-            }
-        }
         private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
             newStance = stance.stance;
-
-            if(Conf.Debug)
-                Logger.Log($"Changed Stance: {oldStance} to {newStance}");
 
             switch (oldStance)
             {
@@ -429,7 +416,8 @@ namespace SpeedMann.PvPRework
                         {
                             stance.stance = EPlayerStance.PRONE;
                             newStance = EPlayerStance.PRONE;
-                            UnturnedPrivateFields.setPalyerStance(stance);
+                            stance.checkStance(newStance, true);
+                            //UnturnedPrivateFields.setPalyerStance(stance);
                         }
                         else
                         {
@@ -597,6 +585,7 @@ namespace SpeedMann.PvPRework
                         penetration = caliber.Penetration;
                         fleshDamage = caliber.FleshDamage;
                         armorDamage = caliber.ArmorDamage;
+                        break;
                     }
                 }
             }
@@ -714,7 +703,6 @@ namespace SpeedMann.PvPRework
         }
         private void linkEvents()
         {
-            UnturnedPatches.OnPostCheckHeightClearance += OnCheckClearance;
             StanceHandler.OnStanceChanged += OnStanceChanged;
 
             DamageTool.damagePlayerRequested += DamagePlayerRequested;

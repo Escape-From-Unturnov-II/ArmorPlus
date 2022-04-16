@@ -22,9 +22,9 @@ namespace SpeedMann.PvPRework.Models.Config
             }
         }
         public bool ProtectFace = false; // if this hat should protect the face
-        public float ArmorFace = 1; // vanilla armor rating from (0-1 where 1 is no armor)
+        public float ArmorFace = -1; // vanilla armor rating from (0-1 where 1 is no armor, -1 is default helmet armor)
         public bool ProtectEars = false;
-        public float ArmorEars = 1; // vanilla armor rating from (0-1 where 1 is no armor)
+        public float ArmorEars = -1; // vanilla armor rating from (0-1 where 1 is no armor)
         public bool PreventNVGs = false;
         public List<ItemExtension> WhitelistedNVGs = new List<ItemExtension>();
         /*
