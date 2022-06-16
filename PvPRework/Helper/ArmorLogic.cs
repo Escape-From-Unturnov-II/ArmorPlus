@@ -53,7 +53,19 @@ namespace SpeedMann.PvPRework.Helper
                 }
             }
 
-           
+            // Damage / Penn Falloff
+            if (oponentWeapon is ItemGunAsset)
+            {
+                ItemGunAsset oponentGun = oponentWeapon as ItemGunAsset;
+                float distance = Vector3.Distance(oponent.Position, uPlayer.Position);
+
+                float t = Mathf.InverseLerp(oponentGun.range * oponentGun.damageFalloffRange, oponentGun.range, distance);
+                float falloffMulti = Mathf.Lerp(1f, oponentGun.damageFalloffMultiplier, t);
+
+                penetration *= falloffMulti;
+                fleshDamage *= falloffMulti;
+                armorDamage *= falloffMulti;
+            }
 
             if (PvPRework.Conf.Debug)
             {

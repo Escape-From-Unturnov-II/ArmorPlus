@@ -354,7 +354,7 @@ namespace SpeedMann.PvPRework
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
             if (Conf.Debug && !Conf.BetterArmor.Enabled)
-                Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + " Times: " + parameters.times + "!");
+                Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + "!");
 
             setLastHitLocation(UnturnedPlayer.FromPlayer(parameters.player).CSteamID, ExtendetHitLocations.getExtendetHitlocation(parameters.limb));
 
@@ -609,6 +609,14 @@ namespace SpeedMann.PvPRework
                         armorDamage = magOver.ArmorDamage >= 0 ? magOver.ArmorDamage : armorDamage;
                     }
                 }
+            }
+
+            //get barrel damage multie
+            if (gunAttachments.barrelAsset != null)
+            {
+                penetration *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
+                fleshDamage *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
+                armorDamage *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
             }
         }
        
