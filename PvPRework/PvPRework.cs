@@ -356,7 +356,7 @@ namespace SpeedMann.PvPRework
             if (Conf.Debug && !Conf.BetterArmor.Enabled)
                 Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + "!");
 
-            setLastHitLocation(UnturnedPlayer.FromPlayer(parameters.player).CSteamID, ExtendetHitLocations.getExtendetHitlocation(parameters.limb));
+            setLastHitLocation(UnturnedPlayer.FromPlayer(parameters.player).CSteamID, ExtendedHitLocations.getExtendetHitlocation(parameters.limb));
 
             switch (parameters.cause)
             {

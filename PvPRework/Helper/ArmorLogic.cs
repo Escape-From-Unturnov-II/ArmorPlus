@@ -28,26 +28,21 @@ namespace SpeedMann.PvPRework.Helper
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
             UnturnedPlayer oponent = UnturnedPlayer.FromCSteamID(oponentId);
 
-            VestExtension vestExtension = null;
-            HatExtension hatExtension = null;
-
-            ItemHatAsset hat = player.clothing.hatAsset;
-            ItemMaskAsset mask = player.clothing.maskAsset;
-            ItemVestAsset vest = player.clothing.vestAsset;
-            ItemShirtAsset shirt = player.clothing.shirtAsset;
-            ItemPantsAsset pants = player.clothing.pantsAsset;
-
             PvPRework.Inst.getGunStats(oponent.Player, out ItemWeaponAsset oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
 
             Vector3 currentlocalHit = Vector3.zero;
-            ExtendetHitLocation currentHitLocation = ExtendetHitLocations.getExtendetHitlocation(limb);
-            float armorOverride = -1;
+            ExtendetHitLocation currentHitLocation = ExtendedHitLocations.getExtendetHitlocation(limb);
             bool foundHit = false;
 
             if (tryGetCurrentHit(uPlayer, limb, out PlayerHit currentHit))
             {
-                foundHit = tryGetLocalHitLocation(currentHit, out currentlocalHit);
-                if(currentHit.penCount > 0)
+                if (tryGetLocalHitLocation(currentHit, out currentlocalHit))
+                {
+                    foundHit = true;
+                    currentHitLocation = ExtendedHitLocations.getExtendetHitlocation(limb, currentlocalHit);
+                }
+                
+                if (currentHit.penCount > 0)
                 {
                     penetration = currentHit.penetrationOverride;
                 }
@@ -56,260 +51,48 @@ namespace SpeedMann.PvPRework.Helper
             // Damage / Penn Falloff
             if (oponentWeapon is ItemGunAsset)
             {
-                ItemGunAsset oponentGun = oponentWeapon as ItemGunAsset;
-                float distance = Vector3.Distance(oponent.Position, uPlayer.Position);
-
-                float t = Mathf.InverseLerp(oponentGun.range * oponentGun.damageFalloffRange, oponentGun.range, distance);
-                float falloffMulti = Mathf.Lerp(1f, oponentGun.damageFalloffMultiplier, t);
-
-                penetration *= falloffMulti;
-                fleshDamage *= falloffMulti;
-                armorDamage *= falloffMulti;
+                calcDamageFallOff(oponentWeapon as ItemGunAsset, oponent.Position, uPlayer.Position, ref penetration, ref fleshDamage, ref armorDamage);
             }
 
             if (PvPRework.Conf.Debug)
             {
-                Logger.Log($"{oponent.CharacterName} hit { uPlayer.CharacterName} in the {limb} direction: {direction} {(foundHit ? "location: [" + currentlocalHit.x + ", " + currentlocalHit.y + ", " + currentlocalHit.z + "]" : "")}");
+                Logger.Log($"{oponent.CharacterName} hit {uPlayer.CharacterName} in the {limb} direction: {direction} {(foundHit ? "location: [" + currentlocalHit.x + ", " + currentlocalHit.y + ", " + currentlocalHit.z + "]" : "")}");
             }
-            
-            switch (limb)
+
+            switch (currentHitLocation)
             {
-                #region Arms
-                case ELimb.LEFT_ARM:
-                case ELimb.RIGHT_ARM:
-                case ELimb.LEFT_HAND:
-                case ELimb.RIGHT_HAND:
-                    bool useOuterArmor = false;
+                case ExtendetHitLocation.LEFT_ARM:
+                case ExtendetHitLocation.RIGHT_ARM:
+                case ExtendetHitLocation.LEFT_HAND:
+                case ExtendetHitLocation.RIGHT_HAND:
+                    // adapt incomming damage to the damaged body part
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.arm : fleshDamage * 0.6f;
-
-                    if (vest != null && PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
-                    {
-
-                        PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out vestExtension);
-                        if (vestExtension != null && vestExtension.ShoulderPlateLength > 0)
-                        {
-                            useOuterArmor = true;
-                            armorOverride = vestExtension.ArmorShoulderPlate;
-                            if (foundHit)
-                                useOuterArmor = vestExtension.isProtected(limb, currentlocalHit);
-                        }
-                    }
-
-                    if (PvPRework.Conf.BetterArmor.UseArmorClasses)
-                    {
-                        if (useOuterArmor)
-                        {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
-                        }
-
-
-                        if (didPenetrate && shirt != null)
-                        {
-                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
-                        }
-                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
-                        {
-                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
-                        }
-                    }
-                    else
-                    {
-                        armor = calcVanillaArmor(player, vest, shirt, (useOuterArmor ? armorOverride : 1));
-                    }
+                    didPenetrate = checkArmHit(player, currentHitLocation, foundHit, currentlocalHit, ref fleshDamage, ref armorDamage, ref penetration, ref penReducationMulti, ref armor);
                     break;
-                #endregion
-                #region Legs
-                case ELimb.LEFT_LEG:
-                case ELimb.RIGHT_LEG:
-                case ELimb.LEFT_FOOT:
-                case ELimb.RIGHT_FOOT:
-                    useOuterArmor = false;
+                case ExtendetHitLocation.LEFT_LEG:
+                case ExtendetHitLocation.RIGHT_LEG:
+                case ExtendetHitLocation.LEFT_FOOT:
+                case ExtendetHitLocation.RIGHT_FOOT:
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.leg : fleshDamage * 0.6f;
-
-                    if (vest != null && PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
-                    {
-
-                        PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out vestExtension);
-                        if (vestExtension != null && vestExtension.ThighPlateLength > 0)
-                        {
-                            useOuterArmor = true;
-                            armorOverride = vestExtension.ArmorThighPlate;
-                            if (foundHit)
-                                useOuterArmor = vestExtension.isProtected(limb, currentlocalHit);
-                        }
-                    }
-
-                    if (PvPRework.Conf.BetterArmor.UseArmorClasses)
-                    {
-                        if (useOuterArmor)
-                        {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
-                        }
-
-                        if (didPenetrate && pants != null)
-                        {
-                            didPenetrate = penArmor(player, pants, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
-                        }
-                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
-                        {
-                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
-                        }
-                    }
-                    else
-                    {
-                        armor = calcVanillaArmor(player, vest, pants, (useOuterArmor ? armorOverride : 1));
-                    }
+                    didPenetrate = checkLegHit(player, currentHitLocation, foundHit, currentlocalHit, ref fleshDamage, ref armorDamage, ref penetration, ref penReducationMulti, ref armor);
                     break;
-                #endregion
-                #region Skull
-                case ELimb.SKULL:
-                    useOuterArmor = true;
-                    bool faceHit = foundHit && isFaceHit(limb, currentlocalHit);
-                    bool earHit = foundHit && isEarHit(limb, currentlocalHit);
+                case ExtendetHitLocation.SKULL:
+                case ExtendetHitLocation.FACE:
+                case ExtendetHitLocation.EARS:
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.skull : fleshDamage * 1.1f;
-
-                    if (faceHit)
-                    {
-                        currentHitLocation = ExtendetHitLocation.FACE;
-                        if (hat != null)
-                        {
-                            if (PvPRework.Inst.hatExtensions.TryGetValue(hat.id, out hatExtension))
-                            {
-                                if (hatExtension != null)
-                                {
-                                    useOuterArmor = hatExtension.ProtectFace;
-                                    if (useOuterArmor)
-                                    {
-                                        armorOverride = hatExtension.ArmorFace;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                useOuterArmor = PvPRework.Conf.BetterArmor.BetterHitZones.HatsProtectFace;
-                            }
-                        }
-                    }
-                    if (earHit)
-                    {
-                        currentHitLocation = ExtendetHitLocation.EARS;
-                        if (hat != null)
-                        {
-                            if (PvPRework.Inst.hatExtensions.TryGetValue(hat.id, out hatExtension))
-                            {
-                                if (hatExtension != null)
-                                {
-                                    useOuterArmor = hatExtension.ProtectEars;
-                                    if (useOuterArmor)
-                                    {
-                                        armorOverride = hatExtension.ArmorEars;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                useOuterArmor = PvPRework.Conf.BetterArmor.BetterHitZones.HatsProtectEars;
-                            }
-                        }
-                    }
-
-
-                    if (PvPRework.Conf.BetterArmor.UseArmorClasses)
-                    {
-                        if (hat != null && useOuterArmor)
-                        {
-                           
-                            //doesRicochet(currentHit);
-
-                            didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
-                        }
-
-                        if (didPenetrate && mask != null)
-                        {
-                            didPenetrate = penArmor(player, mask, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
-                        }
-                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
-                        {
-                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
-                        }
-                    }
-                    else
-                    {
-                        if (hat != null && useOuterArmor)
-                        {
-                            armor = calcVanillaArmor(player, hat, mask, armorOverride);
-                        }
-                        else
-                        {
-                            armor = calcVanillaArmor(player, hat, mask);
-                        }
-
-                    }
+                    didPenetrate = checkSkullHit(player, currentHitLocation, foundHit, currentlocalHit, ref fleshDamage, ref armorDamage, ref penetration, ref penReducationMulti, ref armor);
                     break;
-                #endregion
-                #region Body
-                case ELimb.SPINE:
-                    useOuterArmor = false;
-                    bool stomacheHit = foundHit && isStomachHit(limb, currentlocalHit);
+                case ExtendetHitLocation.SPINE:
+                case ExtendetHitLocation.STOMACH:
                     fleshDamage = oponentWeapon != null ? fleshDamage * oponentWeapon.playerDamageMultiplier.spine : fleshDamage;
-
-                    if (stomacheHit)
-                    {
-                        currentHitLocation = ExtendetHitLocation.STOMACH;
-                        if (vest != null)
-                        {
-                            if (PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
-                            {
-                                PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out vestExtension);
-                                if (vestExtension != null)
-                                {
-                                    useOuterArmor = vestExtension.ProtectStomach;
-                                }
-                            }
-                            else if (PvPRework.Conf.BetterArmor.BetterHitZones.VestsProtectStomach)
-                            {
-                                useOuterArmor = true;
-                            }
-                        }
-                    }
-
-                    if (PvPRework.Conf.BetterArmor.UseArmorClasses)
-                    {
-                        if (vest != null && !stomacheHit || useOuterArmor)
-                        {
-                            didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
-                        }
-
-                        if (didPenetrate && shirt != null)
-                        {
-                            didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
-                        }
-                        if (didPenetrate && stomacheHit)
-                        {
-                            if (PvPRework.Conf.Debug)
-                                Logger.Log("Stomach got hit!");
-                        }
-                        if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
-                        {
-                            TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
-                        }
-                    }
-                    else
-                    {
-                        if (!stomacheHit || useOuterArmor)
-                        {
-                            armor = calcVanillaArmor(player, vest, shirt, -1);
-                        }
-                        else
-                        {
-                            armor = calcVanillaArmor(player, vest, shirt);
-                        }
-
-                    }
+                    didPenetrate = checkLegHit(player, currentHitLocation, foundHit, currentlocalHit, ref fleshDamage, ref armorDamage, ref penetration, ref penReducationMulti, ref armor);
                     break;
-                #endregion
                 default:
                     return;
+            }
+            if (didPenetrate && PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Enabled)
+            {
+                PlayerPenetration.TryPenetratePlayer(currentHit, oponent, oponentWeapon, cause, currentHitLocation, penetration);
             }
 
             PvPRework.Inst.setLastHitLocation(uPlayer.CSteamID, currentHitLocation);
@@ -416,14 +199,14 @@ namespace SpeedMann.PvPRework.Helper
 
             armorTier = 0;
             List<ArmorClass> armorClasses = PvPRework.Conf.ArmorClasses;
-            
+
             for (int i = 0; i < armorClasses.Count(); i++)
             {
                 if (armor >= armorClasses[i].Armor)
                 {
                     armorTier = armorClasses[i].Tier;
 
-                    if (i > 0 && armor > armorClasses[i-1].Armor)
+                    if (i > 0 && armor > armorClasses[i - 1].Armor)
                     {
                         armorTier = PvPRework.calcMean(
                             armorClasses[i - 1].Armor, armorClasses[i].Armor,
@@ -499,7 +282,7 @@ namespace SpeedMann.PvPRework.Helper
         #region ArmorPenCalc
         internal static bool penArmor(Player player, ItemClothingAsset clothingPart, ref float armorDamage, ref float penetartion, ref float fleshDamage, ref float penReducation, float armorOverride = -1)
         {
-            float penChance = 1;         
+            float penChance = 1;
             bool didPenetrate = true;
             float oldPenetation = penetartion;
             float oldFleshDamage = fleshDamage;
@@ -577,81 +360,198 @@ namespace SpeedMann.PvPRework.Helper
             return penCalc > 0 ? 0 : (penCalc * penCalc) / 100;
         }
         #endregion
-        internal static void TryPenetratePlayer(PlayerHit currentHit, UnturnedPlayer shooter, ItemWeaponAsset weapon, EDeathCause cause, ExtendetHitLocation hitBodypart, float penetration)
+        private static bool checkArmHit(Player player, ExtendetHitLocation hitLocation, bool foundHit, Vector3 localHit, ref float fleshDamage, ref float armorDamage, ref float penetration, ref float penReducationMulti, ref float armor)
         {
-            if(currentHit == null || shooter == null)
-            {
-                Logger.LogError($"Could not find shooter or hit not found");
-                return;
-            }
-            PenResistence penResistance = null;
-            switch (hitBodypart)
-            {
-                case ExtendetHitLocation.EARS:
-                case ExtendetHitLocation.FACE:
-                case ExtendetHitLocation.SKULL:
-                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Skull;
-                    break;
-                case ExtendetHitLocation.RIGHT_ARM:
-                case ExtendetHitLocation.LEFT_ARM:
-                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Arm;
-                    break;
-                case ExtendetHitLocation.RIGHT_LEG:
-                case ExtendetHitLocation.LEFT_LEG:
-                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Leg;
-                    break;
-                case ExtendetHitLocation.SPINE:
-                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Spine;
-                    break;
-                case ExtendetHitLocation.STOMACH:
-                    penResistance = PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.Stomach;
-                    break;
-            }
-            
-            if (penResistance == null)
-            {
-                Logger.LogError($"Could not find penResistance for {hitBodypart}");
-                return;
-            }
+            bool didPenetrate = true;
+            float armorOverride = -1;
+            ItemVestAsset vest = player.clothing.vestAsset;
+            ItemShirtAsset shirt = player.clothing.shirtAsset;
 
-            if (currentHit.penCount <= PvPRework.Conf.BetterArmor.BetterHitZones.PlayerPenetration.MaxPenetrations && penetration >= penResistance.RequiredPenetration)
+            bool useOuterArmor = false;
+
+            if (vest != null && PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
             {
 
-                Vector3 newStartpoint = currentHit.imputInfo.point + (currentHit.imputInfo.direction.normalized * 0.1f);
-                RaycastInfo info = DamageTool.raycast(new Ray(newStartpoint, currentHit.imputInfo.direction), 512f, RayMasks.DAMAGE_CLIENT, null);
-
-                if (info?.player != null)
+                PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out VestExtension vestExtension);
+                if (vestExtension != null && vestExtension.ShoulderPlateLength > 0)
                 {
-
-                    // calc pen reduction
-                    float penReduction = PvPRework.calcMean(penResistance.RequiredPenetration, penResistance.PenetrationForMinReduction, penResistance.MaxPenReduction, penResistance.MinPenReduction, penetration);
-                    penReduction = penReduction > 1 ? 1 : penReduction < 0 ? 0 : penReduction;
-                    float remainingPenetration = penReduction * penetration;
-
-
-                    Logger.Log($"Penetrated and hit {info.player.name} in the {info.limb} penReduction: {penReduction}");
-                    PvPRework.playerHits.Add(new PlayerHit(new InputInfo
+                    useOuterArmor = true;
+                    armorOverride = vestExtension.ArmorShoulderPlate;
+                    if (foundHit)
                     {
-                        type = ERaycastInfoType.PLAYER,
-                        player = info.player,
-                        transform = info.transform,
-                        point = info.point,
-                        limb = info.limb,
-                    }, currentHit.penCount+1, remainingPenetration));
-
-                    DamagePlayerParameters damageparam = new DamagePlayerParameters
-                    {
-                        player = info.player,
-                        cause = cause,
-                        limb = info.limb,
-                        direction = currentHit.imputInfo.direction,
-                        damage = weapon.playerDamageMultiplier.multiply(info.limb),
-                        times = 1,
-                        killer = shooter.CSteamID,
-                    };
-                    PvPRework.Inst.playerPenetrations.Add(damageparam);
+                        useOuterArmor = vestExtension.isProtected(hitLocation, localHit);
+                    }
                 }
             }
+
+            if (PvPRework.Conf.BetterArmor.UseArmorClasses)
+            {
+                if (useOuterArmor)
+                {
+                    didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
+                }
+
+
+                if (didPenetrate && shirt != null)
+                {
+                    didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                }
+                return didPenetrate;
+            }
+            armor = calcVanillaArmor(player, vest, shirt, (useOuterArmor ? armorOverride : 1));
+            return false;
+        }
+        private static bool checkLegHit(Player player, ExtendetHitLocation hitLocation, bool foundHit, Vector3 localHit, ref float fleshDamage, ref float armorDamage, ref float penetration, ref float penReducationMulti, ref float armor)
+        {
+            bool didPenetrate = true;
+            float armorOverride = -1;
+            ItemVestAsset vest = player.clothing.vestAsset;
+            ItemPantsAsset pants = player.clothing.pantsAsset;
+
+            bool useOuterArmor = false;
+
+            if (vest != null && PvPRework.Inst.vestExtensions.ContainsKey(vest.id))
+            {
+
+                PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out VestExtension vestExtension);
+                if (vestExtension != null && vestExtension.ThighPlateLength > 0)
+                {
+                    useOuterArmor = true;
+                    armorOverride = vestExtension.ArmorThighPlate;
+                    if (foundHit)
+                        useOuterArmor = vestExtension.isProtected(hitLocation, localHit);
+                }
+            }
+
+            if (PvPRework.Conf.BetterArmor.UseArmorClasses)
+            {
+                if (useOuterArmor)
+                {
+                    didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
+                }
+
+                if (didPenetrate && pants != null)
+                {
+                    didPenetrate = penArmor(player, pants, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                }
+                return didPenetrate;
+            }
+            armor = calcVanillaArmor(player, vest, pants, (useOuterArmor ? armorOverride : 1));
+            return false;
+        }
+        private static bool checkBodyHit(Player player, ExtendetHitLocation hitLocation, bool foundHit, Vector3 localHit, ref float fleshDamage, ref float armorDamage, ref float penetration, ref float penReducationMulti, ref float armor)
+        {
+            bool didPenetrate = true;
+            ItemVestAsset vest = player.clothing.vestAsset;
+            ItemShirtAsset shirt = player.clothing.shirtAsset;
+
+            bool useOuterArmor = false;
+            if (hitLocation == ExtendetHitLocation.STOMACH)
+            {
+                if (vest != null)
+                {
+                    useOuterArmor = PvPRework.Conf.BetterArmor.BetterHitZones.VestsProtectStomach;
+
+                    if (PvPRework.Inst.vestExtensions.TryGetValue(vest.id, out VestExtension vestExtension) && vestExtension != null)
+                    {
+                        useOuterArmor = vestExtension.ProtectStomach;
+                    }
+                }
+            }
+
+            if (PvPRework.Conf.BetterArmor.UseArmorClasses)
+            {
+                if (vest != null && useOuterArmor)
+                {
+                    didPenetrate = penArmor(player, vest, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                }
+                if (didPenetrate && shirt != null)
+                {
+                    didPenetrate = penArmor(player, shirt, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                }
+                if (didPenetrate && hitLocation == ExtendetHitLocation.STOMACH)
+                {
+                    if (PvPRework.Conf.Debug)
+                        Logger.Log("Stomach got hit!");
+                }
+                return didPenetrate;
+            }
+            if (useOuterArmor)
+            {
+                armor = calcVanillaArmor(player, vest, shirt, -1);
+                return false;
+            }
+            armor = calcVanillaArmor(player, vest, shirt);
+            return false;
+        }
+        private static bool checkSkullHit(Player player, ExtendetHitLocation hitLocation, bool foundHit, Vector3 localHit, ref float fleshDamage, ref float armorDamage, ref float penetration, ref float penReducationMulti, ref float armor)
+        {
+            bool didPenetrate = true;
+            float armorOverride = -1;
+            ItemHatAsset hat = player.clothing.hatAsset;
+            ItemMaskAsset mask = player.clothing.maskAsset;
+
+            bool useOuterArmor = false;
+
+            if(hat != null)
+            {
+                PvPRework.Inst.hatExtensions.TryGetValue(hat.id, out HatExtension hatExtension);
+
+                if (hitLocation == ExtendetHitLocation.FACE)
+                {
+                    useOuterArmor = PvPRework.Conf.BetterArmor.BetterHitZones.HatsProtectFace;
+                    if (hatExtension != null && hatExtension.ProtectFace)
+                    {
+                        useOuterArmor = true;
+                        armorOverride = hatExtension.ArmorFace;
+                    }
+                }
+                else if (hitLocation == ExtendetHitLocation.EARS)
+                {
+                    useOuterArmor = PvPRework.Conf.BetterArmor.BetterHitZones.HatsProtectEars;
+                    if (hatExtension != null && hatExtension.ProtectEars)
+                    {
+                        useOuterArmor = true;
+                        armorOverride = hatExtension.ArmorEars;
+                    }
+                }
+            }
+            
+
+            if (PvPRework.Conf.BetterArmor.UseArmorClasses)
+            {
+                if (hat != null && useOuterArmor)
+                {
+                    //doesRicochet(currentHit);
+
+                    didPenetrate = penArmor(player, hat, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti, armorOverride);
+                }
+
+                if (didPenetrate && mask != null)
+                {
+                    didPenetrate = penArmor(player, mask, ref armorDamage, ref penetration, ref fleshDamage, ref penReducationMulti);
+                }
+                return didPenetrate;
+            }
+            if (hat != null && useOuterArmor)
+            {
+                armor = calcVanillaArmor(player, hat, mask, armorOverride);
+                return false;
+            }
+            armor = calcVanillaArmor(player, hat, mask);
+            return false;
+        }
+        internal static void calcDamageFallOff(ItemGunAsset oponentGun, Vector3 pos1, Vector3 pos2, ref float penetration, ref float fleshDamage, ref float armorDamage)
+        {
+            //TODO: tweak
+            float distance = Vector3.Distance(pos1, pos2);
+
+            float t = Mathf.InverseLerp(oponentGun.range * oponentGun.damageFalloffRange, oponentGun.range, distance);
+            float falloffMulti = Mathf.Lerp(1f, oponentGun.damageFalloffMultiplier, t);
+
+            penetration *= falloffMulti;
+            fleshDamage *= falloffMulti;
+            armorDamage *= falloffMulti;
         }
         internal static bool doesRicochet(PlayerHit currentHit)
         {
@@ -726,45 +626,6 @@ namespace SpeedMann.PvPRework.Helper
             return false;
         }
 
-        public static bool isEarHit(ELimb limb, Vector3 localPoint)
-        {
-            if (limb == ELimb.SKULL)
-            {
-                bool earsHit = localPoint.x > -0.5 && (localPoint.y >= 0.2 || localPoint.y <= -0.2) && localPoint.z > -0.05;
-                if (earsHit && PvPRework.Conf.Debug)
-                {
-                    Logger.Log("Raycast hit in the Ears");
-                }
-                return earsHit;
-            }
-            return false;
-        }
-        public static bool isFaceHit(ELimb limb, Vector3 localPoint)
-        {
-            if (limb == ELimb.SKULL)
-            {
-                bool faceHit = localPoint.x > -0.55 && localPoint.z >= 0.2;
-                if (faceHit && PvPRework.Conf.Debug)
-                {
-                    Logger.Log("Raycast hit in the Face");
-                }
-                return faceHit;
-            }
-            return false;
-        }
-        public static bool isStomachHit(ELimb limb, Vector3 localPoint)
-        {
-            if (limb == ELimb.SPINE)
-            {
-                bool stomachHit = localPoint.x > -0.23;
-                if (stomachHit && PvPRework.Conf.Debug)
-                {
-                    Logger.Log("Raycast hit in the Stomach");
-                }
-                return stomachHit;
-            }
-            return false;
-        }
         private static bool getLocalPoint(Transform skeleton, Vector3 point, ELimb limb, out Vector3 localPoint, out Transform limbTransform)
         {
             limbTransform = null;

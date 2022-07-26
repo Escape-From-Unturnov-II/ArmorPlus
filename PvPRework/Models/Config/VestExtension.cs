@@ -31,20 +31,25 @@ namespace SpeedMann.PvPRework.Models.Config
         {
 
         }
-        public bool isProtected(ELimb limb, Vector3 hitPoint)
+        public bool isProtected(ExtendetHitLocation limb, Vector3 hitPoint)
         {
             switch (limb)
             {
-                case ELimb.LEFT_ARM:
-                case ELimb.RIGHT_ARM:
+                case ExtendetHitLocation.LEFT_ARM:
+                case ExtendetHitLocation.RIGHT_ARM:
                     return hitPoint.x > -ShoulderPlateLength;
-                case ELimb.LEFT_FOOT:
-                case ELimb.RIGHT_FOOT:
+                case ExtendetHitLocation.LEFT_FOOT:
+                case ExtendetHitLocation.RIGHT_FOOT:
                     return hitPoint.x > -ThighPlateLength;
-                case ELimb.SPINE:
+                case ExtendetHitLocation.SPINE:
+                case ExtendetHitLocation.STOMACH:
                     return ProtectStomach;
             }
             return false;   
+        }
+        public bool isProtected(ELimb limb, Vector3 hitPoint)
+        {
+            return isProtected(ExtendedHitLocations.getExtendetHitlocation(limb), hitPoint);
         }
     }
 }
