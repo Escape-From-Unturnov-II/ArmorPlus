@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="Helper\ArmorLogic.cs" />
     <Compile Include="Helper\InputHandler.cs" />
+    <Compile Include="Helper\PlayerPenetration.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Helper\EffectController.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
@@ -87,7 +88,7 @@
     <Compile Include="Models\ArmorClass.cs" />
     <Compile Include="Models\Config\PenResistence.cs" />
     <Compile Include="Models\Config\PlayerPenetrationConfig.cs" />
-    <Compile Include="Models\ExtendetHitLocations.cs" />
+    <Compile Include="Models\ExtendedHitLocations.cs" />
     <Compile Include="Models\Config\BetterArmorConfig.cs" />
     <Compile Include="Models\Config\BetterHitZonesConfig.cs" />
     <Compile Include="Models\Config\Caliber.cs" />
