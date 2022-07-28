@@ -82,7 +82,9 @@
     <Compile Include="Helper\InputHandler.cs" />
     <Compile Include="Helper\PlayerPenetration.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
-    <Compile Include="Helper\EffectController.cs" />
+    <Compile Include="Models\UI\HeathUIState.cs" />
+    <Compile Include="UI\ClothingEffectHandler.cs" />
+    <Compile Include="UI\EffectControler.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\ArmorClass.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="PvPReworkConfiguration.cs" />
     <Compile Include="Models\BulletLimbDamageChance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\HealthUIHandler.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

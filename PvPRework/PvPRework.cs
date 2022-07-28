@@ -8,6 +8,7 @@ using SDG.Unturned;
 using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
+using SpeedMann.PvPRework.UI;
 using Steamworks;
 using System;
 using System.Collections;
@@ -20,7 +21,7 @@ namespace SpeedMann.PvPRework
 {
     public class PvPRework : RocketPlugin<PVPReworkConfiguration>
     {
-        public static string PluginVersion = "1.8.0";
+        public static string PluginVersion = "1.0.0";
         public static PvPRework Inst;
         public static PVPReworkConfiguration Conf;
         internal static readonly System.Random rand = new System.Random();
@@ -94,6 +95,7 @@ namespace SpeedMann.PvPRework
         {
             Inst = this;
             Conf = Configuration.Instance;
+            PluginVersion = readFileVersion();
 
             playerHits = new List<PlayerHit>();
             hatSwaps = new Dictionary<CSteamID, ushort>();
@@ -192,6 +194,8 @@ namespace SpeedMann.PvPRework
             }
             StartCoroutine(playerJoinWaiter(player));
 
+            HealthUIHandler.spawnHealthUI(player.CSteamID);
+
             StanceHandler stanceHandler = new StanceHandler(player.Player.stance);
             player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
             playerStances.Add(player.CSteamID, stanceHandler);
@@ -277,11 +281,11 @@ namespace SpeedMann.PvPRework
         {
             if(player.Player.clothing.hat == 0)
             {
-                EffectController.spawnUI(0, Conf.BetterArmor.HatEffectKey, player.CSteamID);
+                EffectControler.spawnUI(0, Conf.BetterArmor.HatEffectKey, player.CSteamID);
             }
             if(player.Player.clothing.glasses == 0)
             {
-                EffectController.spawnUI(0, Conf.BetterArmor.GlassesEffectKey, player.CSteamID);
+                EffectControler.spawnUI(0, Conf.BetterArmor.GlassesEffectKey, player.CSteamID);
             }
         }
         private void OnVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle)
@@ -314,7 +318,7 @@ namespace SpeedMann.PvPRework
                 }
             }
             if(shouldAllow)
-                EffectController.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
+                ClothingEffectHandler.checkClothingEffect(hatExtensions, UnturnedPlayer.FromPlayer(player), newHatId);
         }
         private void OnGlassesChanged(Player player, ushort newGlassesId, byte quality, byte[] state, ref bool shouldAllow)
         {
@@ -343,11 +347,11 @@ namespace SpeedMann.PvPRework
         {
             if (activate)
             {
-                EffectController.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), glassesId);
+                ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), glassesId);
             }
             else
             {
-                EffectController.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
+                ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
             }
             
         }
@@ -523,7 +527,7 @@ namespace SpeedMann.PvPRework
         {
             if (Conf.UseNotificationUI)
             {
-                EffectController.spawnUI(Conf.BetterArmor.NotificationIncompatibleId, Conf.NotificationEffectKey, player.CSteamID);
+                EffectControler.spawnUI(Conf.BetterArmor.NotificationIncompatibleId, Conf.NotificationEffectKey, player.CSteamID);
             }
             else
             {
@@ -917,8 +921,14 @@ namespace SpeedMann.PvPRework
         private IEnumerator playerJoinWaiter(UnturnedPlayer player)
         {
             yield return new WaitForSeconds(2);
-            EffectController.checkClothingEffect(hatExtensions, player, player.Player.clothing.hat, true);
+            ClothingEffectHandler.checkClothingEffect(hatExtensions, player, player.Player.clothing.hat, true);
             // UI for nvg is automatically enabled
+        }
+        private static string readFileVersion()
+        {
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FileVersion;
         }
         #endregion
     }

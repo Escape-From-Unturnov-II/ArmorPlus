@@ -13,7 +13,7 @@ namespace SpeedMann.PvPRework
 {
 
 
-    public class EffectController
+    public class EffectControler
     {
         class UI_Status
         {
@@ -22,53 +22,6 @@ namespace SpeedMann.PvPRework
         }
 
         static Dictionary<ulong, List<UI_Status>> PlayerUIStatus;
-
-        public static void checkClothingEffect<T>(Dictionary<ushort, T> clothingExtensions, UnturnedPlayer player, ushort clothingId, bool spawned = false) where T : ItemUIExtension
-        {
-            if(player == null)
-            {
-                Logger.LogError("Clothing effect check for player null");
-                return;
-            }
-
-            PVPReworkConfiguration conf = PvPRework.Conf;
-            T clothingExtension;
-            ushort equipedClothingId;
-            short effectKey;
-
-            if (typeof(T).Equals(typeof(GlassesExtension)))
-            {
-                effectKey = conf.BetterArmor.GlassesEffectKey;
-                equipedClothingId = player.Player.clothing.glasses;
-            }
-            else if (typeof(T).Equals(typeof(HatExtension)))
-            {
-                effectKey = conf.BetterArmor.HatEffectKey;
-                equipedClothingId = player.Player.clothing.hat;
-            }
-            else
-            {
-                Logger.LogError("Clothing effect check for unimplemented clothing type");
-                return;
-            }
-
-            if (!spawned && clothingExtensions.TryGetValue(equipedClothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
-            {
-                spawnUI(clothingExtension.UnequipEffectId, effectKey, player.CSteamID);
-                if (conf.Debug)
-                    Logger.Log($"Clothing UI for Item: {equipedClothingId} disabled with: {clothingExtension.UnequipEffectId}");
-            }
-            if (clothingExtensions.TryGetValue(clothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
-            {
-                spawnUI(clothingExtension.EquipEffectId, effectKey, player.CSteamID);
-                if (conf.Debug)
-                    Logger.Log($"Clothing UI for Item: {clothingId} enabled: {clothingExtension.EquipEffectId}");
-            }
-        }
-        public static void spawnKillFeed(Player player, Player killer)
-        {
-
-        }
 
         public static void spawnUI(ushort effectId, short effectKey)
         {
@@ -82,7 +35,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to show UI (CSteamID not found)");
                 return;
             }
-            EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
+            SDG.Unturned.EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
         }
         public static void setVisibility(bool visible, short effectKey, string panelName)
         {
@@ -100,7 +53,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to hide UI (CSteamID not found)");
                 return;
             }
-            EffectManager.sendUIEffectVisibility(effectKey, transportConnection, false, panelName, visible);
+            SDG.Unturned.EffectManager.sendUIEffectVisibility(effectKey, transportConnection, false, panelName, visible);
         }
 
         private static UI_Status getUIStatus(ulong steamId, short key)
