@@ -143,9 +143,8 @@ namespace SpeedMann.PvPRework.Controllers
             }
 
             float remainingDamage = status.damage(bodyPart, damage, out dead);
-            if (dead) return;
             
-            if(remainingDamage >= 1)
+            if(!dead && remainingDamage >= 1)
             {
                 int count = 0;
                 damageRecursion(status, 0, remainingDamage * blackedMulti, ref count, ref dead);
