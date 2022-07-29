@@ -78,10 +78,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helper\ArmorLogic.cs" />
+    <Compile Include="Controllers\ArmorLogic.cs" />
+    <Compile Include="Controllers\HealthManager.cs" />
     <Compile Include="Helper\InputHandler.cs" />
-    <Compile Include="Helper\PlayerPenetration.cs" />
+    <Compile Include="Controllers\PlayerPenetration.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
+    <Compile Include="Models\HealthStatus.cs" />
     <Compile Include="Models\UI\HeathUIState.cs" />
     <Compile Include="UI\ClothingEffectHandler.cs" />
     <Compile Include="UI\EffectControler.cs" />

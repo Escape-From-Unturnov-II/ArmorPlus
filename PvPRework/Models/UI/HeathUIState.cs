@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static SpeedMann.PvPRework.Controllers.HealthManager;
 using static SpeedMann.PvPRework.UI.HealthUIHandler;
 
 namespace SpeedMann.PvPRework.Models.UI

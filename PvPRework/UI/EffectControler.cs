@@ -35,7 +35,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to show UI (CSteamID not found)");
                 return;
             }
-            SDG.Unturned.EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
+            EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
         }
         public static void setVisibility(bool visible, short effectKey, string panelName)
         {
@@ -53,7 +53,7 @@ namespace SpeedMann.PvPRework
                 Logger.LogError("Error in Event UI while trying to hide UI (CSteamID not found)");
                 return;
             }
-            SDG.Unturned.EffectManager.sendUIEffectVisibility(effectKey, transportConnection, false, panelName, visible);
+            EffectManager.sendUIEffectVisibility(effectKey, transportConnection, true, panelName, visible);
         }
 
         private static UI_Status getUIStatus(ulong steamId, short key)

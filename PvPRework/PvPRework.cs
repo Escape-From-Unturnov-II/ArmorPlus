@@ -5,6 +5,7 @@ using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Controllers;
 using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
@@ -141,6 +142,7 @@ namespace SpeedMann.PvPRework
                 UnturnedPatches.OnPreChangeHat -= OnHatChanged;
                 UnturnedPatches.OnPreChangeGlasses -= OnGlassesChanged;
                 UnturnedPatches.OnPreVisionChanged -= OnVisionChanged;
+                UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
                 PlayerLife.onPlayerDied -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
@@ -156,6 +158,7 @@ namespace SpeedMann.PvPRework
         {
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
+            HealthManager.Init();
 
             Conf.addNames();
             Conf.updateConfig();
@@ -194,7 +197,7 @@ namespace SpeedMann.PvPRework
             }
             StartCoroutine(playerJoinWaiter(player));
 
-            HealthUIHandler.spawnHealthUI(player.CSteamID);
+            HealthManager.OnPlayerConnected(player);
 
             StanceHandler stanceHandler = new StanceHandler(player.Player.stance);
             player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
@@ -248,6 +251,10 @@ namespace SpeedMann.PvPRework
         }
         private void OnPlayerDeath(PlayerLife sender, EDeathCause cause, ELimb limb, CSteamID instigator)
         {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(sender.player);
+            if (player == null) return;
+            HealthManager.OnPlayerDeath(player);
+
             if (!Conf.KillFeed.Enabled)
                 return;
 
@@ -287,6 +294,12 @@ namespace SpeedMann.PvPRework
             {
                 EffectControler.spawnUI(0, Conf.BetterArmor.GlassesEffectKey, player.CSteamID);
             }
+        }
+        private void OnPlayerRevived(PlayerLife playerLife)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+            if (player == null) return;
+            HealthManager.OnPlayerRevived(player);
         }
         private void OnVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle)
         {
@@ -746,6 +759,7 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.OnPreChangeHat += OnHatChanged;
             UnturnedPatches.OnPreChangeGlasses += OnGlassesChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
+            UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 

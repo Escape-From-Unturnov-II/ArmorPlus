@@ -1,4 +1,5 @@
 ﻿using Rocket.Core.Logging;
+using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.UI;
 using Steamworks;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static SpeedMann.PvPRework.Controllers.HealthManager;
 
 namespace SpeedMann.PvPRework.UI
 {
@@ -40,6 +42,13 @@ namespace SpeedMann.PvPRework.UI
                 uIStates.Add(executorID, new HeathUIState());
             }
         }
+        internal static void updateHealthUI(CSteamID executorID, HealthStatus status)
+        {
+            foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
+            {
+                changeHealthUI(executorID, bodyPart, getDamageColor(status.getHealth(bodyPart), status.getMaxHealth(bodyPart)));
+            }
+        }
         internal static void setHealthUIVisibility(CSteamID executorID, bool visible)
         {
             EffectControler.setVisibility(visible, HealthUI_Key, HealthUIPanelName, executorID);
@@ -53,10 +62,21 @@ namespace SpeedMann.PvPRework.UI
                 return;
             }
 
+            if (oldDamageColor == newDamageColor) return;
             EffectControler.setVisibility(false, HealthUI_Key, getBodyPartName(bodyPart) + getDamageColorName(oldDamageColor), executorID);
             EffectControler.setVisibility(true, HealthUI_Key, getBodyPartName(bodyPart) + getDamageColorName(newDamageColor), executorID);
         }
+        private static DamageColor getDamageColor(float health, float maxHealth)
+        {
+            if (maxHealth <= 0 || health == 0) return DamageColor.Black;
+            float percentage = health * 100 / maxHealth;
+            
+            if (percentage >= 75) return DamageColor.Green;
+            if (percentage >= 50) return DamageColor.Yellow;
+            if (percentage >= 25) return DamageColor.Orange;
 
+            return DamageColor.Red;
+        }
         private static string getDamageColorName(DamageColor color)
         {
             switch (color)
@@ -94,16 +114,6 @@ namespace SpeedMann.PvPRework.UI
                     return HealthUILeftLeg;
             }
             return "";
-        }
-        public enum BodyPart
-        {
-            Head,
-            Chest,
-            Stomach,
-            ArmRight,
-            ArmLeft,
-            LegRight,
-            LegLeft,
         }
         public enum DamageColor
         {

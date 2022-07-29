@@ -78,9 +78,26 @@ namespace SpeedMann.PvPRework
 
         public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
         public static event PreVisionChanged OnPreVisionChanged;
+
+        public delegate void PostPlayerRevive(PlayerLife playerLife);
+        public static event PostPlayerRevive OnPostPlayerRevive;
         #endregion
 
         #region Patches
+        [HarmonyPatch(typeof(PlayerLife), "ReceiveRevive")]
+        class PlayerRevive
+        {
+            [HarmonyPrefix]
+            internal static void OnPreReviveInvoker(PlayerLife __instance, out PlayerLife __state)
+            {
+                __state = __instance;
+            }
+            [HarmonyPostfix]
+            internal static void OnPosReviveInvoker(PlayerLife __state)
+            {
+                OnPostPlayerRevive?.Invoke(__state);
+            }
+        }
         // Movement Patch
         [HarmonyPatch(typeof(PlayerStance), nameof(PlayerStance.hasHeightClearanceAtPosition))]
         class HeightClearancePatch{
