@@ -127,6 +127,7 @@ namespace SpeedMann.PvPRework.Models
             internal BodyPartStatus(float maxHealth)
             {
                 this.maxHealth = maxHealth;
+                this.health = maxHealth;
             }
         }
         internal class LimbStatus : BodyPartStatus

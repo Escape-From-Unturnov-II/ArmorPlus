@@ -1,5 +1,6 @@
 ﻿using Rocket.Core.Logging;
 using Rocket.Unturned.Player;
+using SDG.Unturned;
 using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.UI;
 using Steamworks;
@@ -37,31 +38,102 @@ namespace SpeedMann.PvPRework.Controllers
             healthStatusOfPlayers.Add(player.CSteamID, new HealthStatus(maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth));
             HealthUIHandler.spawnHealthUI(player.CSteamID);
         }
+        internal static void OnPlayerDisconnected(UnturnedPlayer player)
+        {
+            healthStatusOfPlayers.Remove(player.CSteamID);
+        }
         internal static void OnPlayerRevived(UnturnedPlayer player)
         {
-            HealthUIHandler.setHealthUIVisibility(player.CSteamID, true);
+            HealthUIHandler.spawnHealthUI(player.CSteamID);
         }
         internal static void OnPlayerDeath(UnturnedPlayer player)
         {
             HealthUIHandler.setHealthUIVisibility(player.CSteamID, false);
         }
-        internal static void heal(UnturnedPlayer player, float health)
+        internal static void OnConsumed(Player target, ItemConsumeableAsset asset)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
+            modifyBleeding(player, asset.bleedingModifier);
+            modifyFracture(player, asset.bonesModifier);
+            heal(player, asset.health);
+        }
+        internal static void heal(UnturnedPlayer player, float health, bool updateUI = true)
         {
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
-            float remainingHealth; 
+            float remainingHealth = health; 
             foreach (BodyPart part in bodyPartOrder)
             {
-                remainingHealth = status.heal(part, health);
                 if (remainingHealth <= 0) return;
+                remainingHealth = status.heal(part, health);
             }
 
-            HealthUIHandler.updateHealthUI(player.CSteamID, status);
+            if (updateUI)
+            {
+                HealthUIHandler.updateHealthUI(player.CSteamID, status);
+            } 
         }
-        internal static void damageBodypart(UnturnedPlayer player, BodyPart bodyPart, float damage, out bool dead)
+        internal static void modifyBleeding(UnturnedPlayer player, ItemConsumeableAsset.Bleeding modification)
+        {
+            if (modification == ItemConsumeableAsset.Bleeding.None) return;
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+
+            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Bleeding, modification == ItemConsumeableAsset.Bleeding.Cut);
+        }
+        internal static void modifyFracture(UnturnedPlayer player, ItemConsumeableAsset.Bones modification)
+        {
+            if (modification == ItemConsumeableAsset.Bones.None) return;
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Fracture, modification == ItemConsumeableAsset.Bones.Break);
+        }
+        internal static void damageBodyPart(UnturnedPlayer player, ExtendetHitLocation hitLocation, float damage, out bool dead)
+        {
+            dead = false;
+            BodyPart bodyPart;
+            switch (hitLocation)
+            {
+                case ExtendetHitLocation.EARS:
+                case ExtendetHitLocation.FACE:
+                case ExtendetHitLocation.SKULL:
+                    bodyPart = BodyPart.Head;
+                    break;
+                case ExtendetHitLocation.SPINE:
+                    bodyPart = BodyPart.Chest;
+                    break;
+                case ExtendetHitLocation.STOMACH:
+                    bodyPart = BodyPart.Stomach;
+                    break;
+                case ExtendetHitLocation.LEFT_ARM:
+                    bodyPart = BodyPart.ArmLeft;
+                    break;
+                case ExtendetHitLocation.RIGHT_ARM:
+                    bodyPart = BodyPart.ArmRight;
+                    break;
+                case ExtendetHitLocation.LEFT_LEG:
+                    bodyPart = BodyPart.LegLeft;
+                    break;
+                case ExtendetHitLocation.RIGHT_LEG:
+                    bodyPart = BodyPart.LegRight;
+                    break;
+                default:
+                    Logger.LogError($"invalid ExtendetHitLocation in damageBodyPart {hitLocation}");
+                    return;
+            }
+
+            damageBodyPart(player, bodyPart, damage, out dead);
+        }
+        internal static void damageBodyPart(UnturnedPlayer player, BodyPart bodyPart, float damage, out bool dead)
         {
             dead = false;
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
@@ -78,20 +150,25 @@ namespace SpeedMann.PvPRework.Controllers
                 int count = 0;
                 damageRecursion(status, 0, remainingDamage * blackedMulti, ref count, ref dead);
             }
-
+            Logger.Log($"Health manager Damaged {bodyPart}");
             HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
         private static void damageRecursion(HealthStatus status, int index, float damage, ref int count, ref bool dead)
         {
             if (index >= bodyPartOrder.Count) return;
-
+            bool valid = false;
             BodyPart current = bodyPartOrder[index];
             if (current == BodyPart.Head || current == BodyPart.Chest || !status.isBlacked(current)){
                 count++;
-                damageRecursion(status, index++, damage, ref count, ref dead);
-                if (dead) return;
-                status.damage(current, damage/count, out dead);
+                 valid = true;
             }
+
+            damageRecursion(status, index++, damage, ref count, ref dead);
+            if (valid && !dead)
+            {
+                status.damage(current, damage / count, out dead);
+            }
+            
         }
 
         // this order is important for damage and heal order

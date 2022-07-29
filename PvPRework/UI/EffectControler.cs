@@ -47,6 +47,8 @@ namespace SpeedMann.PvPRework
         }
         public static void setVisibility(bool visible, short effectKey, string panelName, CSteamID executorID)
         {
+            if (panelName == "") return;
+
             ITransportConnection transportConnection = Provider.findTransportConnection(executorID);
             if (transportConnection == null)
             {

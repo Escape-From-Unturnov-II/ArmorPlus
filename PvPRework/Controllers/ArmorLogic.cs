@@ -18,7 +18,7 @@ namespace SpeedMann.PvPRework.Helper
     {
 
         #region ArmorCheck
-        internal static void ArmorPenCheck(Player player, ELimb limb, EDeathCause cause, Vector3 direction, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier)
+        internal static void ArmorPenCheck(Player player, ELimb limb, EDeathCause cause, Vector3 direction, CSteamID oponentId, ref float damage, ref bool respectArmor, bool applyGlobalArmorMultiplier, out ExtendetHitLocation currentHitLocation)
         {
             respectArmor = false;
             bool didPenetrate = true; // set penetrate to true to avoid cancle on no vest or no helmet
@@ -31,7 +31,7 @@ namespace SpeedMann.PvPRework.Helper
             PvPRework.Inst.getGunStats(oponent.Player, out ItemWeaponAsset oponentWeapon, out float penetration, out float fleshDamage, out float armorDamage, out Caliber caliber);
 
             Vector3 currentlocalHit = Vector3.zero;
-            ExtendetHitLocation currentHitLocation = ExtendedHitLocations.getExtendetHitlocation(limb);
+            currentHitLocation = ExtendedHitLocations.getExtendetHitlocation(limb);
             bool foundHit = false;
 
             if (tryGetCurrentHit(uPlayer, limb, out PlayerHit currentHit))

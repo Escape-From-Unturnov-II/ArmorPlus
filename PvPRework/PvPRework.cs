@@ -137,6 +137,9 @@ namespace SpeedMann.PvPRework
                     UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
                 }
 
+                UseableConsumeable.onConsumePerformed -= OnConsumed;
+                UseableConsumeable.onPerformingAid -= OnAid;
+
                 // UI / preventNVG
                 U.Events.OnPlayerConnected -= OnPlayerConnected;
                 UnturnedPatches.OnPreChangeHat -= OnHatChanged;
@@ -209,7 +212,7 @@ namespace SpeedMann.PvPRework
                 player.Player.stance.onStanceUpdated -= handler.StanceChangeInvoker;
                 playerStances.Remove(player.CSteamID);
             }
-            
+            HealthManager.OnPlayerDisconnected(player);
             InputHandler.removePlayerEntry(player.CSteamID);
         }
         private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
@@ -373,22 +376,26 @@ namespace SpeedMann.PvPRework
             if (Conf.Debug && !Conf.BetterArmor.Enabled)
                 Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + "!");
 
-            setLastHitLocation(UnturnedPlayer.FromPlayer(parameters.player).CSteamID, ExtendedHitLocations.getExtendetHitlocation(parameters.limb));
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(parameters.player);
+            ExtendetHitLocation hitLocation = ExtendedHitLocations.getExtendetHitlocation(parameters.limb);
+            setLastHitLocation(player.CSteamID, hitLocation);
+            
 
             switch (parameters.cause)
             {
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
                     if (Conf.BetterArmor.Enabled)
-                        ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier);
+                        ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier, out hitLocation);
                     if (Conf.BreakLegs)
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
                     break;
-
-                default:
-                    return;
             }
-                       
+            HealthManager.damageBodyPart(player, hitLocation, parameters.damage, out bool dead);
+            if (dead)
+            {
+                parameters.damage = 255;
+            }
         }
         private void OnGetInput(ref InputInfo inputInfo)
         {
@@ -419,6 +426,14 @@ namespace SpeedMann.PvPRework
                 hatSwaps.Remove(player.CSteamID);
                 shouldAllow = false;
             }
+        }
+        private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
+        {
+            HealthManager.OnConsumed(target, asset);
+        }
+        private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset asset)
+        {
+            HealthManager.OnConsumed(instigatingPlayer, asset);
         }
         private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
@@ -753,6 +768,9 @@ namespace SpeedMann.PvPRework
                 UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
 
             }
+
+            UseableConsumeable.onConsumePerformed += OnConsumed;
+            UseableConsumeable.onPerformingAid += OnAid;
 
             // UI / preventNVG / killfeed
             U.Events.OnPlayerConnected += OnPlayerConnected;

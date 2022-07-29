@@ -17,6 +17,7 @@ namespace SpeedMann.PvPRework.UI
         private static short  HealthUI_Key = 5230;
         private static string HealthUIPanelName = "UnturnedHealthPanel";
 
+        // Body Parts
         private static string HealthUIHead = "Head";
         private static string HealthUIChest = "Chest";
         private static string HealthUIStomach = "Stomach";
@@ -25,21 +26,29 @@ namespace SpeedMann.PvPRework.UI
         private static string HealthUIRightLeg = "RightLeg";
         private static string HealthUILeftLeg = "LeftLeg";
 
+        // Colors
         private static string HealthUIDamageBlack = "Black";
         private static string HealthUIDamageRed = "Red";
         private static string HealthUIDamageOrange = "Orange";
         private static string HealthUIDamageYellow = "Yellow";
         private static string HealthUIDamageGreen = "Green";
 
+        // Effects
+        private static string HealthUIEffectFracture = "Fracture";
+        private static string HealthUIEffectBleeding = "Bleeding";
 
         private static Dictionary<CSteamID, HeathUIState> uIStates = new Dictionary<CSteamID, HeathUIState>();
 
         internal static void spawnHealthUI(CSteamID executorID)
         {
             EffectControler.spawnUI(HealthUI_ID, HealthUI_Key, executorID);
-            if (uIStates.ContainsKey(executorID))
+            if (!uIStates.ContainsKey(executorID))
             {
                 uIStates.Add(executorID, new HeathUIState());
+            }
+            else
+            {
+                uIStates[executorID] = new HeathUIState();
             }
         }
         internal static void updateHealthUI(CSteamID executorID, HealthStatus status)
@@ -53,6 +62,12 @@ namespace SpeedMann.PvPRework.UI
         {
             EffectControler.setVisibility(visible, HealthUI_Key, HealthUIPanelName, executorID);
         }
+        internal static void setHealthEffectVisibility(CSteamID executorID, HealthEffect effect, bool visible)
+        {
+            EffectControler.setVisibility(visible, HealthUI_Key, getHealthEffectName(effect), executorID);
+            Logger.Log($"UI effect: {effect} {visible}");
+        }
+        
         internal static void changeHealthUI(CSteamID executorID, BodyPart bodyPart, DamageColor newDamageColor)
         {
             if (!uIStates.TryGetValue(executorID, out HeathUIState state)) return;
@@ -63,8 +78,10 @@ namespace SpeedMann.PvPRework.UI
             }
 
             if (oldDamageColor == newDamageColor) return;
+            Logger.Log($"HealthUI Update: {bodyPart} from {oldDamageColor} to {newDamageColor}");
             EffectControler.setVisibility(false, HealthUI_Key, getBodyPartName(bodyPart) + getDamageColorName(oldDamageColor), executorID);
             EffectControler.setVisibility(true, HealthUI_Key, getBodyPartName(bodyPart) + getDamageColorName(newDamageColor), executorID);
+            state.damageColors[bodyPart] = newDamageColor;
         }
         private static DamageColor getDamageColor(float health, float maxHealth)
         {
@@ -115,6 +132,17 @@ namespace SpeedMann.PvPRework.UI
             }
             return "";
         }
+        private static string getHealthEffectName(HealthEffect effect)
+        {
+            switch (effect)
+            {
+                case HealthEffect.Bleeding:
+                    return HealthUIEffectBleeding;
+                case HealthEffect.Fracture:
+                    return HealthUIEffectFracture;
+            }
+            return "";
+        }
         public enum DamageColor
         {
             Green,
@@ -122,6 +150,12 @@ namespace SpeedMann.PvPRework.UI
             Orange,
             Red,
             Black,
+        }
+
+        public enum HealthEffect
+        {
+            Fracture,
+            Bleeding,
         }
     }
 }
