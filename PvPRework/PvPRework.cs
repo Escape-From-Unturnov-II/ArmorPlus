@@ -437,6 +437,8 @@ namespace SpeedMann.PvPRework
         }
         private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
+            newStance = oldStance;
+            if (stance?.player?.life == null) return;
             newStance = stance.stance;
 
             switch (oldStance)
@@ -448,7 +450,7 @@ namespace SpeedMann.PvPRework
                         {
                             stance.stance = EPlayerStance.PRONE;
                             newStance = EPlayerStance.PRONE;
-                            stance.checkStance(newStance, true);
+                            //stance.checkStance(newStance, true);
                             //UnturnedPrivateFields.setPalyerStance(stance);
                         }
                         else
@@ -463,7 +465,7 @@ namespace SpeedMann.PvPRework
             {
                 case EPlayerStance.PRONE:
                     PlayerEquipment equipment = stance.player.equipment;
-                    if (equipment != null && equipment.useable is UseableGun && !equipment.isBusy && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
+                    if (equipment?.useable != null && equipment.useable is UseableGun && !equipment.isBusy && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
                     {
                         reequipItems.Add(new EquipItem
                         {

@@ -45,22 +45,32 @@ namespace SpeedMann.PvPRework
         public bool UseNotificationUI = true;
         public short NotificationEffectKey = 5230;
 
-        public KillFeed KillFeed;
-        public BetterArmorConfig BetterArmor;
-        public MovementExtension MovementExtension;
+        public KillFeed KillFeed = new KillFeed();
+        public BetterArmorConfig BetterArmor = new BetterArmorConfig();
+        public MovementExtension MovementExtension = new MovementExtension
+        { 
+          PushupStaminaDrain = 10,
+          ReequipGunsOnProne = true,
+        };
 
-        public List<ArmorClass> ArmorClasses;
-        public List<BulletLimbDamageChance> BoneBreakingChances;
-        public List<HatExtension> HatExtensions;
-        public List<MaskExtension> MaskExtensions;
-        public List<GlassesExtension> GlassesExtensions;
-        public List<VestExtension> VestExtensions;
-        public List<GunExtension> GunExtensions;
-        public List<Caliber> BulletCalibers; 
+        public List<ArmorClass> ArmorClasses = new List<ArmorClass>();
+        public List<BulletLimbDamageChance> BoneBreakingChances = new List<BulletLimbDamageChance>();
+        public List<HatExtension> HatExtensions = new List<HatExtension>();
+        public List<MaskExtension> MaskExtensions = new List<MaskExtension>();
+        public List<GlassesExtension> GlassesExtensions = new List<GlassesExtension>();
+        public List<VestExtension> VestExtensions = new List<VestExtension>();
+        public List<GunExtension> GunExtensions = new List<GunExtension>();
+        public List<Caliber> BulletCalibers = new List<Caliber>();
         [XmlArrayItem(ElementName = "HelmetCycle")]
-        public List<List<ItemExtension>> CyclableHelmets;
+        public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>
+        {
+            new List<ItemExtension>(),
+        };
         [XmlArrayItem(ElementName = "SightCycle")]
-        public List<List<ItemExtension>> CyclableSights;
+        public List<List<ItemExtension>> CyclableSights = new List<List<ItemExtension>>
+        {
+            new List<ItemExtension>(),
+        };
 
         public void LoadDefaults()
         {
