@@ -1,4 +1,5 @@
-﻿using SDG.Unturned;
+﻿using Rocket.Core.Logging;
+using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +11,17 @@ namespace SpeedMann.PvPRework.Helper
 {
     class UnturnedPrivateFields
     {
-        private static FieldInfo Gun_Attachments;
-        private static FieldInfo Clothing_Armor;
+        private static FieldInfo GunAttachments;
+        private static FieldInfo ClothingArmor;
+
+        private static FieldInfo SkinColor;
 
         private static MethodInfo ReplicateStance;
         public static bool getGunAttachments(UseableGun gun, out Attachments result)
         {
-            if (Gun_Attachments != null)
+            if (GunAttachments != null)
             {
-                result = (Attachments)Gun_Attachments.GetValue(gun);
+                result = (Attachments)GunAttachments.GetValue(gun);
                 return true;
             }
             result = null;
@@ -26,11 +29,11 @@ namespace SpeedMann.PvPRework.Helper
         }
         public static bool setClothingArmor(ItemClothingAsset asset, float armor)
         {
-            if (Clothing_Armor != null)
+            if (ClothingArmor != null)
             {
                 if(armor > 0)
                 {
-                    Clothing_Armor.SetValue(asset, armor);
+                    ClothingArmor.SetValue(asset, armor);
                 }
                 
                 return true;
@@ -48,15 +51,37 @@ namespace SpeedMann.PvPRework.Helper
             return false;
         }
 
+        public static bool trySetSkinColor(SteamPending playerLife, UnityEngine.Color newColor)
+        {
+
+            if (SkinColor != null)
+            {
+                try
+                {
+                    SkinColor.SetValue(playerLife, newColor);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception setting private field skinColor");
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public static void Init()
         {
             Type type;
 
+            type = typeof(SteamPending);
+            SkinColor = type.GetField("_skin", BindingFlags.NonPublic | BindingFlags.Instance);
+
             type = typeof(UseableGun);
-            Gun_Attachments = type.GetField("thirdAttachments", BindingFlags.NonPublic | BindingFlags.Instance);
+            GunAttachments = type.GetField("thirdAttachments", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(ItemClothingAsset);
-            Clothing_Armor = type.GetField("_armor", BindingFlags.NonPublic | BindingFlags.Instance);
+            ClothingArmor = type.GetField("_armor", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(PlayerStance);
             ReplicateStance = type.GetMethod("replicateStance", BindingFlags.NonPublic | BindingFlags.Instance);
