@@ -31,11 +31,17 @@ namespace SpeedMann.PvPRework.Controllers
             }
         }
 
+        internal static void Update()
+        {
+            // add health changes
+            // store cahnged data in db
+        }
+
         private static Dictionary<CSteamID, HealthStatus> healthStatusOfPlayers = new Dictionary<CSteamID, HealthStatus>();
 
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            HealthStatus newStatus = new HealthStatus(maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth);
+            HealthStatus newStatus = new HealthStatus(blackedMulti, maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth);
             if (healthStatusOfPlayers.ContainsKey(player.CSteamID))
             {
                 healthStatusOfPlayers[player.CSteamID] = newStatus;
@@ -60,10 +66,17 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnConsumed(Player target, ItemConsumeableAsset asset)
         {
-            PlayerLife playerLife;
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
-            modifyBleeding(player, asset.bleedingModifier);
-            modifyFracture(player, asset.bonesModifier);
+            if (asset.bleedingModifier != ItemConsumeableAsset.Bleeding.None)
+            {
+                modifyBleeding(player, asset.bleedingModifier == ItemConsumeableAsset.Bleeding.Cut);
+            }
+            if(asset.bonesModifier != ItemConsumeableAsset.Bones.None)
+            {
+                modifyFracture(player, asset.bonesModifier == ItemConsumeableAsset.Bones.Break, BodyPart.LegLeft);
+                modifyFracture(player, asset.bonesModifier == ItemConsumeableAsset.Bones.Break, BodyPart.LegRight);
+            }
+            
             heal(player, asset.health);
         }
         internal static void damageCheck(UnturnedPlayer player, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow)
@@ -139,26 +152,26 @@ namespace SpeedMann.PvPRework.Controllers
                 HealthUIHandler.updateHealthUI(player.CSteamID, status);
             } 
         }
-        internal static void modifyBleeding(UnturnedPlayer player, ItemConsumeableAsset.Bleeding modification)
+        internal static void modifyBleeding(UnturnedPlayer player, bool modification)
         {
-            if (modification == ItemConsumeableAsset.Bleeding.None) return;
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
 
-            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Bleeding, modification == ItemConsumeableAsset.Bleeding.Cut);
+            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Bleeding, modification);
         }
-        internal static void modifyFracture(UnturnedPlayer player, ItemConsumeableAsset.Bones modification)
+        internal static void modifyFracture(UnturnedPlayer player, bool modification, BodyPart bodyPart)
         {
-            if (modification == ItemConsumeableAsset.Bones.None) return;
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
-            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Fracture, modification == ItemConsumeableAsset.Bones.Break);
+            status.tryBreakLimb(bodyPart);
+
+            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Fracture, status);
         }
         internal static void damageWholeBody(UnturnedPlayer player, int totalDamage, out bool dead)
         {
@@ -172,7 +185,7 @@ namespace SpeedMann.PvPRework.Controllers
             List<BodyPart> validBodyParts = new List<BodyPart>(bodyPartOrder);
             validBodyParts.Reverse();
 
-            damageBodyPartInner(status, validBodyParts, totalDamage, out dead);
+            damageBodyRemainingBodyParts(status, validBodyParts, totalDamage, out dead);
 
             HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
@@ -231,13 +244,14 @@ namespace SpeedMann.PvPRework.Controllers
             if (!dead && damage > 0)
             {
                 List<BodyPart> validBodyParts = getRemainingBodyParts(status, true);
-                damageBodyPartInner(status, validBodyParts, damage, out dead);
+                damageBodyRemainingBodyParts(status, validBodyParts, damage, out dead);
             }
 
             HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
-        private static void damageBodyPartInner(HealthStatus status, List<BodyPart> bodyParts, int totalDamage, out bool dead, bool deadly = true)
+        private static void damageBodyRemainingBodyParts(HealthStatus status, List<BodyPart> bodyParts, int totalDamage, out bool dead, bool deadly = true)
         {
+            dead = false;
             int remainingDamage = totalDamage;
             for (int i = 0; i < bodyParts.Count; i++)
             {
@@ -248,9 +262,9 @@ namespace SpeedMann.PvPRework.Controllers
                 status.damage(bodyParts[i], ref damage, out dead);
                 remainingDamage += damage;
 
-                if (deadly && dead || remainingDamage <= 0) return;
+                if (deadly && dead || remainingDamage <= 0) break;
             }
-            dead = remainingDamage > 0;
+            dead = dead || remainingDamage > 0;
         }
         #endregion
 

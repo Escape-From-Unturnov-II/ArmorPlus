@@ -18,24 +18,26 @@ namespace SpeedMann.PvPRework.UI
         private static string HealthUIPanelName = "UnturnedHealthPanel";
 
         // Body Parts
-        private static string HealthUIHead = "Head";
-        private static string HealthUIChest = "Chest";
-        private static string HealthUIStomach = "Stomach";
-        private static string HealthUIRightArm = "RightArm";
-        private static string HealthUILeftArm = "LeftArm";
-        private static string HealthUIRightLeg = "RightLeg";
-        private static string HealthUILeftLeg = "LeftLeg";
+        private static string UINameHead = "Head";
+        private static string UINameChest = "Chest";
+        private static string UINameStomach = "Stomach";
+        private static string UINameRightArm = "RightArm";
+        private static string UINameLeftArm = "LeftArm";
+        private static string UINameRightLeg = "RightLeg";
+        private static string UINameLeftLeg = "LeftLeg";
 
         // Colors
-        private static string HealthUIDamageBlack = "Black";
-        private static string HealthUIDamageRed = "Red";
-        private static string HealthUIDamageOrange = "Orange";
-        private static string HealthUIDamageYellow = "Yellow";
-        private static string HealthUIDamageGreen = "Green";
+        private static string UINameDamageBlack = "Black";
+        private static string UINameDamageRed = "Red";
+        private static string UINameDamageOrange = "Orange";
+        private static string UINameDamageYellow = "Yellow";
+        private static string UINameDamageGreen = "Green";
 
         // Effects
-        private static string HealthUIEffectFracture = "Fracture";
-        private static string HealthUIEffectBleeding = "Bleeding";
+        private static string UINameEffectFracture = "Fracture";
+        private static string UINameFractureCounter = "FractureCounter";
+        private static string UINameEffectBleeding = "Bleeding";
+        private static string UINameBleedingCounter = "BleedingCounter";
 
         private static Dictionary<CSteamID, HeathUIState> uIStates = new Dictionary<CSteamID, HeathUIState>();
 
@@ -53,19 +55,27 @@ namespace SpeedMann.PvPRework.UI
         }
         internal static void updateHealthUI(CSteamID executorID, HealthStatus status)
         {
+            int brokenLimbCount = 0;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
+                if(status.isBroken(bodyPart)){
+                    brokenLimbCount++;
+                }
                 changeHealthUI(executorID, bodyPart, getDamageColor(status.getHealth(bodyPart), status.getMaxHealth(bodyPart)));
             }
+
+            setHealthEffectVisibility(executorID, HealthEffect.Fracture, brokenLimbCount);
+
         }
         internal static void setHealthUIVisibility(CSteamID executorID, bool visible)
         {
             EffectControler.setVisibility(visible, HealthUI_Key, HealthUIPanelName, executorID);
         }
-        internal static void setHealthEffectVisibility(CSteamID executorID, HealthEffect effect, bool visible)
+        internal static void setHealthEffectVisibility(CSteamID executorID, HealthEffect effect, int count)
         {
-            EffectControler.setVisibility(visible, HealthUI_Key, getHealthEffectName(effect), executorID);
-            Logger.Log($"UI effect: {effect} {visible}");
+            EffectControler.setVisibility(count < 0, HealthUI_Key, getHealthEffectName(effect, out string counterName), executorID);
+            EffectControler.setUIValue(HealthUI_Key, executorID, counterName, count.ToString());
+            Logger.Log($"UI effect: {effect} {count}");
         }
         
         internal static void changeHealthUI(CSteamID executorID, BodyPart bodyPart, DamageColor newDamageColor)
@@ -99,15 +109,15 @@ namespace SpeedMann.PvPRework.UI
             switch (color)
             {
                 case DamageColor.Green:
-                    return HealthUIDamageGreen;
+                    return UINameDamageGreen;
                 case DamageColor.Yellow:
-                    return HealthUIDamageYellow;
+                    return UINameDamageYellow;
                 case DamageColor.Orange:
-                    return HealthUIDamageOrange;
+                    return UINameDamageOrange;
                 case DamageColor.Red:
-                    return HealthUIDamageRed;
+                    return UINameDamageRed;
                 case DamageColor.Black:
-                    return HealthUIDamageBlack;
+                    return UINameDamageBlack;
             }
             return "";
         }
@@ -116,30 +126,33 @@ namespace SpeedMann.PvPRework.UI
             switch (bodyPart)
             {
                 case BodyPart.Head:
-                    return HealthUIHead;
+                    return UINameHead;
                 case BodyPart.Chest:
-                    return HealthUIChest;
+                    return UINameChest;
                 case BodyPart.Stomach:
-                    return HealthUIStomach;
+                    return UINameStomach;
                 case BodyPart.ArmRight:
-                    return HealthUIRightArm;
+                    return UINameRightArm;
                 case BodyPart.ArmLeft:
-                    return HealthUILeftArm;
+                    return UINameLeftArm;
                 case BodyPart.LegRight:
-                    return HealthUIRightLeg;
+                    return UINameRightLeg;
                 case BodyPart.LegLeft:
-                    return HealthUILeftLeg;
+                    return UINameLeftLeg;
             }
             return "";
         }
-        private static string getHealthEffectName(HealthEffect effect)
+        private static string getHealthEffectName(HealthEffect effect, out string counterName)
         {
+            counterName = "";
             switch (effect)
             {
                 case HealthEffect.Bleeding:
-                    return HealthUIEffectBleeding;
+                    counterName = UINameBleedingCounter;
+                    return UINameEffectBleeding;
                 case HealthEffect.Fracture:
-                    return HealthUIEffectFracture;
+                    counterName = UINameBleedingCounter;
+                    return UINameEffectFracture;
             }
             return "";
         }

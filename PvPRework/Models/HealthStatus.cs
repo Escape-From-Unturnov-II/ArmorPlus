@@ -15,8 +15,9 @@ namespace SpeedMann.PvPRework.Models
         
         private Dictionary<BodyPart, BodyPartStatus> bodyParts = new Dictionary<BodyPart, BodyPartStatus>();
 
-        internal HealthStatus(int headHelth, int chestHealth, int somachHealth, int armHealth, int legHealth)
+        internal HealthStatus(float blackedDamageMultiplier, int headHelth, int chestHealth, int somachHealth, int armHealth, int legHealth)
         {
+            this.blackedDamageMultiplier = blackedDamageMultiplier;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
                 switch (bodyPart)
@@ -96,25 +97,57 @@ namespace SpeedMann.PvPRework.Models
                 return;
             }
             Logger.Log($"Damaged {bodyPart} {damage}");
-            if (status.health - damage <= 0)
+            if (status.health <= damage)
             {
+                damage -= status.health;
                 status.health = 0;
                 if (bodyPart == BodyPart.Head || bodyPart == BodyPart.Chest)
                 {
                     dead = true;
                 }
-                damage -= status.health;
             }
             status.health -= damage;
             damage = 0;
         }
-
-        internal void breakLimb(BodyPart bodyPart)
+        internal bool tryRepairLimb(BodyPart bodyPart)
         {
             if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus bodyPartStatus) && bodyPartStatus is LimbStatus)
             {
-                ((LimbStatus)bodyPartStatus).broken = true;
+                LimbStatus limb = (LimbStatus)bodyPartStatus;
+                if (limb.broken)
+                {
+                    limb.broken = false;
+                }
+                return true;
             }
+            Logger.LogError($"Could not repair {bodyPart}");
+            return false;
+        }
+        internal bool tryBreakLimb(BodyPart bodyPart)
+        {
+            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus bodyPartStatus) && bodyPartStatus is LimbStatus)
+            {
+                LimbStatus limb = (LimbStatus)bodyPartStatus;
+                if (!limb.broken)
+                {
+                    limb.broken = true;
+                }
+                return true;
+            }
+            Logger.LogError($"Could not break {bodyPart}");
+            return false;
+        }
+        internal int getBrokenLimbCount()
+        {
+            int count = 0;
+            foreach (KeyValuePair<BodyPart, BodyPartStatus> entry in bodyParts)
+            {
+                if (isBroken(entry.Key))
+                {
+                    count++;
+                }
+            }
+            return count;
         }
         internal bool isBroken(BodyPart bodyPart)
         {

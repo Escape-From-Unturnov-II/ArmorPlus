@@ -145,7 +145,7 @@ namespace SpeedMann.PvPRework
         class GotDamaged
         {
             [HarmonyPrefix]
-            internal static bool OnPreItemsAddItemInvoker(PlayerLife __instance, byte amount, EDeathCause newCause, ELimb newLimb, CSteamID newKiller, bool canCauseBleeding)
+            internal static bool OnPreItemsAddItemInvoker(PlayerLife __instance, ref byte amount, EDeathCause newCause, ref ELimb newLimb, CSteamID newKiller, ref bool canCauseBleeding)
             {
                 bool shouldAllow = true;
                 OnPrePlayerDamaged?.Invoke(__instance, ref amount, newCause, ref newLimb, newKiller, ref canCauseBleeding, ref shouldAllow);

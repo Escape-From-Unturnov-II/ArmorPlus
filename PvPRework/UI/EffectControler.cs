@@ -57,7 +57,28 @@ namespace SpeedMann.PvPRework
             }
             EffectManager.sendUIEffectVisibility(effectKey, transportConnection, true, panelName, visible);
         }
+        public static void setUIValue(short effectKey, string childName, string value)
+        {
+            if (childName == "") return;
 
+            foreach (SteamPlayer player in Provider.clients)
+            {
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromSteamPlayer(player);
+                setUIValue(effectKey, uPlayer.CSteamID, childName, value);
+            }
+        }
+        public static void setUIValue(short effectKey, CSteamID executorID, string childName, string value)
+        {
+            if (childName == "") return;
+
+            ITransportConnection transportConnection = Provider.findTransportConnection(executorID);
+            if (transportConnection == null)
+            {
+                Logger.LogError("Error in Event UI while trying to hide UI (CSteamID not found)");
+                return;
+            }
+            EffectManager.sendUIEffectText(effectKey, transportConnection, true, childName, value);
+        }
         private static UI_Status getUIStatus(ulong steamId, short key)
         {
             if(PlayerUIStatus == null)

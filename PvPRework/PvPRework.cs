@@ -179,7 +179,9 @@ namespace SpeedMann.PvPRework
         #region Events
         private void Update()
         {
-            while(reequipItems?.Count > 0)
+            HealthManager.Update();
+
+            while (reequipItems?.Count > 0)
             {
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(reequipItems[0].steamId);
                 if(player != null)
@@ -387,6 +389,7 @@ namespace SpeedMann.PvPRework
             {
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
+                case EDeathCause.PUNCH:
                     if (Conf.BetterArmor.Enabled)
                     {
                         ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier, out hitLocation);
@@ -617,9 +620,12 @@ namespace SpeedMann.PvPRework
                 gunExtensions.TryGetValue(player.equipment.asset.id, out gunExtension);
             }
 
-            
-            // set asset values
             penetration = 0;
+            fleshDamage = 10;
+            armorDamage = 0;
+            if (weapon == null) return; // no weapon
+
+            // set asset values
             fleshDamage = weapon.playerDamageMultiplier.damage;
             armorDamage = weapon.barricadeDamage;
 
@@ -660,7 +666,7 @@ namespace SpeedMann.PvPRework
             }
 
             //get barrel damage multie
-            if (gunAttachments.barrelAsset != null)
+            if (gunAttachments?.barrelAsset != null)
             {
                 penetration *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
                 fleshDamage *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
