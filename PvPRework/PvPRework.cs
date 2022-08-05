@@ -149,6 +149,8 @@ namespace SpeedMann.PvPRework
                 PlayerLife.onPlayerDied -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
+                UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;
+
                 UnturnedPatches.Cleanup();
             }
         }
@@ -369,7 +371,7 @@ namespace SpeedMann.PvPRework
             {
                 ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
             }
-            
+
         }
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
@@ -379,23 +381,35 @@ namespace SpeedMann.PvPRework
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(parameters.player);
             ExtendetHitLocation hitLocation = ExtendedHitLocations.getExtendetHitlocation(parameters.limb);
             setLastHitLocation(player.CSteamID, hitLocation);
-            
+
 
             switch (parameters.cause)
             {
                 case EDeathCause.GUN:
                 case EDeathCause.MELEE:
                     if (Conf.BetterArmor.Enabled)
+                    {
                         ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier, out hitLocation);
+                    }
+                        
                     if (Conf.BreakLegs)
+                    {
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
+                    }
+                    HealthManager.damageBodyPart(player, hitLocation, (int)Math.Round(parameters.damage), out bool dead);
+                    parameters.damage = 1;
+                    if (dead)
+                    {
+                        parameters.damage = 101;
+                    }
                     break;
             }
-            HealthManager.damageBodyPart(player, hitLocation, parameters.damage, out bool dead);
-            if (dead)
-            {
-                parameters.damage = 255;
-            }
+            
+        }
+        private void OnPlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+            HealthManager.damageCheck(player, ref amount, cause, ref limb, killer, ref canCauseBleeding, ref shouldAllow);
         }
         private void OnGetInput(ref InputInfo inputInfo)
         {
@@ -768,7 +782,6 @@ namespace SpeedMann.PvPRework
                     disableCosmethics(player.player);
                 }
                 UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
-
             }
 
             UseableConsumeable.onConsumePerformed += OnConsumed;
@@ -783,6 +796,7 @@ namespace SpeedMann.PvPRework
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
+            UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
             {

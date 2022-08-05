@@ -83,7 +83,7 @@ namespace SpeedMann.PvPRework.UI
             EffectControler.setVisibility(true, HealthUI_Key, getBodyPartName(bodyPart) + getDamageColorName(newDamageColor), executorID);
             state.damageColors[bodyPart] = newDamageColor;
         }
-        private static DamageColor getDamageColor(float health, float maxHealth)
+        private static DamageColor getDamageColor(int health, int maxHealth)
         {
             if (maxHealth <= 0 || health == 0) return DamageColor.Black;
             float percentage = health * 100 / maxHealth;

@@ -11,10 +11,11 @@ namespace SpeedMann.PvPRework.Models
 
     internal class HealthStatus
     {
+        private float blackedDamageMultiplier = 1.3f;
         
         private Dictionary<BodyPart, BodyPartStatus> bodyParts = new Dictionary<BodyPart, BodyPartStatus>();
 
-        internal HealthStatus(float headHelth, float chestHealth, float somachHealth, float armHealth, float legHealth)
+        internal HealthStatus(int headHelth, int chestHealth, int somachHealth, int armHealth, int legHealth)
         {
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
@@ -43,7 +44,7 @@ namespace SpeedMann.PvPRework.Models
                 }
             }
         }
-        internal float getMaxHealth(BodyPart bodyPart)
+        internal int getMaxHealth(BodyPart bodyPart)
         {
             if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status))
             {
@@ -51,7 +52,7 @@ namespace SpeedMann.PvPRework.Models
             }
             return 0;
         }
-        internal float getHealth(BodyPart bodyPart)
+        internal int getHealth(BodyPart bodyPart)
         {
             if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status))
             {
@@ -67,39 +68,45 @@ namespace SpeedMann.PvPRework.Models
             }
             return false;
         }
-        internal float heal(BodyPart bodyPart, float heal)
+        internal void heal(BodyPart bodyPart, ref int heal)
         {
             if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status) && !status.blacked)
             {
                 if (status.health + heal > status.maxHealth)
                 {
                     status.health = status.maxHealth;
-                    return heal - (status.maxHealth - status.health);
+                    heal -= (status.maxHealth - status.health);
                 }
                 status.health += heal;
-                return 0;
+                heal = 0;
             }
-
-            return heal;
         }
-        internal float damage(BodyPart bodyPart, float damage, out bool dead)
+        internal void damage(BodyPart bodyPart, ref int damage, out bool dead)
         {
             dead = false;
-            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status) && !status.blacked)
+            if (!bodyParts.TryGetValue(bodyPart, out BodyPartStatus status)) return;
+
+            if (status.blacked)
             {
-                if(status.health - damage < 0)
+                if (bodyPart == BodyPart.Head || bodyPart == BodyPart.Chest)
                 {
-                    status.health = 0;
-                    if(bodyPart == BodyPart.Head || bodyPart == BodyPart.Chest)
-                    {
-                        dead = true;
-                    }
-                    return damage - status.health;
+                    dead = true;
                 }
-                status.health -= damage;
-                return 0;
+                damage = (int)Math.Round(damage * blackedDamageMultiplier);
+                return;
             }
-            return damage;
+            Logger.Log($"Damaged {bodyPart} {damage}");
+            if (status.health - damage <= 0)
+            {
+                status.health = 0;
+                if (bodyPart == BodyPart.Head || bodyPart == BodyPart.Chest)
+                {
+                    dead = true;
+                }
+                damage -= status.health;
+            }
+            status.health -= damage;
+            damage = 0;
         }
 
         internal void breakLimb(BodyPart bodyPart)
@@ -121,10 +128,10 @@ namespace SpeedMann.PvPRework.Models
 
         internal class BodyPartStatus
         {
-            internal float maxHealth = 0;
-            internal float health = 0;
+            internal int maxHealth = 0;
+            internal int health = 0;
             internal bool blacked { get { return health <= 0; } }
-            internal BodyPartStatus(float maxHealth)
+            internal BodyPartStatus(int maxHealth)
             {
                 this.maxHealth = maxHealth;
                 this.health = maxHealth;
@@ -134,7 +141,7 @@ namespace SpeedMann.PvPRework.Models
         {
             internal bool broken = false;
 
-            internal LimbStatus(float maxHealth) : base(maxHealth)
+            internal LimbStatus(int maxHealth) : base(maxHealth)
             {
             }
         }

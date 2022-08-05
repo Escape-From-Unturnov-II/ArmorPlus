@@ -2,6 +2,7 @@
 using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,6 +82,9 @@ namespace SpeedMann.PvPRework
 
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
+
+        public delegate void PrePlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow);
+        public static event PrePlayerDamaged OnPrePlayerDamaged;
         #endregion
 
         #region Patches
@@ -134,6 +138,17 @@ namespace SpeedMann.PvPRework
                         }
                     }
                 }
+                return shouldAllow;
+            }
+        }
+        [HarmonyPatch(typeof(PlayerLife), "doDamage")]
+        class GotDamaged
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemsAddItemInvoker(PlayerLife __instance, byte amount, EDeathCause newCause, ELimb newLimb, CSteamID newKiller, bool canCauseBleeding)
+            {
+                bool shouldAllow = true;
+                OnPrePlayerDamaged?.Invoke(__instance, ref amount, newCause, ref newLimb, newKiller, ref canCauseBleeding, ref shouldAllow);
                 return shouldAllow;
             }
         }
