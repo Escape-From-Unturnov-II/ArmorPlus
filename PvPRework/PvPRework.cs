@@ -149,7 +149,10 @@ namespace SpeedMann.PvPRework
                 PlayerLife.onPlayerDied -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
-                UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;
+                // health
+                UnturnedPatches.OnPrePlayerDamaged -= OnPlayerDamaged;
+                PlayerLife.OnTellBroken_Global -= OnBreakBones;
+                PlayerLife.OnTellBleeding_Global -= OnStartBleeding;
 
                 UnturnedPatches.Cleanup();
             }
@@ -374,6 +377,15 @@ namespace SpeedMann.PvPRework
                 ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
             }
 
+        }
+        private void OnBreakBones(PlayerLife playerLife)
+        {
+            
+            HealthManager.fractureCheck(playerLife);
+        }
+        private void OnStartBleeding(PlayerLife playerLife)
+        {
+            HealthManager.bleedCheck(playerLife);
         }
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
@@ -802,7 +814,10 @@ namespace SpeedMann.PvPRework
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
+            // health
             UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;
+            PlayerLife.OnTellBroken_Global += OnBreakBones;
+            PlayerLife.OnTellBleeding_Global += OnStartBleeding;
 
             if (Conf.ArmorClasses == null || Conf.ArmorClasses.IsEmpty())
             {

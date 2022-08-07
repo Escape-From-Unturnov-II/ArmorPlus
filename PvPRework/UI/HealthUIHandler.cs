@@ -36,8 +36,10 @@ namespace SpeedMann.PvPRework.UI
         // Effects
         private static string UINameEffectFracture = "Fracture";
         private static string UINameFractureCounter = "FractureCounter";
-        private static string UINameEffectBleeding = "Bleeding";
-        private static string UINameBleedingCounter = "BleedingCounter";
+        private static string UINameEffectBleedingLight = "BleedingLight";
+        private static string UINameBleedingLightCounter = "BleedingLightCounter";
+        private static string UINameEffectBleedingHeavy = "BleedingHeavy";
+        private static string UINameBleedingHeavyCounter = "BleedingHeavyCounter";
 
         private static Dictionary<CSteamID, HeathUIState> uIStates = new Dictionary<CSteamID, HeathUIState>();
 
@@ -56,16 +58,21 @@ namespace SpeedMann.PvPRework.UI
         internal static void updateHealthUI(CSteamID executorID, HealthStatus status)
         {
             int brokenLimbCount = 0;
+            int lightBleeds = 0;
+            int heavyBleeds = 0;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
                 if(status.isBroken(bodyPart)){
                     brokenLimbCount++;
                 }
+                lightBleeds += status.getLightBleedCount(bodyPart);
+                heavyBleeds += status.getHeavyBleedCount(bodyPart);
                 changeHealthUI(executorID, bodyPart, getDamageColor(status.getHealth(bodyPart), status.getMaxHealth(bodyPart)));
             }
 
             setHealthEffectVisibility(executorID, HealthEffect.Fracture, brokenLimbCount);
-
+            setHealthEffectVisibility(executorID, HealthEffect.BleedingLight, lightBleeds);
+            setHealthEffectVisibility(executorID, HealthEffect.BleedingHeavy, heavyBleeds);
         }
         internal static void setHealthUIVisibility(CSteamID executorID, bool visible)
         {
@@ -147,11 +154,14 @@ namespace SpeedMann.PvPRework.UI
             counterName = "";
             switch (effect)
             {
-                case HealthEffect.Bleeding:
-                    counterName = UINameBleedingCounter;
-                    return UINameEffectBleeding;
+                case HealthEffect.BleedingLight:
+                    counterName = UINameBleedingLightCounter;
+                    return UINameEffectBleedingLight;
+                case HealthEffect.BleedingHeavy:
+                    counterName = UINameBleedingHeavyCounter;
+                    return UINameEffectBleedingHeavy;
                 case HealthEffect.Fracture:
-                    counterName = UINameBleedingCounter;
+                    counterName = UINameFractureCounter;
                     return UINameEffectFracture;
             }
             return "";
@@ -168,7 +178,8 @@ namespace SpeedMann.PvPRework.UI
         public enum HealthEffect
         {
             Fracture,
-            Bleeding,
+            BleedingLight,
+            BleedingHeavy,
         }
     }
 }

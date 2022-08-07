@@ -67,17 +67,68 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void OnConsumed(Player target, ItemConsumeableAsset asset)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
-            if (asset.bleedingModifier != ItemConsumeableAsset.Bleeding.None)
+            if (asset.bleedingModifier == ItemConsumeableAsset.Bleeding.Cut)
             {
-                modifyBleeding(player, asset.bleedingModifier == ItemConsumeableAsset.Bleeding.Cut);
+                addBleed(player, BodyPart.Stomach, 1, false, false);
             }
-            if(asset.bonesModifier != ItemConsumeableAsset.Bones.None)
+            else if (asset.bleedingModifier == ItemConsumeableAsset.Bleeding.Heal)
             {
-                modifyFracture(player, asset.bonesModifier == ItemConsumeableAsset.Bones.Break, BodyPart.LegLeft);
-                modifyFracture(player, asset.bonesModifier == ItemConsumeableAsset.Bones.Break, BodyPart.LegRight);
+                stopBleed(player, false, false);
             }
-            
+            if(asset.bonesModifier == ItemConsumeableAsset.Bones.Break)
+            {
+                addFracture(player, BodyPart.LegLeft, false);
+                addFracture(player, BodyPart.LegRight, false);
+            }
+            else if (asset.bonesModifier == ItemConsumeableAsset.Bones.Heal)
+            {
+                removeFracture(player, false);
+            }
             heal(player, asset.health);
+        }
+        internal static void fractureCheck(PlayerLife playerLife)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+            if(status.vanillaBrokenLimb != playerLife.isBroken)
+            {
+                if (status.vanillaBrokenLimb)
+                {
+                    removeFracture(player, false);
+                }
+                else
+                {
+                    addFracture(player, BodyPart.LegLeft);
+                    addFracture(player, BodyPart.LegRight);
+                }
+                status.vanillaBrokenLimb = false;
+            }
+        }
+        internal static void bleedCheck(PlayerLife playerLife)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+            if (status.vanillaBleeding != playerLife.isBleeding)
+            {
+                if (status.vanillaBleeding)
+                {
+                    stopBleed(player, false);
+                }
+                else
+                {
+                    addBleed(player, BodyPart.Stomach, 1);
+                }
+                status.vanillaBleeding = false;
+            }
+
         }
         internal static void damageCheck(UnturnedPlayer player, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow)
         {
@@ -152,7 +203,7 @@ namespace SpeedMann.PvPRework.Controllers
                 HealthUIHandler.updateHealthUI(player.CSteamID, status);
             } 
         }
-        internal static void modifyBleeding(UnturnedPlayer player, bool modification)
+        internal static void stopBleed(UnturnedPlayer player, bool heavy = false, bool updateUI = true)
         {
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
@@ -160,9 +211,56 @@ namespace SpeedMann.PvPRework.Controllers
                 return;
             }
 
-            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Bleeding, modification);
+            foreach(BodyPart part in bodyPartOrder)
+            {
+                if(status.tryHealBleeding(part, heavy))
+                {
+                    break;
+                }
+            }
+
+            if (updateUI)
+            {
+                HealthUIHandler.updateHealthUI(player.CSteamID, status);
+            }
         }
-        internal static void modifyFracture(UnturnedPlayer player, bool modification, BodyPart bodyPart)
+        internal static void addBleed(UnturnedPlayer player, BodyPart bodyPart, int count, bool heavy = false, bool updateUI = true)
+        {
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+            if(count > 0)
+            {
+                status.tryAddBleeding(bodyPart, count, heavy);
+            }
+
+            if (updateUI)
+            {
+                HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.BleedingLight, count);
+            }
+        }
+        internal static void removeFracture(UnturnedPlayer player, bool updateUI = false)
+        {
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+
+            foreach (BodyPart part in bodyPartOrder)
+            {
+                if (status.tryBreakLimb(part))
+                {
+                    break;
+                }
+            }
+            
+            HealthUIHandler.updateHealthUI(player.CSteamID, status);
+        }
+
+        internal static void addFracture(UnturnedPlayer player, BodyPart bodyPart, bool updateUI = false)
         {
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
@@ -171,7 +269,7 @@ namespace SpeedMann.PvPRework.Controllers
             }
             status.tryBreakLimb(bodyPart);
 
-            HealthUIHandler.setHealthEffectVisibility(player.CSteamID, HealthUIHandler.HealthEffect.Fracture, status);
+            HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
         internal static void damageWholeBody(UnturnedPlayer player, int totalDamage, out bool dead)
         {

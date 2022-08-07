@@ -12,7 +12,11 @@ namespace SpeedMann.PvPRework.Models
     internal class HealthStatus
     {
         private float blackedDamageMultiplier = 1.3f;
-        
+        private int maxLightBleedsPerBodyPart = 3;
+        private int maxHeavyBleedsPerBodyPart = 1;
+        internal bool vanillaBrokenLimb = false;
+        internal bool vanillaBleeding = false;
+
         private Dictionary<BodyPart, BodyPartStatus> bodyParts = new Dictionary<BodyPart, BodyPartStatus>();
 
         internal HealthStatus(float blackedDamageMultiplier, int headHelth, int chestHealth, int somachHealth, int armHealth, int legHealth)
@@ -58,6 +62,22 @@ namespace SpeedMann.PvPRework.Models
             if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status))
             {
                 return status.health;
+            }
+            return 0;
+        }
+        internal int getLightBleedCount(BodyPart bodyPart)
+        {
+            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status))
+            {
+                return status.bleedCountLight;
+            }
+            return 0;
+        }
+        internal int getHeavyBleedCount(BodyPart bodyPart)
+        {
+            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status))
+            {
+                return status.bleedCountHeavy;
             }
             return 0;
         }
@@ -108,6 +128,60 @@ namespace SpeedMann.PvPRework.Models
             }
             status.health -= damage;
             damage = 0;
+        }
+
+        internal bool tryHealBleeding(BodyPart bodyPart, bool heavy = false)
+        {
+            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus bodyPartStatus))
+            {
+                if (!heavy && bodyPartStatus.bleedCountLight > 0)
+                {
+                    bodyPartStatus.bleedCountLight--;
+                    return true;
+                }
+                if (heavy && bodyPartStatus.bleedCountHeavy > 0)
+                {
+                    bodyPartStatus.bleedCountHeavy--;
+                    return true;
+                }
+                return false;
+            }
+            Logger.LogError($"Could not stop {(heavy ? "heavy":"light")} bleeding of {bodyPart}");
+            return false;
+        }
+        internal bool tryAddBleeding(BodyPart bodyPart, int count, bool heavy = false)
+        {
+            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus bodyPartStatus))
+            {
+                if (!heavy)
+                {
+                    if (bodyPartStatus.bleedCountLight + count <= maxLightBleedsPerBodyPart)
+                    {
+                        bodyPartStatus.bleedCountLight += count;
+                        return true;
+                    }
+                    else
+                    {
+                        bodyPartStatus.bleedCountLight = maxLightBleedsPerBodyPart;
+                        return true;
+                    }
+                }
+                if (heavy)
+                {
+                    if(bodyPartStatus.bleedCountHeavy + count <= maxHeavyBleedsPerBodyPart)
+                    {
+                        bodyPartStatus.bleedCountHeavy += count;
+                        return true;
+                    }
+                    else
+                    {
+                        bodyPartStatus.bleedCountHeavy = maxHeavyBleedsPerBodyPart;
+                        return true;
+                    }
+                }  
+            }
+            Logger.LogError($"Could not add {(heavy ? "heavy" : "light")} bleeding to {bodyPart}");
+            return false;
         }
         internal bool tryRepairLimb(BodyPart bodyPart)
         {
@@ -163,6 +237,8 @@ namespace SpeedMann.PvPRework.Models
         {
             internal int maxHealth = 0;
             internal int health = 0;
+            internal int bleedCountLight = 0;
+            internal int bleedCountHeavy = 0;
             internal bool blacked { get { return health <= 0; } }
             internal BodyPartStatus(int maxHealth)
             {
