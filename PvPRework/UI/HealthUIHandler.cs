@@ -16,6 +16,7 @@ namespace SpeedMann.PvPRework.UI
         private static ushort HealthUI_ID = 52320;
         private static short  HealthUI_Key = 5230;
         private static string HealthUIPanelName = "UnturnedHealthPanel";
+        private static string HealthValueName = "HealthText";
 
         // Body Parts
         private static string UINameHead = "Head";
@@ -32,7 +33,8 @@ namespace SpeedMann.PvPRework.UI
         private static string UINameDamageOrange = "Orange";
         private static string UINameDamageYellow = "Yellow";
         private static string UINameDamageGreen = "Green";
-
+        private static string UINameDamageWhite = "White";
+        
         // Effects
         private static string UINameEffectFracture = "Fracture";
         private static string UINameFractureCounter = "FractureCounter";
@@ -43,7 +45,7 @@ namespace SpeedMann.PvPRework.UI
 
         private static Dictionary<CSteamID, HeathUIState> uIStates = new Dictionary<CSteamID, HeathUIState>();
 
-        internal static void spawnHealthUI(CSteamID executorID)
+        internal static void spawnHealthUI(CSteamID executorID, HealthStatus status)
         {
             EffectControler.spawnUI(HealthUI_ID, HealthUI_Key, executorID);
             if (!uIStates.ContainsKey(executorID))
@@ -54,14 +56,18 @@ namespace SpeedMann.PvPRework.UI
             {
                 uIStates[executorID] = new HeathUIState();
             }
+            updateHealthUI(executorID, status);
         }
         internal static void updateHealthUI(CSteamID executorID, HealthStatus status)
         {
             int brokenLimbCount = 0;
             int lightBleeds = 0;
             int heavyBleeds = 0;
+            int currentHealth = 0;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
+                currentHealth += status.getHealth(bodyPart);
+
                 if(status.isBroken(bodyPart)){
                     brokenLimbCount++;
                 }
@@ -69,6 +75,8 @@ namespace SpeedMann.PvPRework.UI
                 heavyBleeds += status.getHeavyBleedCount(bodyPart);
                 changeHealthUI(executorID, bodyPart, getDamageColor(status.getHealth(bodyPart), status.getMaxHealth(bodyPart)));
             }
+
+            setHealthValue(executorID, currentHealth, status.getMaxHealth());
 
             setHealthEffectVisibility(executorID, HealthEffect.Fracture, brokenLimbCount);
             setHealthEffectVisibility(executorID, HealthEffect.BleedingLight, lightBleeds);
@@ -80,11 +88,15 @@ namespace SpeedMann.PvPRework.UI
         }
         internal static void setHealthEffectVisibility(CSteamID executorID, HealthEffect effect, int count)
         {
-            EffectControler.setVisibility(count < 0, HealthUI_Key, getHealthEffectName(effect, out string counterName), executorID);
+            EffectControler.setVisibility(count > 0, HealthUI_Key, getHealthEffectName(effect, out string counterName), executorID);
+            EffectControler.setVisibility(count > 1, HealthUI_Key, counterName, executorID);
             EffectControler.setUIValue(HealthUI_Key, executorID, counterName, count.ToString());
             Logger.Log($"UI effect: {effect} {count}");
         }
-        
+        internal static void setHealthValue(CSteamID executorID, int currentValue, int maxValue)
+        {
+            EffectControler.setUIValue(HealthUI_Key, executorID, HealthValueName, $"{currentValue}/{maxValue}");
+        }
         internal static void changeHealthUI(CSteamID executorID, BodyPart bodyPart, DamageColor newDamageColor)
         {
             if (!uIStates.TryGetValue(executorID, out HeathUIState state)) return;
@@ -102,9 +114,9 @@ namespace SpeedMann.PvPRework.UI
         }
         private static DamageColor getDamageColor(int health, int maxHealth)
         {
-            if (maxHealth <= 0 || health == 0) return DamageColor.Black;
+            if (maxHealth <= 0 || health <= 0) return DamageColor.Black;
             float percentage = health * 100 / maxHealth;
-            
+            if (percentage == 100) return DamageColor.White;
             if (percentage >= 75) return DamageColor.Green;
             if (percentage >= 50) return DamageColor.Yellow;
             if (percentage >= 25) return DamageColor.Orange;
@@ -117,6 +129,8 @@ namespace SpeedMann.PvPRework.UI
             {
                 case DamageColor.Green:
                     return UINameDamageGreen;
+                case DamageColor.White:
+                    return UINameDamageWhite;
                 case DamageColor.Yellow:
                     return UINameDamageYellow;
                 case DamageColor.Orange:
@@ -169,6 +183,7 @@ namespace SpeedMann.PvPRework.UI
         public enum DamageColor
         {
             Green,
+            White,
             Yellow,
             Orange,
             Red,

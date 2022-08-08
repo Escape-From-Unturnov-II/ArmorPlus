@@ -14,12 +14,13 @@ namespace SpeedMann.PvPRework.Models
         private float blackedDamageMultiplier = 1.3f;
         private int maxLightBleedsPerBodyPart = 3;
         private int maxHeavyBleedsPerBodyPart = 1;
+        private int maxHealth = 0;
         internal bool vanillaBrokenLimb = false;
         internal bool vanillaBleeding = false;
 
         private Dictionary<BodyPart, BodyPartStatus> bodyParts = new Dictionary<BodyPart, BodyPartStatus>();
 
-        internal HealthStatus(float blackedDamageMultiplier, int headHelth, int chestHealth, int somachHealth, int armHealth, int legHealth)
+        internal HealthStatus(float blackedDamageMultiplier, int headHealth, int chestHealth, int somachHealth, int armHealth, int legHealth)
         {
             this.blackedDamageMultiplier = blackedDamageMultiplier;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
@@ -27,27 +28,36 @@ namespace SpeedMann.PvPRework.Models
                 switch (bodyPart)
                 {
                     case BodyPart.Head:
-                        bodyParts.Add(bodyPart, new BodyPartStatus(headHelth));
+                        bodyParts.Add(bodyPart, new BodyPartStatus(headHealth));
+                        maxHealth += headHealth;
                         break;
                     case BodyPart.Chest:
                         bodyParts.Add(bodyPart, new BodyPartStatus(chestHealth));
+                        maxHealth += chestHealth;
                         break;
                     case BodyPart.Stomach:
                         bodyParts.Add(bodyPart, new BodyPartStatus(somachHealth));
+                        maxHealth += somachHealth;
                         break;
                     case BodyPart.ArmLeft:
                     case BodyPart.ArmRight:
                         bodyParts.Add(bodyPart, new LimbStatus(armHealth));
+                        maxHealth += armHealth;
                         break;
                     case BodyPart.LegLeft:
                     case BodyPart.LegRight:
                         bodyParts.Add(bodyPart, new LimbStatus(legHealth));
+                        maxHealth += legHealth;
                         break;
                     default:
                         Logger.LogError($"Tried to create HealthStatus for invalid body part {bodyPart}!");
                         break;
                 }
             }
+        }
+        internal int getMaxHealth()
+        {
+            return maxHealth;
         }
         internal int getMaxHealth(BodyPart bodyPart)
         {
@@ -91,18 +101,19 @@ namespace SpeedMann.PvPRework.Models
         }
         internal void heal(BodyPart bodyPart, ref int heal)
         {
-            if (bodyParts.TryGetValue(bodyPart, out BodyPartStatus status) && !status.blacked)
+            if (!bodyParts.TryGetValue(bodyPart, out BodyPartStatus status) || status.blacked || status.health == status.maxHealth) return;
+            
+            Logger.Log($"Healed {bodyPart}");
+            if (status.health + heal > status.maxHealth)
             {
-                if (status.health + heal > status.maxHealth)
-                {
-                    status.health = status.maxHealth;
-                    heal -= (status.maxHealth - status.health);
-                }
-                status.health += heal;
-                heal = 0;
+                heal -= (status.maxHealth - status.health);
+                status.health = status.maxHealth;
+                return;
             }
+            status.health += heal;
+            heal = 0;
         }
-        internal void damage(BodyPart bodyPart, ref int damage, out bool dead)
+        internal void damage(BodyPart bodyPart, ref int damage, out bool dead, bool directHit = true)
         {
             dead = false;
             if (!bodyParts.TryGetValue(bodyPart, out BodyPartStatus status)) return;
@@ -113,7 +124,10 @@ namespace SpeedMann.PvPRework.Models
                 {
                     dead = true;
                 }
-                damage = (int)Math.Round(damage * blackedDamageMultiplier);
+                if (directHit)
+                {
+                    damage = (int)Math.Round(damage * blackedDamageMultiplier);
+                }
                 return;
             }
             Logger.Log($"Damaged {bodyPart} {damage}");
@@ -125,6 +139,7 @@ namespace SpeedMann.PvPRework.Models
                 {
                     dead = true;
                 }
+                return;
             }
             status.health -= damage;
             damage = 0;
@@ -166,7 +181,7 @@ namespace SpeedMann.PvPRework.Models
                         return true;
                     }
                 }
-                if (heavy)
+                else
                 {
                     if(bodyPartStatus.bleedCountHeavy + count <= maxHeavyBleedsPerBodyPart)
                     {
@@ -178,7 +193,7 @@ namespace SpeedMann.PvPRework.Models
                         bodyPartStatus.bleedCountHeavy = maxHeavyBleedsPerBodyPart;
                         return true;
                     }
-                }  
+                }
             }
             Logger.LogError($"Could not add {(heavy ? "heavy" : "light")} bleeding to {bodyPart}");
             return false;
@@ -191,8 +206,9 @@ namespace SpeedMann.PvPRework.Models
                 if (limb.broken)
                 {
                     limb.broken = false;
+                    return true;
                 }
-                return true;
+                return false;
             }
             Logger.LogError($"Could not repair {bodyPart}");
             return false;
@@ -205,8 +221,9 @@ namespace SpeedMann.PvPRework.Models
                 if (!limb.broken)
                 {
                     limb.broken = true;
+                    return true;
                 }
-                return true;
+                return false;
             }
             Logger.LogError($"Could not break {bodyPart}");
             return false;

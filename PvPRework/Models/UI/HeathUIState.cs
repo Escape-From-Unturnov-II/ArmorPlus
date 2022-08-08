@@ -16,7 +16,7 @@ namespace SpeedMann.PvPRework.Models.UI
         {
             foreach(BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
-                damageColors.Add(bodyPart, DamageColor.Green);
+                damageColors.Add(bodyPart, DamageColor.White);
             }
        
         }
