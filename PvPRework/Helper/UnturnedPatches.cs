@@ -85,6 +85,7 @@ namespace SpeedMann.PvPRework
 
         public delegate void PrePlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow);
         public static event PrePlayerDamaged OnPrePlayerDamaged;
+        
         #endregion
 
         #region Patches
@@ -255,7 +256,7 @@ namespace SpeedMann.PvPRework
             {
                 bool shouldAllow = true;
                 OnPreChangeGlasses?.Invoke(__instance.player, id, quality, state, ref shouldAllow);
-                if(shouldAllow)
+                if (shouldAllow)
                     OnPreVisionChanged?.Invoke(__instance.player, __instance.player.clothing.glasses, false);
                 return shouldAllow;
             }

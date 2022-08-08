@@ -787,7 +787,6 @@ namespace SpeedMann.PvPRework
             InputHandler.OnPluginKeyPressed += OnPluginKeyPressed;
             UnturnedPatches.OnPreAddItem += OnAddItem;
 
-
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;
 
