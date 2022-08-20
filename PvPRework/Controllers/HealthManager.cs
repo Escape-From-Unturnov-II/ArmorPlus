@@ -2,6 +2,7 @@
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Models;
+using SpeedMann.PvPRework.Models.Config;
 using SpeedMann.PvPRework.UI;
 using Steamworks;
 using System;
@@ -14,6 +15,7 @@ namespace SpeedMann.PvPRework.Controllers
 {
     internal class HealthManager
     {
+        private static HealthManagerConfig Conf;
         private static int maxHeadHealth = 35;
         private static int maxChestHealth = 85;
         private static int maxStomachHealth = 70;
@@ -22,9 +24,13 @@ namespace SpeedMann.PvPRework.Controllers
         private static float blackedMulti = 1.3f;
         private static List<BodyPart> bodyPartOrder;
         private static List<BodyPart> fractureableBodyPartOrder;
-        internal static void Init()
+        private static Dictionary<ushort, MedicalExtension> betterMedDict;
+        
+
+        internal static void Init(HealthManagerConfig conf)
         {
-            bodyPartOrder = new List<BodyPart>();
+            Conf = conf;
+            betterMedDict = PvPRework.createDictionaryFromItemExtensions(Conf.BetterMeds);
             foreach (BodyPart part in BodyPart.GetValues(typeof(BodyPart)))
             {
                 bodyPartOrder.Add(part);
@@ -58,7 +64,7 @@ namespace SpeedMann.PvPRework.Controllers
         {
             HealthUIHandler.setHealthUIVisibility(player.CSteamID, false);
         }
-        internal static void OnConsumed(Player target, ItemConsumeableAsset asset)
+        internal static void OnConsumed(Player target, Player instigator, ItemConsumeableAsset asset)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
@@ -66,6 +72,24 @@ namespace SpeedMann.PvPRework.Controllers
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
+            if (Conf.EnableReuseableMeds)
+            {
+                byte page = instigator.equipment.equippedPage;
+                byte x = instigator.equipment.equipped_x;
+                byte y = instigator.equipment.equipped_y;
+                byte index = instigator.inventory.getIndex(page, x, y);
+                ItemJar itemJar = instigator.inventory.getItem(page, index);
+
+                if (itemJar.item.amount > 1)
+                {
+                    instigator.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
+                }
+                else
+                {
+                    instigator.inventory.removeItem(page, index);
+                }
+            }
+            
             Logger.Log($"Healed {asset.health}");
             heal(player, asset.health);
         }
@@ -258,7 +282,6 @@ namespace SpeedMann.PvPRework.Controllers
                 HealthUIHandler.updateHealthUI(player.CSteamID, status);
             }
         }
-
         internal static void addFracture(UnturnedPlayer player, BodyPart bodyPart, bool updateUI = true)
         {
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))

@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class MagazineOverride : ItemExtension
+    public class MedicalExtension : ItemExtension
     {
-        public float Penetration = -1;
-        public float FleshDamage = -1;
-        public float ArmorDamage = -1;
+        public List<MedicalEffect> Effects;
     }
 }

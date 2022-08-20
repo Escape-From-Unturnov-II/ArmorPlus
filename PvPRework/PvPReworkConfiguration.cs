@@ -47,6 +47,7 @@ namespace SpeedMann.PvPRework
 
         public KillFeed KillFeed = new KillFeed();
         public BetterArmorConfig BetterArmor = new BetterArmorConfig();
+        public HealthManagerConfig HealthManager = new HealthManagerConfig();
         public MovementExtension MovementExtension = new MovementExtension
         { 
           PushupStaminaDrain = 10,
@@ -62,15 +63,9 @@ namespace SpeedMann.PvPRework
         public List<GunExtension> GunExtensions = new List<GunExtension>();
         public List<Caliber> BulletCalibers = new List<Caliber>();
         [XmlArrayItem(ElementName = "HelmetCycle")]
-        public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>
-        {
-            new List<ItemExtension>(),
-        };
+        public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>();
         [XmlArrayItem(ElementName = "SightCycle")]
-        public List<List<ItemExtension>> CyclableSights = new List<List<ItemExtension>>
-        {
-            new List<ItemExtension>(),
-        };
+        public List<List<ItemExtension>> CyclableSights = new List<List<ItemExtension>>();
 
         public void LoadDefaults()
         {
@@ -1600,7 +1595,7 @@ namespace SpeedMann.PvPRework
                     {
                         gunExtension.FleshDamage = ((ItemWeaponAsset)asset).playerDamageMultiplier.damage;
                         gunExtension.ArmorDamage = ((ItemWeaponAsset)asset).barricadeDamage;
-                        foreach (MagazineOverride magOverride in gunExtension.MagazineOverrides)
+                        foreach (MagazineExtension magOverride in gunExtension.MagazineOverrides)
                         {
                             magOverride.FleshDamage = gunExtension.FleshDamage;
                             magOverride.ArmorDamage = gunExtension.ArmorDamage;

@@ -82,6 +82,8 @@
     <Compile Include="Helper\InputHandler.cs" />
     <Compile Include="Controllers\PlayerPenetration.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
+    <Compile Include="Models\Config\HealthManagerConfig.cs" />
+    <Compile Include="Models\Config\MedicalExtension.cs" />
     <Compile Include="Models\HealthStatus.cs" />
     <Compile Include="Models\UI\HeathUIState.cs" />
     <Compile Include="UI\ClothingEffectHandler.cs" />

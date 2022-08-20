@@ -166,7 +166,7 @@ namespace SpeedMann.PvPRework
         {
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
-            HealthManager.Init();
+            HealthManager.Init(Conf.HealthManager);
 
             Conf.addNames();
             Conf.updateConfig();
@@ -458,11 +458,11 @@ namespace SpeedMann.PvPRework
         }
         private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
         {
-            HealthManager.OnConsumed(target, asset);
+            HealthManager.OnConsumed(target, instigator, asset);
         }
         private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset asset)
         {
-            HealthManager.OnConsumed(instigatingPlayer, asset);
+            HealthManager.OnConsumed(instigatingPlayer, instigatingPlayer, asset);
         }
         private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
         {
@@ -667,7 +667,7 @@ namespace SpeedMann.PvPRework
                 // check mag override
                 if (gunAttachments != null)
                 {                  
-                    MagazineOverride magOver = gunExtension.MagazineOverrides.Find(x => x.Id == gunAttachments.magazineID);
+                    MagazineExtension magOver = gunExtension.MagazineOverrides.Find(x => x.Id == gunAttachments.magazineID);
                     if (magOver != null)
                     {
                         penetration = magOver.Penetration >= 0 ? magOver.Penetration : penetration;
@@ -684,15 +684,13 @@ namespace SpeedMann.PvPRework
                 fleshDamage *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
                 armorDamage *= gunAttachments.barrelAsset.ballisticDamageMultiplier;
             }
-        }
-       
+        }     
         internal static float calcMean(float aMin, float aMax, float bMin, float bMax, float aActual)
         {
             float innerMulti = 1 - (aActual - aMax) / (aMin - aMax);
             return bMin + innerMulti * (bMax - bMin);
         }
-
-        private Dictionary<ushort, Caliber> createCaliberDictionary(List<Caliber> calibers)
+        internal static Dictionary<ushort, Caliber> createCaliberDictionary(List<Caliber> calibers)
         {
             Dictionary<ushort, Caliber> dict = new Dictionary<ushort, Caliber>();
             foreach(Caliber cal in calibers)
@@ -712,7 +710,7 @@ namespace SpeedMann.PvPRework
 
             return dict;
         }
-        private Dictionary<ushort, ushort> createCycleDictionary(List<List<ItemExtension>> cycles)
+        internal static Dictionary<ushort, ushort> createCycleDictionary(List<List<ItemExtension>> cycles)
         {
             Dictionary<ushort, ushort> dict = new Dictionary<ushort, ushort>();
             foreach(List<ItemExtension> cycle in cycles)
@@ -752,7 +750,7 @@ namespace SpeedMann.PvPRework
             }
             return dict;
         }
-        private Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
+        internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
             if(itemExtensions != null)
@@ -834,6 +832,7 @@ namespace SpeedMann.PvPRework
             glassesExtensions = createDictionaryFromItemExtensions(Conf.GlassesExtensions);
             cyclableHelmets = createCycleDictionary(Conf.CyclableHelmets);
             cyclableSights = createCycleDictionary(Conf.CyclableSights);
+            
         }
         private void overrideArmorValues()
         {
