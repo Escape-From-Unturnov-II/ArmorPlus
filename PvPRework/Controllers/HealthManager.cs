@@ -15,7 +15,7 @@ namespace SpeedMann.PvPRework.Controllers
 {
     internal class HealthManager
     {
-        private static HealthManagerConfig Conf;
+        internal static HealthManagerConfig Conf { get; private set; }
         private static int maxHeadHealth = 35;
         private static int maxChestHealth = 85;
         private static int maxStomachHealth = 70;
@@ -31,11 +31,14 @@ namespace SpeedMann.PvPRework.Controllers
         {
             Conf = conf;
             betterMedDict = PvPRework.createDictionaryFromItemExtensions(Conf.BetterMeds);
+            bodyPartOrder = new List<BodyPart>();
             foreach (BodyPart part in BodyPart.GetValues(typeof(BodyPart)))
             {
                 bodyPartOrder.Add(part);
             }
             fractureableBodyPartOrder = new List<BodyPart> { BodyPart.ArmLeft, BodyPart.ArmRight, BodyPart.LegLeft, BodyPart.LegRight };
+
+            DrugEffectControler.Init(Conf);
         }
 
         internal static void Update()
@@ -50,10 +53,16 @@ namespace SpeedMann.PvPRework.Controllers
         {
             HealthStatus newStatus = resetHealthStatus(player);
             HealthUIHandler.spawnHealthUI(player.CSteamID, newStatus);
+            DrugEffectControler.OnPlayerConnected(player);
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {
             healthStatusOfPlayers.Remove(player.CSteamID);
+            
+        }
+        internal static void OnPrePlayerDisconnected(CSteamID playerId)
+        {
+            DrugEffectControler.OnPrePlayerDisconnected(playerId);
         }
         internal static void OnPlayerRevived(UnturnedPlayer player)
         {
@@ -72,7 +81,7 @@ namespace SpeedMann.PvPRework.Controllers
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
-            if (Conf.EnableReuseableMeds)
+            if (Conf.EnableReuseableMeds && asset.amount > 1)
             {
                 byte page = instigator.equipment.equippedPage;
                 byte x = instigator.equipment.equipped_x;
@@ -87,6 +96,14 @@ namespace SpeedMann.PvPRework.Controllers
                 else
                 {
                     instigator.inventory.removeItem(page, index);
+                }
+            }
+            if(betterMedDict.TryGetValue(asset.id, out MedicalExtension med))
+            {
+                if(med.Effects.Count > 0)
+                {
+                    UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(target); 
+                    DrugEffectControler.updateEffects(uPlayer, med.Effects);
                 }
             }
             

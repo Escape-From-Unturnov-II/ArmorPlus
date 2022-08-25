@@ -8,7 +8,9 @@ namespace SpeedMann.PvPRework.Models.Config
 {
     public class HealthManagerConfig
     {
+        public bool Debug = true;
         public bool EnableReuseableMeds = true;
         public List<MedicalExtension> BetterMeds = new List<MedicalExtension>();
+        public List<DrugEffectLimit> DrugEffectsLimits = new List<DrugEffectLimit>();
     }
 }

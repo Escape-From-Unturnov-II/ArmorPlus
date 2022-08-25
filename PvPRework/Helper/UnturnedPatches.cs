@@ -85,7 +85,9 @@ namespace SpeedMann.PvPRework
 
         public delegate void PrePlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow);
         public static event PrePlayerDamaged OnPrePlayerDamaged;
-        
+
+        public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
+        public static event PreDisconnectSave OnPreDisconnectSave;
         #endregion
 
         #region Patches
@@ -191,7 +193,18 @@ namespace SpeedMann.PvPRework
                 OnPostVisualToggle?.Invoke(__state.playerClothing, __state.type, __state.toggle);
             }
         }
-        
+
+        [HarmonyPatch(typeof(SaveManager), "onServerDisconnected")]
+        class DisconnectSave
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreDisconnectSaveInvoker(CSteamID steamID)
+            {
+                var shouldAllow = true;
+                OnPreDisconnectSave?.Invoke(steamID, ref shouldAllow);
+                return shouldAllow;
+            }
+        }
 
         #region UI Patches
         [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]

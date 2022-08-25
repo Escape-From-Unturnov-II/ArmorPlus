@@ -8,9 +8,9 @@ namespace SpeedMann.PvPRework.Models.Config
 {
     public class MedicalEffect
     {
-        public int StartEffectDelay = 0;
-        public int EffectDuration = 0;
+        public uint StartEffectDelay = 0;
+        public uint EffectDuration = 0;
         public int Value;
-        public MedicalEffectType Type;
+        public DrugEffectType Type;
     }
 }

@@ -326,7 +326,41 @@ namespace SpeedMann.PvPRework
             else
             {
                 BreakLegs = true;
-
+                HealthManager = new HealthManagerConfig()
+                {
+                    BetterMeds = new List<MedicalExtension>
+                    {
+                        new MedicalExtension
+                        {
+                            Id = 37044,
+                            Name = "Adrenaline Injector",
+                            Effects = new List<MedicalEffect>
+                            {
+                                new MedicalEffect
+                                {
+                                    StartEffectDelay = 0,
+                                    EffectDuration = 5,
+                                    Value = 1,
+                                    Type = DrugEffectType.Cardio,
+                                },
+                                new MedicalEffect
+                                {
+                                    StartEffectDelay = 0,
+                                    EffectDuration = 5,
+                                    Value = 1,
+                                    Type = DrugEffectType.Exercise,
+                                },
+                                new MedicalEffect
+                                {
+                                    StartEffectDelay = 0,
+                                    EffectDuration = 5,
+                                    Value = 1,
+                                    Type = DrugEffectType.Parkour,
+                                }
+                            }
+                        },
+                    }
+                };
                 BetterArmor = new BetterArmorConfig()
                 {
                     Enabled = true,

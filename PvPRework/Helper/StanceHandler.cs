@@ -19,8 +19,6 @@ namespace SpeedMann.PvPRework.Helper
         {
             EPlayerStance prevStance = oldStance;
 
-            
-
             if (OnStanceChanged != null)
             {
                 OnStanceChanged.Invoke(prevStance, stance, out EPlayerStance newStance);

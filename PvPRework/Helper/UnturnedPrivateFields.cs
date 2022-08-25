@@ -1,4 +1,5 @@
 ﻿using Rocket.Core.Logging;
+using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
@@ -11,17 +12,19 @@ namespace SpeedMann.PvPRework.Helper
 {
     class UnturnedPrivateFields
     {
-        private static FieldInfo GunAttachments;
-        private static FieldInfo ClothingArmor;
+        private static FieldInfo GunAttachmentsField;
+        private static FieldInfo ClothingArmorField;
 
-        private static FieldInfo SkinColor;
+        private static FieldInfo SkinColorField;
 
-        private static MethodInfo ReplicateStance;
+        private static FieldInfo SendSingleSkillLevelField;
+
+        private static MethodInfo ReplicateStanceMethod;
         public static bool getGunAttachments(UseableGun gun, out Attachments result)
         {
-            if (GunAttachments != null)
+            if (GunAttachmentsField != null)
             {
-                result = (Attachments)GunAttachments.GetValue(gun);
+                result = (Attachments)GunAttachmentsField.GetValue(gun);
                 return true;
             }
             result = null;
@@ -29,11 +32,11 @@ namespace SpeedMann.PvPRework.Helper
         }
         public static bool setClothingArmor(ItemClothingAsset asset, float armor)
         {
-            if (ClothingArmor != null)
+            if (ClothingArmorField != null)
             {
                 if(armor > 0)
                 {
-                    ClothingArmor.SetValue(asset, armor);
+                    ClothingArmorField.SetValue(asset, armor);
                 }
                 
                 return true;
@@ -42,9 +45,9 @@ namespace SpeedMann.PvPRework.Helper
         }
         public static bool setPalyerStance(PlayerStance playerStance)
         {
-            if (ReplicateStance != null)
+            if (ReplicateStanceMethod != null)
             {
-                ReplicateStance.Invoke(playerStance, new object[] { true });
+                ReplicateStanceMethod.Invoke(playerStance, new object[] { true });
 
                 return true;
             }
@@ -54,11 +57,11 @@ namespace SpeedMann.PvPRework.Helper
         public static bool trySetSkinColor(SteamPending playerLife, UnityEngine.Color newColor)
         {
 
-            if (SkinColor != null)
+            if (SkinColorField != null)
             {
                 try
                 {
-                    SkinColor.SetValue(playerLife, newColor);
+                    SkinColorField.SetValue(playerLife, newColor);
                 }
                 catch (Exception e)
                 {
@@ -70,21 +73,45 @@ namespace SpeedMann.PvPRework.Helper
             return false;
         }
 
+        public static bool trySendSingleSkillLevel(PlayerSkills playerSkills, byte specialityIndex, byte skillIndex, byte newLevel)
+        {
+            if (SendSingleSkillLevelField != null)
+            {
+                try
+                {
+                    ClientInstanceMethod<byte, byte, byte> sender = SendSingleSkillLevelField.GetValue(playerSkills) as ClientInstanceMethod<byte, byte, byte>;
+                    if (sender != null)
+                    {
+                        sender.InvokeAndLoopback(playerSkills.GetNetId(), ENetReliability.Reliable, Provider.EnumerateClients_Remote(), specialityIndex, skillIndex, newLevel);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception sending SingleSkillLevel");
+                    return false;
+                }
+            }
+            return false;
+        }
+
         public static void Init()
         {
             Type type;
 
             type = typeof(SteamPending);
-            SkinColor = type.GetField("_skin", BindingFlags.NonPublic | BindingFlags.Instance);
+            SkinColorField = type.GetField("_skin", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(UseableGun);
-            GunAttachments = type.GetField("thirdAttachments", BindingFlags.NonPublic | BindingFlags.Instance);
+            GunAttachmentsField = type.GetField("thirdAttachments", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(ItemClothingAsset);
-            ClothingArmor = type.GetField("_armor", BindingFlags.NonPublic | BindingFlags.Instance);
+            ClothingArmorField = type.GetField("_armor", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(PlayerStance);
-            ReplicateStance = type.GetMethod("replicateStance", BindingFlags.NonPublic | BindingFlags.Instance);
+            ReplicateStanceMethod = type.GetMethod("replicateStance", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            type = typeof(PlayerSkills);
+            SendSingleSkillLevelField = type.GetField("SendSingleSkillLevel", BindingFlags.NonPublic | BindingFlags.Static);
         }
     }
 }

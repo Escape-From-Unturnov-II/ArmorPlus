@@ -121,6 +121,7 @@ namespace SpeedMann.PvPRework
                 StanceHandler.OnStanceChanged -= OnStanceChanged;
 
                 DamageTool.damagePlayerRequested -= DamagePlayerRequested;
+                UnturnedPatches.OnPreDisconnectSave -= OnPrePlayerDisconnect;
                 U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
 
                 // Plugin Keys
@@ -167,6 +168,7 @@ namespace SpeedMann.PvPRework
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             HealthManager.Init(Conf.HealthManager);
+            
 
             Conf.addNames();
             Conf.updateConfig();
@@ -213,6 +215,11 @@ namespace SpeedMann.PvPRework
             player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
             playerStances.Add(player.CSteamID, stanceHandler);
         }
+        private void OnPrePlayerDisconnect(CSteamID steamID, ref bool shouldAllow)
+        {
+            HealthManager.OnPrePlayerDisconnected(steamID);
+        }
+        
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             if(playerStances.TryGetValue(player.CSteamID, out StanceHandler handler)){
@@ -778,6 +785,7 @@ namespace SpeedMann.PvPRework
             StanceHandler.OnStanceChanged += OnStanceChanged;
 
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
+            UnturnedPatches.OnPreDisconnectSave += OnPrePlayerDisconnect;
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
 
             // Plugin Keys

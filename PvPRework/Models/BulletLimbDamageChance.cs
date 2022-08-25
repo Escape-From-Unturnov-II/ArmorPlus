@@ -13,6 +13,6 @@ namespace SpeedMann.PvPRework
         public int BreakChanceDamageMin { get; set; }
         public int BreakChanceDamageMax { get; set; }
 
-public BulletLimbDamageChance() { }
+        public BulletLimbDamageChance() { }
     }
 }

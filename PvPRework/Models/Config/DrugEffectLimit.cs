@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public enum MedicalEffectType
+    public class DrugEffectLimit
     {
-        StaminaRegen,
-        HealthRegen,
-        FoodRegen,
-        WaterRegen,
-        OxigenRegen,
+        public DrugEffectType DrugEffectType;
+        public int MinValue;
+        public int MaxValue;
     }
 }
