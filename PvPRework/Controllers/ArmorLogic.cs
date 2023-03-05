@@ -543,7 +543,7 @@ namespace SpeedMann.PvPRework.Helper
         }
         internal static void calcDamageFallOff(ItemGunAsset oponentGun, Vector3 pos1, Vector3 pos2, ref float penetration, ref float fleshDamage, ref float armorDamage)
         {
-            //TODO: tweak
+            //TODO: tweak 
             float distance = Vector3.Distance(pos1, pos2);
 
             float t = Mathf.InverseLerp(oponentGun.range * oponentGun.damageFalloffRange, oponentGun.range, distance);

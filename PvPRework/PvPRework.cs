@@ -419,7 +419,8 @@ namespace SpeedMann.PvPRework
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
                     }
                     HealthManager.damageBodyPart(player, hitLocation, (int)Math.Round(parameters.damage), out bool dead);
-                    parameters.damage = 1;
+                    // TODO: Fix 
+                    // parameters.damage = 1;
                     if (dead)
                     {
                         parameters.damage = 101;
@@ -501,7 +502,12 @@ namespace SpeedMann.PvPRework
             {
                 case EPlayerStance.PRONE:
                     PlayerEquipment equipment = stance.player.equipment;
-                    if (equipment?.useable != null && equipment.useable is UseableGun && !equipment.isBusy && oldStance != EPlayerStance.PRONE && oldStance != EPlayerStance.CROUCH && Conf.MovementExtension.ReequipGunsOnProne)
+                    if (equipment?.useable != null && 
+                        equipment.useable is UseableGun && 
+                        !equipment.isBusy && 
+                        oldStance != EPlayerStance.PRONE && 
+                        oldStance != EPlayerStance.CROUCH && 
+                        Conf.MovementExtension.ReequipGunsOnProne)
                     {
                         reequipItems.Add(new EquipItem
                         {

@@ -1466,47 +1466,46 @@ namespace SpeedMann.PvPRework
                 {
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Black_ELCAN_1x", Id = 37820},
-                        new ItemExtension{Name = "Black_ELCAN_4x", Id = 37888},
+                        new ItemExtension{Name = "Nightforce_NXS_2x", Id = 37842},
+                        new ItemExtension{Name = "Nightforce_NXS_8x", Id = 37892},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Black_ELCAN_1x_Mount", Id = 37878},
-                        new ItemExtension{Name = "Black_ELCAN_4x_Mount", Id = 37890},
+                        new ItemExtension{Name = "Nightforce_NXS_Delta_Point", Id = 37894},
+                        new ItemExtension{Name = "Nightforce_NXS_2x_Delta_Point", Id = 37895},
+                        new ItemExtension{Name = "Nightforce_NXS_8x_Delta_Point", Id = 37896},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Tan_ELCAN_1x", Id = 37877},
-                        new ItemExtension{Name = "Tan_ELCAN_4x", Id = 37889},
+                        new ItemExtension{Name = "Hensoldt_FF_4x", Id = 37843},
+                        new ItemExtension{Name = "Hensoldt_FF_12x", Id = 37893},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Tan_ELCAN_1x_Mount", Id = 37879},
-                        new ItemExtension{Name = "Tan_ELCAN_4x_Mount", Id = 37891},
+                        new ItemExtension{Name = "Hensoldt_FF_Romeo_4", Id = 37897},
+                        new ItemExtension{Name = "Hensoldt_FF_4x_Romeo_4", Id = 37898},
+                        new ItemExtension{Name = "Hensoldt_FF_12x_Romeo_4", Id = 37899},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Hensoldt_4x", Id = 37843},
-                        new ItemExtension{Name = "Hensoldt_12x", Id = 37893},
+                        new ItemExtension{Name = "ELCAN_Specter_Black_1x", Id = 37820},
+                        new ItemExtension{Name = "ELCAN_Specter_Black_4x", Id = 37888},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Hensoldt+Romeo", Id = 37897},
-                        new ItemExtension{Name = "Hensoldt_4x+Romeo", Id = 37898},
-                        new ItemExtension{Name = "Hensoldt_12x+Romeo", Id = 37899},
+                        new ItemExtension{Name = "ELCAN_Specter_Tan_1x", Id = 37877},
+                        new ItemExtension{Name = "ELCAN_Specter_Tan_4x", Id = 37889},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Nightforce_2x", Id = 37842},
-                        new ItemExtension{Name = "Nightforce_8x", Id = 37892},
+                        new ItemExtension{Name = "ELCAN_Specter_Black_Mount_1x", Id = 37878},
+                        new ItemExtension{Name = "ELCAN_Specter_Black_Mount_4x", Id = 37890},
                     },
                     new List<ItemExtension>
                     {
-                        new ItemExtension{Name = "Nightforce+Delta", Id = 37894},
-                        new ItemExtension{Name = "Nightforce_2x+Delta", Id = 37895},
-                        new ItemExtension{Name = "Nightforce_8x+Delta", Id = 37896},
+                        new ItemExtension{Name = "ELCAN_Specter_Tan_Mount_1x", Id = 37879},
+                        new ItemExtension{Name = "ELCAN_Specter_Tan_Mount_4x", Id = 37891},
                     },
-
                 };
 
             }

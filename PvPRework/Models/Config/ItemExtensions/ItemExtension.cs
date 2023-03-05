@@ -9,8 +9,10 @@ namespace SpeedMann.PvPRework.Models.Config
 {
     public class ItemExtension
     {
-        public ushort Id = 0;
-        public string Name = "";
+        [XmlAttribute("Id")]
+        public ushort Id;
+        [XmlAttribute("Name")]
+        public string Name;
         public ItemExtension()
         {
 

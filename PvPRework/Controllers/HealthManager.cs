@@ -16,6 +16,7 @@ namespace SpeedMann.PvPRework.Controllers
     internal class HealthManager
     {
         internal static HealthManagerConfig Conf { get; private set; }
+        private static bool newHelthSystem = false;
         private static int maxHeadHealth = 35;
         private static int maxChestHealth = 85;
         private static int maxStomachHealth = 70;
@@ -51,14 +52,17 @@ namespace SpeedMann.PvPRework.Controllers
 
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            HealthStatus newStatus = resetHealthStatus(player);
-            HealthUIHandler.spawnHealthUI(player.CSteamID, newStatus);
+            if (newHelthSystem)
+            {
+                HealthStatus newStatus = resetHealthStatus(player);
+                HealthUIHandler.spawnHealthUI(player.CSteamID, newStatus);
+            }
+            
             DrugEffectControler.OnPlayerConnected(player);
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            healthStatusOfPlayers.Remove(player.CSteamID);
-            
+            healthStatusOfPlayers.Remove(player.CSteamID);           
         }
         internal static void OnPrePlayerDisconnected(CSteamID playerId)
         {
@@ -66,21 +70,22 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnPlayerRevived(UnturnedPlayer player)
         {
+            if (!newHelthSystem) 
+                return;
+
             HealthStatus newStatus = resetHealthStatus(player);
             HealthUIHandler.spawnHealthUI(player.CSteamID, newStatus);
         }
         internal static void OnPlayerDeath(UnturnedPlayer player)
         {
+            if (!newHelthSystem)
+                return;
             HealthUIHandler.setHealthUIVisibility(player.CSteamID, false);
         }
         internal static void OnConsumed(Player target, Player instigator, ItemConsumeableAsset asset)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
-            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
-            {
-                Logger.LogError($"no player health status for {player.CSteamID}");
-                return;
-            }
+
             if (Conf.EnableReuseableMeds && asset.amount > 1)
             {
                 byte page = instigator.equipment.equippedPage;
@@ -106,19 +111,21 @@ namespace SpeedMann.PvPRework.Controllers
                     DrugEffectControler.updateEffects(uPlayer, med.Effects);
                 }
             }
-            
-            Logger.Log($"Healed {asset.health}");
+            if (!newHelthSystem)
+                return;
             heal(player, asset.health);
         }
         internal static void fractureCheck(PlayerLife playerLife)
         {
+            if (!newHelthSystem)
+                return;
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
                 Logger.LogError($"no player health status for {player.CSteamID}");
                 return;
             }
-            Logger.Log($"Fracture Update: {status.vanillaBrokenLimb} / {playerLife.isBroken}");
+
             if(status.vanillaBrokenLimb != playerLife.isBroken)
             {
                 if (status.vanillaBrokenLimb)
@@ -135,6 +142,8 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void bleedCheck(PlayerLife playerLife)
         {
+            if (!newHelthSystem)
+                return;
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
@@ -157,6 +166,9 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void damageCheck(UnturnedPlayer player, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow)
         {
+            if (!newHelthSystem)
+                return;
+
             bool dead = false;
             switch (cause)
             {
@@ -385,6 +397,9 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void damageBodyPart(UnturnedPlayer player, BodyPart bodyPart, int damage, out bool dead)
         {
             dead = false;
+            if (!newHelthSystem)
+                return;
+            
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
                 Logger.LogError($"no player health status for {player.CSteamID}");
