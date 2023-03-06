@@ -107,10 +107,10 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 if(med.Effects.Count > 0)
                 {
-                    UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(target); 
-                    DrugEffectControler.updateEffects(uPlayer, med.Effects);
+                    DrugEffectControler.AddItemEffects(player, asset.id, med.Effects);
                 }
             }
+            
             if (!newHelthSystem)
                 return;
             heal(player, asset.health);

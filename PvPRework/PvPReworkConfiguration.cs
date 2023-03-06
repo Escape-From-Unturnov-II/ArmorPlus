@@ -334,29 +334,15 @@ namespace SpeedMann.PvPRework
                         {
                             Id = 37044,
                             Name = "Adrenaline Injector",
-                            Effects = new List<MedicalEffect>
+                            Effects = new List<MedicalEffectConfig>
                             {
-                                new MedicalEffect
+                                new MedicalEffectConfig
                                 {
-                                    StartEffectDelay = 0,
-                                    EffectDuration = 5,
+                                    EffectStartDelay = 0,
+                                    EffectDuration = 300,
                                     Value = 1,
-                                    Type = DrugEffectType.Cardio,
+                                    Type = DrugEffectType.StaminaRegen,
                                 },
-                                new MedicalEffect
-                                {
-                                    StartEffectDelay = 0,
-                                    EffectDuration = 5,
-                                    Value = 1,
-                                    Type = DrugEffectType.Exercise,
-                                },
-                                new MedicalEffect
-                                {
-                                    StartEffectDelay = 0,
-                                    EffectDuration = 5,
-                                    Value = 1,
-                                    Type = DrugEffectType.Parkour,
-                                }
                             }
                         },
                     }

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.PvPRework.Models.Config
 {
-    public class MedicalEffect
+    public class MedicalEffectConfig
     {
-        public uint StartEffectDelay = 0;
+        public uint EffectStartDelay = 0;
         public uint EffectDuration = 0;
         public int Value;
+        public float Interval = 1;
         public DrugEffectType Type;
     }
 }

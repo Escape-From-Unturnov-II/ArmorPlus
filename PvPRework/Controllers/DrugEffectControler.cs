@@ -18,37 +18,37 @@ namespace SpeedMann.PvPRework.Controllers
         internal static HealthManagerConfig Conf { get; private set; }
 
         private static Dictionary<DrugEffectType, DrugEffectLimit> DrugStateDict;
-        private static Dictionary<CSteamID, PlayerLifeHandler> PlayerDrugSates = new Dictionary<CSteamID, PlayerLifeHandler>();
+        private static Dictionary<CSteamID, DrugEffectHandler> PlayerDrugSates = new Dictionary<CSteamID, DrugEffectHandler>();
 
         internal static void Init(HealthManagerConfig config)
         {
             Conf = config;
-
-            DrugStateDict = createDrugEffectsLimitsDictionary(Conf.DrugEffectsLimits);
-        }
-
-        internal static void updateEffects(UnturnedPlayer player, List<MedicalEffect> effects)
-        {
-            if (!PlayerDrugSates.TryGetValue(player.CSteamID, out PlayerLifeHandler handler))
-            {
-                Logger.LogError("Could not modify effect of untracked player!");
-                return;
-            }
-            handler.startDrugEffects(effects);
         }
 
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            PlayerLife life = player.Player.life;
-            PlayerDrugSates.Add(player.CSteamID, new PlayerLifeHandler(player.Player, life.stamina, life.food, life.health, life.water, life.virus));
+            PlayerDrugSates.Add(player.CSteamID, new DrugEffectHandler(player.Player));
         }
         internal static void OnPrePlayerDisconnected(CSteamID playerId)
         {
-            if(PlayerDrugSates.TryGetValue(playerId, out PlayerLifeHandler handler)){
-                handler.removeAllEffects();
+            if(PlayerDrugSates.TryGetValue(playerId, out DrugEffectHandler handler)){
+                handler.stopAllMeds();
             }
             PlayerDrugSates.Remove(playerId);
         }
+        
+        internal static void AddItemEffects(UnturnedPlayer player, ushort itemId, List<MedicalEffectConfig> effectConfigs)
+        {
+            if (!PlayerDrugSates.TryGetValue(player.CSteamID, out var drugEffectHandler) || drugEffectHandler == null)
+            {
+                Logger.LogError($"player {player.CSteamID} has no Drug effect handler");
+                PlayerDrugSates.Remove(player.CSteamID);
+                PlayerDrugSates.Add(player.CSteamID, new DrugEffectHandler(player.Player));
+            }
+
+            drugEffectHandler.startDrugEffects(itemId, effectConfigs);
+        }
+
         internal static bool tryGetEffectLimits(DrugEffectType type, out int min, out int max)
         {
             min = 0;

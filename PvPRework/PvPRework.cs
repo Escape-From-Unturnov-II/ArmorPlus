@@ -191,7 +191,7 @@ namespace SpeedMann.PvPRework
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(reequipItems[0].steamId);
                 if(player != null)
                 {
-                    player.Player.equipment.tryEquip(reequipItems[0].page, reequipItems[0].x, reequipItems[0].y);
+                    player.Player.equipment.ServerEquip(reequipItems[0].page, reequipItems[0].x, reequipItems[0].y);
                     reequipItems.RemoveAt(0);
                 }
             }

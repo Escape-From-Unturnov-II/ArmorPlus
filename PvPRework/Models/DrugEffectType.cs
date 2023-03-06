@@ -33,11 +33,13 @@ namespace SpeedMann.PvPRework.Models.Config
         Agriculture,
         Mechanic,
         Engineer,
-        // other
+        // regen        
         StaminaRegen,
         HealthRegen,
         FoodRegen,
         WaterRegen,
-        OxigenRegen,
+        // other
+        NoBleeding,
+        NoFracture,
     }
 }
