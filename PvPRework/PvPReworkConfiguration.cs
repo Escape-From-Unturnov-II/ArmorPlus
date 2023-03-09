@@ -338,8 +338,8 @@ namespace SpeedMann.PvPRework
                             {
                                 new MedicalEffectConfig
                                 {
-                                    EffectStartDelay = 0,
-                                    EffectDuration = 300,
+                                    StartDelay = 0,
+                                    Duration = 300,
                                     Value = 1,
                                     Type = DrugEffectType.StaminaRegen,
                                 },

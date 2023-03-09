@@ -36,6 +36,9 @@ namespace SpeedMann.PvPRework
                 // Restriction        
                 { "item_restricted_nvg", "You are not allowed to wear this helmet in combination with NVG!" },
 
+                // MedEffects
+                { "drug_effect_over", "Drug effect of {0} ran out!"},
+
                 // Kill feed
                 {"DEATH_BLEEDING", "{0} bled to death near {7}!"},
                 {"DEATH_BONES", "{0} fell to their death near {7}!"},

@@ -16,19 +16,21 @@ using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
 using static SDG.Provider.SteamGetInventoryResponse;
+using static SDG.Unturned.WeatherAsset;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Helper
 {
     internal class DrugEffectHandler
     {
-
         private Player _player;
+        private bool usesUI;
 
         private Dictionary<ushort, List<MedicalEffect>> activeMeds = new Dictionary<ushort, List<MedicalEffect>>();
-        internal DrugEffectHandler(Player player)
+        internal DrugEffectHandler(Player player, bool useUI)
         {
             _player = player;
+            usesUI = useUI;
         }
 
         internal void startDrugEffects(ushort itemId, List<MedicalEffectConfig> effectConfigs)
@@ -61,7 +63,27 @@ namespace SpeedMann.PvPRework.Helper
             activeMeds.Add(itemId, effects);
 
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(_player);
-            Logger.Log($"{uPlayer.CSteamID} used {itemId} and got\n{String.Join("\n", effectConfigs.Select(x => $"{x.Type}: Value {x.Value}, Duration {x.EffectDuration}, Delay {x.EffectStartDelay}").ToArray())}\n");
+
+            string effectsString = String.Join("\n", effectConfigs.Select(x => $"{x.Type}: " +
+                   (x.StartDelay > 0 ? $"Delay {x.StartDelay}s," : "") +
+                   $"Duration {x.Duration}s" +
+                   (x.Value != 0 ? $", Value {x.Value}" : "") +
+                   (x.Interval != 0 ? $", Interval {x.Interval}" : "")).ToArray());
+
+            Logger.Log($"{uPlayer.CSteamID} used {itemId} and got\n" +
+                 String.Join("\n", effectConfigs.Select(x => $"{x.Type}: " +
+                   (x.StartDelay > 0 ? $"Delay {x.StartDelay}," : "") +
+                   $"Duration {x.Duration}" +
+                   (x.Value != 0 ? $", Value {x.Value}" : "" ) +
+                   (x.Interval != 0 ? $", Interval {x.Interval}" : "")).ToArray()) + "\n");
+
+            if (!usesUI)
+            {
+                foreach (string effect in effectsString.Split('\n'))
+                {
+                    ChatManager.say(uPlayer.CSteamID, effect, Color.magenta);
+                }
+            }
         }
 
 
@@ -86,7 +108,6 @@ namespace SpeedMann.PvPRework.Helper
                 effect.stopEffect();
             }
             //TODO: prevent med active checks
-            activeMeds.Remove(itemId);
         }
         private void checkMedActive(ushort itemId)
         {
@@ -99,6 +120,18 @@ namespace SpeedMann.PvPRework.Helper
                     return;
             }
             activeMeds.Remove(itemId);
+
+            if (!usesUI)
+            {
+                Asset itemAsset = Assets.find(EAssetType.ITEM, itemId);
+                string name = itemId.ToString();
+                if (itemAsset != null)
+                {
+                    name = itemAsset.name;
+                }
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(_player);
+                ChatManager.say(uPlayer.CSteamID, Util.Translate("drug_effect_over", name), Color.magenta);
+            }
         }
 
         private bool tryGetEffect(MedicalEffectConfig config, out MedicalEffect effect)
@@ -109,13 +142,13 @@ namespace SpeedMann.PvPRework.Helper
             {
                 case DrugEffectType.NoFracture:
                 case DrugEffectType.NoBleeding:
-                    effect = new PreventiveEffect(_player, config.EffectDuration, config.EffectStartDelay, config.Type);
+                    effect = new PreventiveEffect(_player, config.Duration, config.StartDelay, config.Type);
                     return true;
                 case DrugEffectType.StaminaRegen:
                 case DrugEffectType.HealthRegen:
                 case DrugEffectType.FoodRegen:
                 case DrugEffectType.WaterRegen:
-                    effect = new RegenEffect(_player, config.EffectDuration, config.EffectStartDelay, config.Value, config.Interval, config.Type);
+                    effect = new RegenEffect(_player, config.Duration, config.StartDelay, config.Value, config.Interval, config.Type);
                     return true;
                 case DrugEffectType.Overkill:
                 case DrugEffectType.Sharpshooter:
@@ -146,7 +179,7 @@ namespace SpeedMann.PvPRework.Helper
                         Logger.LogError($"{config.Type} is not a valid skill type");
                         break;
                     }
-                    effect = new SkillEffect(_player, config.EffectDuration, config.EffectStartDelay, skill, config.Value);
+                    effect = new SkillEffect(_player, config.Duration, config.StartDelay, skill, config.Value);
                     return true;
             }
             return false;

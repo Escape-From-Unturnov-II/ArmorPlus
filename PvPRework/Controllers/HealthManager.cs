@@ -78,6 +78,7 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnPlayerDeath(UnturnedPlayer player)
         {
+            DrugEffectControler.StopAllDrugEffects(player);
             if (!newHelthSystem)
                 return;
             HealthUIHandler.setHealthUIVisibility(player.CSteamID, false);
@@ -107,7 +108,7 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 if(med.Effects.Count > 0)
                 {
-                    DrugEffectControler.AddItemEffects(player, asset.id, med.Effects);
+                    DrugEffectControler.AddDrugEffects(player, asset.id, med.Effects);
                 }
             }
             
