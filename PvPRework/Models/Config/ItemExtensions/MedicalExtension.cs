@@ -9,6 +9,7 @@ namespace SpeedMann.PvPRework.Models.Config
     public class MedicalExtension : ItemExtension
     {
         public string UI_EffectName;
+        public bool Reuseable;
         public List<MedicalEffectConfig> Effects;
     }
 }

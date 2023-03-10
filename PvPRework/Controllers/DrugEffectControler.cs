@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Controllers
 {
@@ -24,7 +26,6 @@ namespace SpeedMann.PvPRework.Controllers
         {
             Conf = config;
         }
-
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
             PlayerDrugSates.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
@@ -32,9 +33,13 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void OnPrePlayerDisconnected(CSteamID playerId)
         {
             if(PlayerDrugSates.TryGetValue(playerId, out DrugEffectHandler handler)){
-                handler.stopAllMeds();
+                StopAllDrugEffects(UnturnedPlayer.FromCSteamID(playerId));
             }
             PlayerDrugSates.Remove(playerId);
+        }
+        internal static void OnPlayerDeath(UnturnedPlayer player)
+        {
+            StopAllDrugEffects(player);
         }
         internal static void StopAllDrugEffects(UnturnedPlayer player)
         {

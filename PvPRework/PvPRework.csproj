@@ -91,6 +91,7 @@
     <Compile Include="Models\DrugEffectType.cs" />
     <Compile Include="Models\HealthStatus.cs" />
     <Compile Include="Models\MedicalEffects\MedicalEffect.cs" />
+    <Compile Include="Models\MedicalEffects\PainkillerEffect.cs" />
     <Compile Include="Models\MedicalEffects\PreventiveEffect.cs" />
     <Compile Include="Models\MedicalEffects\SkillEffect.cs" />
     <Compile Include="Models\MedicalEffects\RegenEffect.cs" />

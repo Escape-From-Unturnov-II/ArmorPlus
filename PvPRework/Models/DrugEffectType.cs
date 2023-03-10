@@ -41,5 +41,6 @@ namespace SpeedMann.PvPRework.Models.Config
         // other
         NoBleeding,
         NoFracture,
+        Painkiller
     }
 }

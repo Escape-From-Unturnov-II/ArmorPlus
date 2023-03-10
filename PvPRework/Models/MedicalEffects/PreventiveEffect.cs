@@ -1,6 +1,7 @@
 ﻿using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Controllers;
 using SpeedMann.PvPRework.Models.Config;
 using Steamworks;
 using System;
@@ -16,8 +17,8 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
 {
     internal class PreventiveEffect : MedicalEffect
     {
-        DrugEffectType type;
-        CSteamID steamID;
+        private DrugEffectType type;
+        private CSteamID steamID;
         internal PreventiveEffect(Player player, float effectDuration, float effectDelay, DrugEffectType type) : base(player, effectDuration, effectDelay)
         {
             steamID = player.channel.owner.playerID.steamID;

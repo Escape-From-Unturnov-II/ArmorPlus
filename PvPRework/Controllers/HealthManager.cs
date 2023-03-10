@@ -15,6 +15,8 @@ namespace SpeedMann.PvPRework.Controllers
 {
     internal class HealthManager
     {
+        public delegate void TriedHealingFracture();
+        public static event TriedHealingFracture OnTriedHealingFracture;
         internal static HealthManagerConfig Conf { get; private set; }
         private static bool newHelthSystem = false;
         private static int maxHeadHealth = 35;
@@ -78,7 +80,8 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnPlayerDeath(UnturnedPlayer player)
         {
-            DrugEffectControler.StopAllDrugEffects(player);
+            DrugEffectControler.OnPlayerDeath(player);
+
             if (!newHelthSystem)
                 return;
             HealthUIHandler.setHealthUIVisibility(player.CSteamID, false);
@@ -87,33 +90,28 @@ namespace SpeedMann.PvPRework.Controllers
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(target);
 
-            if (Conf.EnableReuseableMeds && asset.amount > 1)
-            {
-                byte page = instigator.equipment.equippedPage;
-                byte x = instigator.equipment.equipped_x;
-                byte y = instigator.equipment.equipped_y;
-                byte index = instigator.inventory.getIndex(page, x, y);
-                ItemJar itemJar = instigator.inventory.getItem(page, index);
-
-                if (itemJar.item.amount > 1)
-                {
-                    instigator.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
-                }
-                else
-                {
-                    instigator.inventory.removeItem(page, index);
-                }
-            }
             if(betterMedDict.TryGetValue(asset.id, out MedicalExtension med))
             {
+                if (med.Reuseable)
+                {
+                    useReuseableMed(instigator);
+                }
                 if(med.Effects.Count > 0)
                 {
                     DrugEffectControler.AddDrugEffects(player, asset.id, med.Effects);
                 }
             }
             
+
             if (!newHelthSystem)
+            {
+                if (asset.bonesModifier == ItemConsumeableAsset.Bones.Heal)
+                {
+                    OnTriedHealingFracture?.Invoke();
+                }
                 return;
+            }
+                
             heal(player, asset.health);
         }
         internal static void fractureCheck(PlayerLife playerLife)
@@ -471,6 +469,23 @@ namespace SpeedMann.PvPRework.Controllers
             if(reversed) validBodyParts.Reverse();
 
             return validBodyParts;
+        }
+        private static void useReuseableMed(Player instigator)
+        {
+            byte page = instigator.equipment.equippedPage;
+            byte x = instigator.equipment.equipped_x;
+            byte y = instigator.equipment.equipped_y;
+            byte index = instigator.inventory.getIndex(page, x, y);
+            ItemJar itemJar = instigator.inventory.getItem(page, index);
+
+            if (itemJar.item.amount > 1)
+            {
+                instigator.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
+            }
+            else
+            {
+                instigator.inventory.removeItem(page, index);
+            }
         }
         // this order is important for damage and heal order
         public enum BodyPart
