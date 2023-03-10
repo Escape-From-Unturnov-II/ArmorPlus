@@ -1730,6 +1730,11 @@ namespace SpeedMann.PvPRework
             addNames(GunExtensions);
             addNames(MaskExtensions);
 
+            if (HealthManager?.BetterMeds != null)
+            {
+                addNames(HealthManager.BetterMeds);
+            }
+
             foreach (HatExtension hat in HatExtensions)
             {
                 if(hat.WhitelistedNVGs != null)

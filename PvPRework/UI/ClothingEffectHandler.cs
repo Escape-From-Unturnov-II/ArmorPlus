@@ -11,7 +11,7 @@ namespace SpeedMann.PvPRework.UI
 {
     internal class ClothingEffectHandler
     {
-        public static void checkClothingEffect<T>(Dictionary<ushort, T> clothingExtensions, UnturnedPlayer player, ushort clothingId, bool spawned = false) where T : ItemUIExtension
+        public static void checkClothingEffect<T>(Dictionary<ushort, T> clothingExtensions, UnturnedPlayer player, ushort clothingId, bool showUnequipEffect = false) where T : ItemUIExtension
         {
             if (player == null)
             {
@@ -26,11 +26,17 @@ namespace SpeedMann.PvPRework.UI
 
             if (typeof(T).Equals(typeof(GlassesExtension)))
             {
+                if (conf.BetterArmor.GlassesEffectKey <= 0)
+                    return;
+
                 effectKey = conf.BetterArmor.GlassesEffectKey;
                 equipedClothingId = player.Player.clothing.glasses;
             }
             else if (typeof(T).Equals(typeof(HatExtension)))
             {
+                if (conf.BetterArmor.HatEffectKey <= 0)
+                    return;
+
                 effectKey = conf.BetterArmor.HatEffectKey;
                 equipedClothingId = player.Player.clothing.hat;
             }
@@ -40,7 +46,7 @@ namespace SpeedMann.PvPRework.UI
                 return;
             }
 
-            if (!spawned && clothingExtensions.TryGetValue(equipedClothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
+            if (!showUnequipEffect && clothingExtensions.TryGetValue(equipedClothingId, out clothingExtension) && clothingExtension.EquipEffectId > 0)
             {
                 EffectControler.spawnUI(clothingExtension.UnequipEffectId, effectKey, player.CSteamID);
                 if (conf.Debug)

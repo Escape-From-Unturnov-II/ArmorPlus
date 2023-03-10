@@ -10,7 +10,6 @@ namespace SpeedMann.PvPRework.Models.Config
     {
         public bool Debug = true;
         public bool UseUI = false;
-        public bool EnableReuseableMeds = true;
         public List<MedicalExtension> BetterMeds = new List<MedicalExtension>();
     }
 }

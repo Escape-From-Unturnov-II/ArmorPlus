@@ -148,7 +148,7 @@ namespace SpeedMann.PvPRework
         class GotDamaged
         {
             [HarmonyPrefix]
-            internal static bool OnPreItemsAddItemInvoker(PlayerLife __instance, ref byte amount, EDeathCause newCause, ref ELimb newLimb, CSteamID newKiller, ref bool canCauseBleeding)
+            internal static bool OnPreDoDamageInvoker(PlayerLife __instance, ref byte amount, EDeathCause newCause, ref ELimb newLimb, CSteamID newKiller, ref bool canCauseBleeding)
             {
                 bool shouldAllow = true;
                 OnPrePlayerDamaged?.Invoke(__instance, ref amount, newCause, ref newLimb, newKiller, ref canCauseBleeding, ref shouldAllow);
@@ -207,7 +207,7 @@ namespace SpeedMann.PvPRework
         }
 
         #region UI Patches
-        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]), typeof(bool) })]
         class PlayerWearHatPatch
         {
             [HarmonyPrefix]
@@ -245,7 +245,7 @@ namespace SpeedMann.PvPRework
                 return true;
             }
         }
-        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]) })]
+        [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearGlasses), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]), typeof(bool) })]
         class PlayerWearGlassesPatch
         {
             [HarmonyPrefix]
