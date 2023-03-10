@@ -4,6 +4,7 @@ using Rocket.Unturned;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
+using SDG.NetTransport;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Controllers;
 using SpeedMann.PvPRework.Helper;
@@ -206,6 +207,8 @@ namespace SpeedMann.PvPRework
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+            //BotControler.createBot("Bot");
+
             if (Conf.DisableCosmetics)
             {
                 disableCosmethics(player.Player);

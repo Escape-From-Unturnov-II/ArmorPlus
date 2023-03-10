@@ -99,5 +99,15 @@ namespace SpeedMann.PvPRework
             }
             return status;
         }
+        public static string getLanguageOfPlayer(CSteamID playerID)
+        {
+           SteamPlayer steamPlayer = PlayerTool.getSteamPlayer(playerID);
+           if(steamPlayer == null)
+           {
+                return "";
+           }
+
+            return steamPlayer.language;
+        }
     }
 }

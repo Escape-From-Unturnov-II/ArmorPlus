@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\ArmorLogic.cs" />
+    <Compile Include="Controllers\BotControler.cs" />
     <Compile Include="Controllers\DrugEffectControler.cs" />
     <Compile Include="Controllers\HealthManager.cs" />
     <Compile Include="Helper\InputHandler.cs" />
