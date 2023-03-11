@@ -47,6 +47,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             StanceHandler.OnPostStanceChange += stanceChanged;
             UnturnedPatches.OnPreLanded += preLanding;
             player.life.OnFallDamageRequested += onVanillaFallDamage;
+            UnturnedPatches.OnPostLanded += postLanding;
 
 
             player.StartCoroutine(sprintDamageCheck());
@@ -58,6 +59,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             UnturnedPlayerEvents.OnPlayerUpdateBroken -= fractureChanged;
             StanceHandler.OnPostStanceChange -= stanceChanged;
             UnturnedPatches.OnPreLanded -= preLanding;
+            player.life.OnFallDamageRequested -= onVanillaFallDamage;
             UnturnedPatches.OnPostLanded -= postLanding;
 
             player.life.serverSetLegsBroken(legsBroken);
@@ -93,12 +95,15 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         }
         private void preLanding(PlayerLife life, float velocity)
         {
-            velocity = -velocity;
-            if (velocity > config.FractureLandingMaxVelocity || !legsBroken || !life.player.channel.owner.playerID.steamID.Equals(steamID))
+            if(!legsBroken || !life.player.channel.owner.playerID.steamID.Equals(steamID))
                 return;
 
-            float damage = config.FractureLandingBaseDamage * (velocity / config.FractureLandingVelocitySteps);
-            currentFallDamage = damage;
+            velocity = -velocity;
+            if (velocity > config.FractureLandingMaxVelocity)
+                return;
+
+           
+            currentFallDamage = config.FractureLandingBaseDamage * (velocity / config.FractureLandingVelocitySteps);
         }
         private void onVanillaFallDamage(PlayerLife life, float velocity, ref float damage, ref bool shouldBreakLegs)
         {
@@ -120,7 +125,6 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             {
                 causeFractureDamage(currentFallDamage);
             }
-            
             currentFallDamage = 0;
         }
         private void checkSprintDamage()
