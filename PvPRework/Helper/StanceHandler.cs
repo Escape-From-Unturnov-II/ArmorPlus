@@ -13,22 +13,22 @@ namespace SpeedMann.PvPRework.Helper
         private PlayerStance stance;
         private EPlayerStance oldStance;
 
-        public delegate void StanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance);
-        public static event StanceChanged OnStanceChanged;
+        public delegate void PreStanceChanged(EPlayerStance oldStance, PlayerStance stance, ref EPlayerStance newStance);
+        public static event PreStanceChanged OnPreStanceChange;
+        public delegate void StanceChanged(EPlayerStance newStance);
+        public static event StanceChanged OnPostStanceChange;
         internal void StanceChangeInvoker()
         {
-            EPlayerStance prevStance = oldStance;
-
-            if (OnStanceChanged != null)
-            {
-                OnStanceChanged.Invoke(prevStance, stance, out EPlayerStance newStance);
-                oldStance = newStance;
-            }
+            EPlayerStance newStance = stance.stance;
+            OnPreStanceChange?.Invoke(oldStance, stance, ref newStance);
+            oldStance = newStance;
+            OnPostStanceChange?.Invoke(newStance);
         }
-        internal StanceHandler(PlayerStance stance)
+        internal StanceHandler(Player player)
         {
-            this.stance = stance;
+            stance = player.stance;
             oldStance = stance.stance;
+            player.stance.onStanceUpdated += StanceChangeInvoker;
         }
     }
 }

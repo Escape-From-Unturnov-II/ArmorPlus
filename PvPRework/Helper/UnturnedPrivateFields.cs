@@ -7,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Helper
 {
@@ -18,6 +20,7 @@ namespace SpeedMann.PvPRework.Helper
         private static FieldInfo SkinColorField;
 
         private static FieldInfo SendSingleSkillLevelField;
+        private static FieldInfo SendDamagedEventField;
 
         private static MethodInfo ReplicateStanceMethod;
         public static bool getGunAttachments(UseableGun gun, out Attachments result)
@@ -53,8 +56,7 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
-
-        public static bool trySetSkinColor(SteamPending playerLife, UnityEngine.Color newColor)
+        public static bool trySetSkinColor(SteamPending playerLife, Color newColor)
         {
 
             if (SkinColorField != null)
@@ -72,7 +74,6 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
-
         public static bool trySendSingleSkillLevel(PlayerSkills playerSkills, byte specialityIndex, byte skillIndex, byte newLevel)
         {
             if (SendSingleSkillLevelField != null)
@@ -83,6 +84,7 @@ namespace SpeedMann.PvPRework.Helper
                     if (sender != null)
                     {
                         sender.InvokeAndLoopback(playerSkills.GetNetId(), ENetReliability.Reliable, Provider.EnumerateClients_Remote(), specialityIndex, skillIndex, newLevel);
+                        return true;
                     }
                 }
                 catch (Exception e)
@@ -93,7 +95,27 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
+        public static bool trySendDamagedEvent(PlayerLife playerLife, byte flinchAmount, Vector3 direction)
+        {
+            if (SendDamagedEventField == null || playerLife?.player?.channel == null)
+                return false;
 
+            try
+            {
+                ClientInstanceMethod<byte, Vector3> sender = SendDamagedEventField.GetValue(playerLife) as ClientInstanceMethod<byte, Vector3>;
+                if (sender == null)
+                    return false;
+
+                sender.Invoke(playerLife.GetNetId(), ENetReliability.Reliable, playerLife.player.channel.GetOwnerTransportConnection(), flinchAmount, direction);
+            }
+            catch (Exception e)
+            {
+                Logger.LogException(e, "Exception sending DamagedEvent");
+                return false;
+            }
+            return true;
+
+        }
         public static void Init()
         {
             Type type;
@@ -112,6 +134,9 @@ namespace SpeedMann.PvPRework.Helper
 
             type = typeof(PlayerSkills);
             SendSingleSkillLevelField = type.GetField("SendSingleSkillLevel", BindingFlags.NonPublic | BindingFlags.Static);
+
+            type = typeof(PlayerLife);
+            SendDamagedEventField = type.GetField("SendDamagedEvent", BindingFlags.NonPublic | BindingFlags.Static);
         }
     }
 }

@@ -80,7 +80,6 @@ namespace SpeedMann.PvPRework.Helper
                 }
             }
         }
-
         internal void stopAllMeds()
         {
             List<ushort> ids = new List<ushort>();
@@ -93,7 +92,6 @@ namespace SpeedMann.PvPRework.Helper
                 stopMed(id);
             }
         }
-
         private void stopMed(ushort itemId)
         {
             activeMeds.TryGetValue(itemId, out var effects);
@@ -127,11 +125,9 @@ namespace SpeedMann.PvPRework.Helper
                 ChatManager.say(uPlayer.CSteamID, Util.Translate("drug_effect_over", name), Color.red);
             }
         }
-
         private bool tryGetEffect(MedicalEffectConfig config, out MedicalEffect effect)
         {
             effect = null;
-
             switch (config.Type) 
             {
                 case DrugEffectType.NoFracture:
@@ -139,7 +135,7 @@ namespace SpeedMann.PvPRework.Helper
                     effect = new PreventiveEffect(_player, config.Duration, config.StartDelay, config.Type);
                     return true;
                 case DrugEffectType.Painkiller:
-                    effect = new PainkillerEffect(_player, config.Duration, config.StartDelay);
+                    effect = new PainkillerEffect(_player, config.Duration, config.StartDelay, DrugEffectControler.Conf.FractureRunningDamage, DrugEffectControler.Conf.FractureRunningDamageInterval, DrugEffectControler.Conf.FractureRunningFlinch);
                     return true;
                 case DrugEffectType.StaminaRegen:
                 case DrugEffectType.HealthRegen:
@@ -181,7 +177,6 @@ namespace SpeedMann.PvPRework.Helper
             }
             return false;
         }
-        
         private void updatePlayerJump(float multiplier)
         {
             _player.movement.sendPluginJumpMultiplier(multiplier);

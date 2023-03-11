@@ -20,22 +20,30 @@ namespace SpeedMann.PvPRework.Controllers
         internal static HealthManagerConfig Conf { get; private set; }
 
         private static Dictionary<DrugEffectType, DrugEffectLimit> DrugStateDict;
-        private static Dictionary<CSteamID, DrugEffectHandler> PlayerDrugSates = new Dictionary<CSteamID, DrugEffectHandler>();
+        private static Dictionary<CSteamID, DrugEffectHandler> ConsumeableEffectHandlers = new Dictionary<CSteamID, DrugEffectHandler>();
 
         internal static void Init(HealthManagerConfig config)
         {
             Conf = config;
         }
+        internal static void Cleanup() 
+        {
+            foreach(var handler in ConsumeableEffectHandlers)
+            {
+                handler.Value.stopAllMeds();
+            }
+            ConsumeableEffectHandlers.Clear();
+        }
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            PlayerDrugSates.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
+            ConsumeableEffectHandlers.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
         }
         internal static void OnPrePlayerDisconnected(CSteamID playerId)
         {
-            if(PlayerDrugSates.TryGetValue(playerId, out DrugEffectHandler handler)){
+            if(ConsumeableEffectHandlers.TryGetValue(playerId, out DrugEffectHandler handler)){
                 StopAllDrugEffects(UnturnedPlayer.FromCSteamID(playerId));
             }
-            PlayerDrugSates.Remove(playerId);
+            ConsumeableEffectHandlers.Remove(playerId);
         }
         internal static void OnPlayerDeath(UnturnedPlayer player)
         {
@@ -43,7 +51,7 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void StopAllDrugEffects(UnturnedPlayer player)
         {
-            if (!PlayerDrugSates.TryGetValue(player.CSteamID, out var drugEffectHandler) || drugEffectHandler == null)
+            if (!ConsumeableEffectHandlers.TryGetValue(player.CSteamID, out var drugEffectHandler) || drugEffectHandler == null)
             {
                 Logger.LogError($"player {player.CSteamID} has no drug effect handler");
                 return;
@@ -52,11 +60,11 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void AddDrugEffects(UnturnedPlayer player, ushort itemId, List<MedicalEffectConfig> effectConfigs)
         {
-            if (!PlayerDrugSates.TryGetValue(player.CSteamID, out var drugEffectHandler) || drugEffectHandler == null)
+            if (!ConsumeableEffectHandlers.TryGetValue(player.CSteamID, out var drugEffectHandler) || drugEffectHandler == null)
             {
                 Logger.LogError($"player {player.CSteamID} has no drug effect handler");
-                PlayerDrugSates.Remove(player.CSteamID);
-                PlayerDrugSates.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
+                ConsumeableEffectHandlers.Remove(player.CSteamID);
+                ConsumeableEffectHandlers.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
             }
 
             drugEffectHandler.startDrugEffects(itemId, effectConfigs);

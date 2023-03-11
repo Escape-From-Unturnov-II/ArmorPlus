@@ -122,7 +122,8 @@ namespace SpeedMann.PvPRework
 
             if (ModsLoaded)
             {
-                StanceHandler.OnStanceChanged -= OnStanceChanged;
+                
+                StanceHandler.OnPreStanceChange -= OnStanceChanged;
 
                 DamageTool.damagePlayerRequested -= DamagePlayerRequested;
                 UnturnedPatches.OnPreDisconnectSave -= OnPrePlayerDisconnect;
@@ -160,6 +161,7 @@ namespace SpeedMann.PvPRework
                 PlayerLife.OnTellBleeding_Global -= OnStartBleeding;
 
                 UnturnedPatches.Cleanup();
+                HealthManager.Cleanup();
             }
         }
         private void OnPreLevelLoaded(int level)
@@ -207,8 +209,6 @@ namespace SpeedMann.PvPRework
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            //BotControler.createBot("Bot");
-
             if (Conf.DisableCosmetics)
             {
                 disableCosmethics(player.Player);
@@ -217,15 +217,14 @@ namespace SpeedMann.PvPRework
 
             HealthManager.OnPlayerConnected(player);
 
-            StanceHandler stanceHandler = new StanceHandler(player.Player.stance);
-            player.Player.stance.onStanceUpdated += stanceHandler.StanceChangeInvoker;
+            StanceHandler stanceHandler = new StanceHandler(player.Player);
             playerStances.Add(player.CSteamID, stanceHandler);
         }
         private void OnPrePlayerDisconnect(CSteamID steamID, ref bool shouldAllow)
         {
             HealthManager.OnPrePlayerDisconnected(steamID);
+            playerStances.Remove(steamID);
         }
-        
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             if(playerStances.TryGetValue(player.CSteamID, out StanceHandler handler)){
@@ -402,9 +401,6 @@ namespace SpeedMann.PvPRework
         }
         private void DamagePlayerRequested(ref DamagePlayerParameters parameters, ref bool shouldAllow)
         {
-            if (Conf.Debug && !Conf.BetterArmor.Enabled)
-                Logger.Log(parameters.player.name + " was damaged in the " + parameters.limb.ToString() + " Cause: " + parameters.cause + "!");
-
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(parameters.player);
             ExtendetHitLocation hitLocation = ExtendedHitLocations.getExtendetHitlocation(parameters.limb);
             setLastHitLocation(player.CSteamID, hitLocation);
@@ -419,7 +415,7 @@ namespace SpeedMann.PvPRework
                     {
                         ArmorLogic.ArmorPenCheck(parameters.player, parameters.limb, parameters.cause, parameters.direction, parameters.killer, ref parameters.damage, ref parameters.respectArmor, parameters.applyGlobalArmorMultiplier, out hitLocation);
                     }
-                        
+
                     if (Conf.BreakLegs)
                     {
                         BreakBoneCheck(parameters.player, parameters.limb, parameters.damage);
@@ -433,7 +429,8 @@ namespace SpeedMann.PvPRework
                     }
                     break;
             }
-            
+            if (Conf.Debug && !Conf.BetterArmor.Enabled)
+                Logger.Log($"{parameters.player.name} was damaged in the {hitLocation} ({parameters.damage}), cause: {parameters.cause}!");
         }
         private void OnPlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow)
         {
@@ -478,7 +475,7 @@ namespace SpeedMann.PvPRework
         {
             HealthManager.OnConsumed(instigatingPlayer, instigatingPlayer, asset);
         }
-        private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, out EPlayerStance newStance)
+        private void OnStanceChanged(EPlayerStance oldStance, PlayerStance stance, ref EPlayerStance newStance)
         {
             newStance = oldStance;
             if (stance?.player?.life == null) return;
@@ -493,8 +490,6 @@ namespace SpeedMann.PvPRework
                         {
                             stance.stance = EPlayerStance.PRONE;
                             newStance = EPlayerStance.PRONE;
-                            //stance.checkStance(newStance, true);
-                            //UnturnedPrivateFields.setPalyerStance(stance);
                         }
                         else
                         {
@@ -794,7 +789,7 @@ namespace SpeedMann.PvPRework
         }
         private void linkEvents()
         {
-            StanceHandler.OnStanceChanged += OnStanceChanged;
+            StanceHandler.OnPreStanceChange += OnStanceChanged;
 
             DamageTool.damagePlayerRequested += DamagePlayerRequested;
             UnturnedPatches.OnPreDisconnectSave += OnPrePlayerDisconnect;

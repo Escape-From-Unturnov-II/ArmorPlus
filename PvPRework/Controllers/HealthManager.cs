@@ -43,7 +43,12 @@ namespace SpeedMann.PvPRework.Controllers
 
             DrugEffectControler.Init(Conf);
         }
-
+        internal static void Cleanup()
+        {
+            betterMedDict.Clear();
+            bodyPartOrder.Clear();
+            DrugEffectControler.Cleanup();
+        }
         internal static void Update()
         {
             // add health changes

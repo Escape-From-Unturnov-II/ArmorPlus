@@ -23,7 +23,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         internal RegenEffect(Player player, float effectDuration, float effectDelay, int change, float interval, DrugEffectType type) : base(player, effectDuration, effectDelay)
         {
             this.type = type;
-            this.change = change;
+            this.change = change > 0 ? change : 1;
             this.interval = interval > 0 ? interval : 1;
         }
 
