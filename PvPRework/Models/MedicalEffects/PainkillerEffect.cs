@@ -38,6 +38,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         protected override void startInner()
         {
             active = true;
+            gotDamaged = false;
             isSprinting = player.stance.stance == EPlayerStance.SPRINT;
             legsBroken = player.life.isBroken;
             player.life.serverSetLegsBroken(false);
@@ -45,8 +46,10 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture += triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken += fractureChanged;
             StanceHandler.OnPostStanceChange += stanceChanged;
-            
-            player.StartCoroutine(sprintDamage());
+            UnturnedPatches.OnPreLanded += checkLanding;
+
+
+            player.StartCoroutine(sprintDamageCheck());
         }
 
         protected override void stopInner()
@@ -54,6 +57,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture -= triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken -= fractureChanged;
             StanceHandler.OnPostStanceChange -= stanceChanged;
+            UnturnedPatches.OnPreLanded -= checkLanding;
 
             player.life.serverSetLegsBroken(legsBroken);
             isSprinting = false;
@@ -61,9 +65,8 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         }
         private void stanceChanged(EPlayerStance newStance)
         {
-
             isSprinting = newStance == EPlayerStance.SPRINT;
-            checkDamagePlayer();
+            checkSprintDamage();
         }
         private void fractureChanged(UnturnedPlayer player, bool wasFractured)
         {
@@ -77,22 +80,33 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         {
             legsBroken = false;
         }
-        private IEnumerator sprintDamage()
+        private IEnumerator sprintDamageCheck()
         {
             while (active && player?.life != null)
             {
-                checkDamagePlayer();
+                checkSprintDamage();
 
                 yield return new WaitForSecondsRealtime(interval);
                 gotDamaged = false;
             }
         }
-        private void checkDamagePlayer()
+        private void checkLanding(PlayerLife life, float velocity)
+        {
+           if(!legsBroken || !life.player.channel.owner.playerID.steamID.Equals(steamID))
+                return;
+
+           causeFractureDamage(damage);
+        }
+        private void checkSprintDamage()
         {
             if (gotDamaged || !legsBroken || !isSprinting)
                 return;
 
             gotDamaged = true;
+            causeFractureDamage(damage);
+        }
+        private void causeFractureDamage(float damage)
+        {
             DamagePlayerParameters parameters = new DamagePlayerParameters(player);
             parameters.cause = EDeathCause.BONES;
             parameters.limb = ELimb.LEFT_LEG;
@@ -101,7 +115,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             parameters.applyGlobalArmorMultiplier = false;
 
             DamageTool.damagePlayer(parameters, out EPlayerKill _);
-            UnturnedPrivateFields.trySendDamagedEvent(player.life, flinchAmount, Vector3.left);
+            HealthManager.causeFlinching(player.life, flinchAmount);
         }
     }
 }

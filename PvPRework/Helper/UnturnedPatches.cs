@@ -86,6 +86,10 @@ namespace SpeedMann.PvPRework
         public delegate void PrePlayerDamaged(PlayerLife playerLife, ref byte amount, EDeathCause cause, ref ELimb limb, CSteamID killer, ref bool canCauseBleeding, ref bool shouldAllow);
         public static event PrePlayerDamaged OnPrePlayerDamaged;
 
+        public delegate void PreLanded(PlayerLife playerLife, float velocity);
+        public static event PreLanded OnPreLanded;
+        
+
         public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
         public static event PreDisconnectSave OnPreDisconnectSave;
         #endregion
@@ -153,6 +157,16 @@ namespace SpeedMann.PvPRework
                 bool shouldAllow = true;
                 OnPrePlayerDamaged?.Invoke(__instance, ref amount, newCause, ref newLimb, newKiller, ref canCauseBleeding, ref shouldAllow);
                 return shouldAllow;
+            }
+        }
+        [HarmonyPatch(typeof(PlayerLife), "onLanded")]
+        class Landed
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreLandedInvoker(PlayerLife __instance, float velocity)
+            {
+                OnPreLanded?.Invoke(__instance, velocity);
+                return true;
             }
         }
         // Hit Zones

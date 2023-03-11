@@ -1,6 +1,7 @@
 ﻿using Rocket.Core.Logging;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
 using SpeedMann.PvPRework.UI;
@@ -10,11 +11,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Controllers
 {
     internal class HealthManager
     {
+        public enum BodyPart
+        {
+            Head,
+            Chest,
+            Stomach,
+            ArmLeft,
+            ArmRight,
+            LegRight,
+            LegLeft,
+        }
+
         public delegate void TriedHealingFracture();
         public static event TriedHealingFracture OnTriedHealingFracture;
         internal static HealthManagerConfig Conf { get; private set; }
@@ -25,10 +39,10 @@ namespace SpeedMann.PvPRework.Controllers
         private static int maxArmHealth = 60;
         private static int maxLegHealth = 65;
         private static float blackedMulti = 1.3f;
+
         private static List<BodyPart> bodyPartOrder;
         private static List<BodyPart> fractureableBodyPartOrder;
         private static Dictionary<ushort, MedicalExtension> betterMedDict;
-        
 
         internal static void Init(HealthManagerConfig conf)
         {
@@ -158,7 +172,7 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 if (status.vanillaBleeding)
                 {
-                    stopBleed(player, false);
+                    removeBleed(player, false);
                 }
                 else
                 {
@@ -256,7 +270,7 @@ namespace SpeedMann.PvPRework.Controllers
                 HealthUIHandler.updateHealthUI(player.CSteamID, status);
             } 
         }
-        internal static void stopBleed(UnturnedPlayer player, bool heavy = false, bool updateUI = true)
+        internal static void removeBleed(UnturnedPlayer player, bool heavy = false, bool updateUI = true)
         {
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
@@ -420,6 +434,14 @@ namespace SpeedMann.PvPRework.Controllers
 
             HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
+        internal static void causeFlinching(PlayerLife playerLife, byte flinchAmount)
+        {
+            causeFlinching(playerLife, flinchAmount, Vector3.left);
+        }
+        internal static void causeFlinching(PlayerLife playerLife, byte flinchAmount, Vector3 direction)
+        {
+            UnturnedPrivateFields.trySendDamagedEvent(playerLife, flinchAmount, direction);
+        }
         private static void damageRemainingBodyParts(HealthStatus status, List<BodyPart> bodyParts, int totalDamage, out bool dead, bool directHit = true)
         {
             dead = false;
@@ -438,6 +460,7 @@ namespace SpeedMann.PvPRework.Controllers
             dead = dead || remainingDamage > 0;
         }
         #endregion
+        #region HelperFunctions
         private static HealthStatus resetHealthStatus(UnturnedPlayer player)
         {
             HealthStatus newStatus = new HealthStatus(blackedMulti, maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth);
@@ -493,15 +516,6 @@ namespace SpeedMann.PvPRework.Controllers
             }
         }
         // this order is important for damage and heal order
-        public enum BodyPart
-        {
-            Head,
-            Chest,
-            Stomach,
-            ArmLeft,
-            ArmRight,
-            LegRight,
-            LegLeft,
-        }
+        #endregion
     }
 }
