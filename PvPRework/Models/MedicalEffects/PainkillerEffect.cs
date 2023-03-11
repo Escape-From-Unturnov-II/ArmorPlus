@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static System.Net.Mime.MediaTypeNames;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Models.MedicalEffects
@@ -20,20 +21,18 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
     internal class PainkillerEffect : MedicalEffect
     {
         private CSteamID steamID;
-        private int damage;
-        private float interval;
-        private byte flinchAmount;
+        private PainkillerConfig config;
 
         private bool legsBroken = false;
         private bool isSprinting = false;
         private bool gotDamaged = false;
         private bool active = false;
-        internal PainkillerEffect(Player player, float effectDuration, float effectDelay, int change, float interval, byte flinchAmount) : base(player, effectDuration, effectDelay)
+        private float currentFallDamage = 0;
+        internal PainkillerEffect(Player player, float effectDuration, float effectDelay, PainkillerConfig config) : base(player, effectDuration, effectDelay)
         {
             steamID = player.channel.owner.playerID.steamID;
-            damage = change;
-            this.flinchAmount = flinchAmount;
-            this.interval = interval > 0 ? interval : 1;
+            this.config = config;
+            this.config.FractureRunningDamageInterval = config.FractureRunningDamageInterval > 0 ? config.FractureRunningDamageInterval : 1;
         }
         protected override void startInner()
         {
@@ -46,7 +45,8 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture += triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken += fractureChanged;
             StanceHandler.OnPostStanceChange += stanceChanged;
-            UnturnedPatches.OnPreLanded += checkLanding;
+            UnturnedPatches.OnPreLanded += preLanding;
+            player.life.OnFallDamageRequested += onVanillaFallDamage;
 
 
             player.StartCoroutine(sprintDamageCheck());
@@ -57,7 +57,8 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture -= triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken -= fractureChanged;
             StanceHandler.OnPostStanceChange -= stanceChanged;
-            UnturnedPatches.OnPreLanded -= checkLanding;
+            UnturnedPatches.OnPreLanded -= preLanding;
+            UnturnedPatches.OnPostLanded -= postLanding;
 
             player.life.serverSetLegsBroken(legsBroken);
             isSprinting = false;
@@ -86,16 +87,41 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             {
                 checkSprintDamage();
 
-                yield return new WaitForSecondsRealtime(interval);
+                yield return new WaitForSecondsRealtime(config.FractureRunningDamageInterval);
                 gotDamaged = false;
             }
         }
-        private void checkLanding(PlayerLife life, float velocity)
+        private void preLanding(PlayerLife life, float velocity)
         {
-           if(!legsBroken || !life.player.channel.owner.playerID.steamID.Equals(steamID))
+            velocity = -velocity;
+            if (velocity > config.FractureLandingMaxVelocity || !legsBroken || !life.player.channel.owner.playerID.steamID.Equals(steamID))
                 return;
 
-           causeFractureDamage(damage);
+            float damage = config.FractureLandingBaseDamage * (velocity / config.FractureLandingVelocitySteps);
+            currentFallDamage = damage;
+        }
+        private void onVanillaFallDamage(PlayerLife life, float velocity, ref float damage, ref bool shouldBreakLegs)
+        {
+            if (!life.player.channel.owner.playerID.steamID.Equals(steamID))
+                return;
+
+            if(currentFallDamage > damage)
+            {
+                damage = currentFallDamage;
+                currentFallDamage = 0;
+            }
+        }
+        private void postLanding(PlayerLife life)
+        {
+            if (!life.player.channel.owner.playerID.steamID.Equals(steamID))
+                return;
+
+            if (currentFallDamage > 0)
+            {
+                causeFractureDamage(currentFallDamage);
+            }
+            
+            currentFallDamage = 0;
         }
         private void checkSprintDamage()
         {
@@ -103,7 +129,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
                 return;
 
             gotDamaged = true;
-            causeFractureDamage(damage);
+            causeFractureDamage(config.FractureRunningDamage);
         }
         private void causeFractureDamage(float damage)
         {
@@ -115,7 +141,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             parameters.applyGlobalArmorMultiplier = false;
 
             DamageTool.damagePlayer(parameters, out EPlayerKill _);
-            HealthManager.causeFlinching(player.life, flinchAmount);
+            HealthManager.causeFlinching(player.life, config.FractureDamageFlinch);
         }
     }
 }

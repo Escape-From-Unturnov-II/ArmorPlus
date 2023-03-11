@@ -96,6 +96,7 @@
     <Compile Include="Models\MedicalEffects\PreventiveEffect.cs" />
     <Compile Include="Models\MedicalEffects\SkillEffect.cs" />
     <Compile Include="Models\MedicalEffects\RegenEffect.cs" />
+    <Compile Include="Models\Config\PainkillerConfig.cs" />
     <Compile Include="Models\SkillTypes.cs" />
     <Compile Include="Models\UI\HeathUIState.cs" />
     <Compile Include="UI\ClothingEffectHandler.cs" />

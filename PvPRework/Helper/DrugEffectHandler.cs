@@ -135,7 +135,7 @@ namespace SpeedMann.PvPRework.Helper
                     effect = new PreventiveEffect(_player, config.Duration, config.StartDelay, config.Type);
                     return true;
                 case DrugEffectType.Painkiller:
-                    effect = new PainkillerEffect(_player, config.Duration, config.StartDelay, DrugEffectControler.Conf.FractureRunningDamage, DrugEffectControler.Conf.FractureRunningDamageInterval, DrugEffectControler.Conf.FractureRunningFlinch);
+                    effect = new PainkillerEffect(_player, config.Duration, config.StartDelay, DrugEffectControler.Conf.PainkillerConfig);
                     return true;
                 case DrugEffectType.StaminaRegen:
                 case DrugEffectType.HealthRegen:

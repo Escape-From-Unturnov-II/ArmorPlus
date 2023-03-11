@@ -79,7 +79,6 @@ namespace SpeedMann.PvPRework
 
         public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
         public static event PreVisionChanged OnPreVisionChanged;
-
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
 
@@ -88,7 +87,10 @@ namespace SpeedMann.PvPRework
 
         public delegate void PreLanded(PlayerLife playerLife, float velocity);
         public static event PreLanded OnPreLanded;
+        public delegate void PostLanded(PlayerLife playerLife);
+        public static event PostLanded OnPostLanded;
         
+
 
         public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
         public static event PreDisconnectSave OnPreDisconnectSave;
@@ -163,10 +165,16 @@ namespace SpeedMann.PvPRework
         class Landed
         {
             [HarmonyPrefix]
-            internal static bool OnPreLandedInvoker(PlayerLife __instance, float velocity)
+            internal static bool OnPreLandedInvoker(PlayerLife __instance, float velocity, out PlayerLife __state)
             {
+                __state = __instance;
                 OnPreLanded?.Invoke(__instance, velocity);
                 return true;
+            }
+            [HarmonyPostfix]
+            internal static void OnPostLandedInvoker(PlayerLife __state)
+            {
+                OnPostLanded?.Invoke(__state);
             }
         }
         // Hit Zones
