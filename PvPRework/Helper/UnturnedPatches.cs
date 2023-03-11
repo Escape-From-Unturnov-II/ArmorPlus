@@ -79,6 +79,7 @@ namespace SpeedMann.PvPRework
 
         public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
         public static event PreVisionChanged OnPreVisionChanged;
+
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
 
@@ -168,6 +169,7 @@ namespace SpeedMann.PvPRework
             internal static bool OnPreLandedInvoker(PlayerLife __instance, float velocity, out PlayerLife __state)
             {
                 __state = __instance;
+
                 OnPreLanded?.Invoke(__instance, velocity);
                 return true;
             }

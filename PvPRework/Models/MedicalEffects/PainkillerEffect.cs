@@ -99,7 +99,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
                 return;
 
             velocity = -velocity;
-            if (velocity > config.FractureLandingMaxVelocity)
+            if (velocity < config.FractureLandingMaxVelocity)
                 return;
 
            
