@@ -64,7 +64,8 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 Logger.LogError($"player {player.CSteamID} has no drug effect handler");
                 ConsumeableEffectHandlers.Remove(player.CSteamID);
-                ConsumeableEffectHandlers.Add(player.CSteamID, new DrugEffectHandler(player.Player, Conf.UseUI));
+                drugEffectHandler = new DrugEffectHandler(player.Player, Conf.UseUI);
+                ConsumeableEffectHandlers.Add(player.CSteamID, drugEffectHandler);
             }
 
             drugEffectHandler.startDrugEffects(itemId, effectConfigs);

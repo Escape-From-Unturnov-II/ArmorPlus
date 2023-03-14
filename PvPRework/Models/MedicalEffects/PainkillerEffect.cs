@@ -45,6 +45,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture += triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken += fractureChanged;
             StanceHandler.OnPostStanceChange += stanceChanged;
+            //TODO: move landing handler to HealthManager to also damage if painkillers are not active
             UnturnedPatches.OnPreLanded += preLanding;
             player.life.OnFallDamageRequested += onVanillaFallDamage;
             UnturnedPatches.OnPostLanded += postLanding;
@@ -58,6 +59,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             HealthManager.OnTriedHealingFracture -= triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken -= fractureChanged;
             StanceHandler.OnPostStanceChange -= stanceChanged;
+            
             UnturnedPatches.OnPreLanded -= preLanding;
             player.life.OnFallDamageRequested -= onVanillaFallDamage;
             UnturnedPatches.OnPostLanded -= postLanding;
