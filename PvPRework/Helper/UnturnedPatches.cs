@@ -90,8 +90,11 @@ namespace SpeedMann.PvPRework
         public static event PreLanded OnPreLanded;
         public delegate void PostLanded(PlayerLife playerLife);
         public static event PostLanded OnPostLanded;
-        
 
+        public delegate void PreAttachMagazine(UseableGun gun, byte page, byte x, byte y, byte[] hash);
+        public static event PreAttachMagazine OnPreAttachMagazine;
+        public delegate void PostAttachMagazine(UseableGun gun);
+        public static event PostAttachMagazine OnPostAttachMagazine;
 
         public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
         public static event PreDisconnectSave OnPreDisconnectSave;
@@ -217,7 +220,7 @@ namespace SpeedMann.PvPRework
                 OnPostVisualToggle?.Invoke(__state.playerClothing, __state.type, __state.toggle);
             }
         }
-
+        // Pre Player Save
         [HarmonyPatch(typeof(SaveManager), "onServerDisconnected")]
         class DisconnectSave
         {
@@ -229,7 +232,23 @@ namespace SpeedMann.PvPRework
                 return shouldAllow;
             }
         }
-
+        // Attach magazine
+        [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine), new Type[] { typeof(byte), typeof(byte), typeof(byte), typeof(byte[]) })]
+        class ReceiveAttachMagazinePatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreAttachMagazineInvoker(UseableGun __instance, byte page, byte x, byte y, byte[] hash, out UseableGun __state)
+            {
+                OnPreAttachMagazine?.Invoke(__instance, page, x, y, hash);
+                __state = __instance;
+                return true;
+            }
+            [HarmonyPostfix]
+            internal static void OnPostAttachMagazineInvoker(UseableGun __state)
+            {
+                OnPostAttachMagazine?.Invoke(__state);
+            }
+        }
         #region UI Patches
         [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearHat), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]), typeof(bool) })]
         class PlayerWearHatPatch

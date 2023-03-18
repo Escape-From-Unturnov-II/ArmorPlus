@@ -62,6 +62,7 @@ namespace SpeedMann.PvPRework
         public List<VestExtension> VestExtensions = new List<VestExtension>();
         public List<GunExtension> GunExtensions = new List<GunExtension>();
         public List<Caliber> BulletCalibers = new List<Caliber>();
+        public List<ItemExtension> InternalMagCompatibleAmmo = new List<ItemExtension>();
         [XmlArrayItem(ElementName = "HelmetCycle")]
         public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>();
         [XmlArrayItem(ElementName = "SightCycle")]
@@ -1729,6 +1730,7 @@ namespace SpeedMann.PvPRework
             addNames(VestExtensions);
             addNames(GunExtensions);
             addNames(MaskExtensions);
+            addNames(InternalMagCompatibleAmmo);
 
             if (HealthManager?.BetterMeds != null)
             {
@@ -1763,11 +1765,15 @@ namespace SpeedMann.PvPRework
         {
             foreach (T itemExtension in itemExtensions)
             {
-                ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, itemExtension.Id);
-                if (itemAsset != null)
-                {
-                    itemExtension.Name = itemAsset.name;
-                }
+                addName(itemExtension);
+            }
+        }
+        private void addName<T>(T itemExtension) where T : ItemExtension
+        {
+            ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, itemExtension.Id);
+            if (itemAsset != null)
+            {
+                itemExtension.Name = itemAsset.name;
             }
         }
     }

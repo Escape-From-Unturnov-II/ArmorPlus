@@ -110,7 +110,7 @@ namespace SpeedMann.PvPRework
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
 
-            if (ModsLoaded)
+            if (Level.isLoaded)
             {
                 Init();
             }
@@ -120,9 +120,13 @@ namespace SpeedMann.PvPRework
         {
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
 
-            if (ModsLoaded)
+            // cleanup
+            UnturnedPatches.Cleanup();
+            HealthManager.Cleanup();
+            InternalMagControler.Cleanup();
+
+            if (!Level.isLoaded)
             {
-                
                 StanceHandler.OnPreStanceChange -= OnStanceChanged;
 
                 DamageTool.damagePlayerRequested -= DamagePlayerRequested;
@@ -142,7 +146,7 @@ namespace SpeedMann.PvPRework
                 {
                     UnturnedPatches.OnPostVisualToggle -= OnVisualToggle;
                 }
-
+                // Consume
                 UseableConsumeable.onConsumePerformed -= OnConsumed;
                 UseableConsumeable.onPerformingAid -= OnAid;
 
@@ -155,13 +159,19 @@ namespace SpeedMann.PvPRework
                 PlayerLife.onPlayerDied -= OnPlayerDeath;
                 UnturnedPlayerEvents.OnPlayerDead -= OnPlayerDead;
 
+                UnturnedPatches.OnPreAttachMagazine -= OnPreAttachMag;
+                UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
+                UnturnedPatches.OnPostAttachMagazine -= OnPostAttachMag;
+
                 // health
                 UnturnedPatches.OnPrePlayerDamaged -= OnPlayerDamaged;
                 PlayerLife.OnTellBroken_Global -= OnBreakBones;
                 PlayerLife.OnTellBleeding_Global -= OnStartBleeding;
 
+                // cleanup
                 UnturnedPatches.Cleanup();
                 HealthManager.Cleanup();
+                InternalMagControler.Cleanup();
             }
         }
         private void OnPreLevelLoaded(int level)
@@ -174,6 +184,7 @@ namespace SpeedMann.PvPRework
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             HealthManager.Init(Conf.HealthManager);
+            InternalMagControler.Init(Conf.GunExtensions, Conf.InternalMagCompatibleAmmo);
             
 
             Conf.addNames();
@@ -233,6 +244,7 @@ namespace SpeedMann.PvPRework
             }
             HealthManager.OnPlayerDisconnected(player);
             InputHandler.removePlayerEntry(player.CSteamID);
+            InternalMagControler.OnPlayerDisconnected(player);
         }
         private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
         {
@@ -458,6 +470,18 @@ namespace SpeedMann.PvPRework
 
                 playerHits.Add(new PlayerHit(inputInfo));
             }
+        }
+        private void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
+        {
+            InternalMagControler.OnPreAttachMag(gun, page, x, y, hash);
+        }
+        private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
+        {
+            InternalMagControler.OnChangeMagazine(equipment, gun, oldItem, newItem, ref shouldAllow);
+        }
+        private void OnPostAttachMag(UseableGun gun)
+        {
+            InternalMagControler.OnPostAttachMag(gun);
         }
         private void OnAddItem(UnturnedPlayer player, Items page, Item item, ref bool shouldAllow)
         {
@@ -771,18 +795,20 @@ namespace SpeedMann.PvPRework
             {
                 foreach (T itemExtension in itemExtensions)
                 {
-                    if (itemExtension.Id == 0)
+                    if (itemExtension == null || itemExtension.Id == 0)
+                    {
+                        Logger.LogWarning("Item was null or had Id 0 and was skipped");
                         continue;
+                    }
+                        
 
                     if (itemExtensionsDict.ContainsKey(itemExtension.Id))
                     {
                         Logger.LogWarning("Item with Id:" + itemExtension.Id +" is a duplicate!");
+                        continue;
                     }
-                    else
-                    {
-                        itemExtensionsDict.Add(itemExtension.Id, itemExtension);
-                    }
-                    
+
+                    itemExtensionsDict.Add(itemExtension.Id, itemExtension);
                 }
             }
             return itemExtensionsDict;
@@ -814,6 +840,7 @@ namespace SpeedMann.PvPRework
                 UnturnedPatches.OnPostVisualToggle += OnVisualToggle;
             }
 
+            // Consume
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
 
@@ -825,6 +852,10 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
+
+            UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
+            UseableGun.onChangeMagazineRequested += OnChangeMagazine;
+            UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
 
             // health
             UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;

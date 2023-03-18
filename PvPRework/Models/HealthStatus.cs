@@ -15,13 +15,16 @@ namespace SpeedMann.PvPRework.Models
         private int maxLightBleedsPerBodyPart = 3;
         private int maxHeavyBleedsPerBodyPart = 1;
         private int maxHealth = 0;
-        internal bool vanillaBrokenLimb = false;
+        internal bool vanillaLegsBroken = false;
         internal bool vanillaBleeding = false;
+        internal uint painkillerEffectCount = 0;
 
         private Dictionary<BodyPart, BodyPartStatus> bodyParts = new Dictionary<BodyPart, BodyPartStatus>();
 
-        internal HealthStatus(float blackedDamageMultiplier, int headHealth, int chestHealth, int somachHealth, int armHealth, int legHealth)
+        internal HealthStatus(float blackedDamageMultiplier, int headHealth, int chestHealth, int somachHealth, int armHealth, int legHealth, bool vanillaLegsBroken, bool vanillaBleeding)
         {
+            this.vanillaBleeding = vanillaBleeding;
+            this.vanillaLegsBroken = vanillaLegsBroken;
             this.blackedDamageMultiplier = blackedDamageMultiplier;
             foreach (BodyPart bodyPart in BodyPart.GetValues(typeof(BodyPart)))
             {
@@ -248,7 +251,6 @@ namespace SpeedMann.PvPRework.Models
             }
             return false;
         }
-
 
         internal class BodyPartStatus
         {

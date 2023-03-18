@@ -59,6 +59,7 @@ namespace SpeedMann.PvPRework.Models
         {
             yield return new WaitForSecondsRealtime(delay);
             coroutine = start();
+            player.StartCoroutine(coroutine);
         }
     }
 }

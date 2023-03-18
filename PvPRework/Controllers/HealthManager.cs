@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.TouchScreenKeyboard;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Controllers
@@ -43,11 +44,13 @@ namespace SpeedMann.PvPRework.Controllers
         private static List<BodyPart> bodyPartOrder;
         private static List<BodyPart> fractureableBodyPartOrder;
         private static Dictionary<ushort, MedicalExtension> betterMedDict;
+        private static Dictionary<CSteamID, HealthStatus> healthStatusOfPlayers;
 
         internal static void Init(HealthManagerConfig conf)
         {
             Conf = conf;
             betterMedDict = PvPRework.createDictionaryFromItemExtensions(Conf.BetterMeds);
+            healthStatusOfPlayers = new Dictionary<CSteamID, HealthStatus>();
             bodyPartOrder = new List<BodyPart>();
             foreach (BodyPart part in BodyPart.GetValues(typeof(BodyPart)))
             {
@@ -68,8 +71,6 @@ namespace SpeedMann.PvPRework.Controllers
             // add health changes
             // store cahnged data in db
         }
-
-        private static Dictionary<CSteamID, HealthStatus> healthStatusOfPlayers = new Dictionary<CSteamID, HealthStatus>();
 
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -137,6 +138,7 @@ namespace SpeedMann.PvPRework.Controllers
         {
             if (!newHelthSystem)
                 return;
+
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
             if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
             {
@@ -144,9 +146,9 @@ namespace SpeedMann.PvPRework.Controllers
                 return;
             }
 
-            if(status.vanillaBrokenLimb != playerLife.isBroken)
+            if(status.vanillaLegsBroken != playerLife.isBroken)
             {
-                if (status.vanillaBrokenLimb)
+                if (status.vanillaLegsBroken)
                 {
                     removeFracture(player, true);
                 }
@@ -155,7 +157,7 @@ namespace SpeedMann.PvPRework.Controllers
                     addFracture(player, BodyPart.LegLeft, false);
                     addFracture(player, BodyPart.LegRight, true);
                 }
-                status.vanillaBrokenLimb = !status.vanillaBrokenLimb;
+                status.vanillaLegsBroken = playerLife.isBroken;
             }
         }
         internal static void bleedCheck(PlayerLife playerLife)
@@ -434,6 +436,18 @@ namespace SpeedMann.PvPRework.Controllers
 
             HealthUIHandler.updateHealthUI(player.CSteamID, status);
         }
+        internal static void setVanillaFracture(PlayerLife playerLife, bool fractured)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+            if (!healthStatusOfPlayers.TryGetValue(player.CSteamID, out HealthStatus status))
+            {
+                Logger.LogError($"no player health status for {player.CSteamID}");
+                return;
+            }
+
+            status.vanillaLegsBroken = fractured;
+            playerLife.serverSetLegsBroken(fractured);
+        }
         internal static void causeFlinching(PlayerLife playerLife, byte flinchAmount)
         {
             causeFlinching(playerLife, flinchAmount, Vector3.left);
@@ -463,9 +477,7 @@ namespace SpeedMann.PvPRework.Controllers
         #region HelperFunctions
         private static HealthStatus resetHealthStatus(UnturnedPlayer player)
         {
-            HealthStatus newStatus = new HealthStatus(blackedMulti, maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth);
-            newStatus.vanillaBleeding = player.Player.life.isBleeding;
-            newStatus.vanillaBrokenLimb = player.Player.life.isBroken;
+            HealthStatus newStatus = new HealthStatus(blackedMulti, maxHeadHealth, maxChestHealth, maxStomachHealth, maxArmHealth, maxLegHealth, player.Player.life.isBroken, player.Player.life.isBleeding);
             if (healthStatusOfPlayers.ContainsKey(player.CSteamID))
             {
                 healthStatusOfPlayers[player.CSteamID] = newStatus;
@@ -515,7 +527,7 @@ namespace SpeedMann.PvPRework.Controllers
                 instigator.inventory.removeItem(page, index);
             }
         }
-        // this order is important for damage and heal order
+
         #endregion
     }
 }
