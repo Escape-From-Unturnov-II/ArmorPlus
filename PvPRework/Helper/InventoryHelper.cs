@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Rocket.API;
+using Rocket.Core.Assets;
 using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
 using Rocket.Unturned.Chat;
@@ -143,6 +144,14 @@ namespace SpeedMann.PvPRework.Helper
             return equals;
 
 
+        }
+        public static void safeAddItemAmountWithStacking(Player player, Item item, int amount, byte maxAmount)
+        {
+            addItemAmountWithStackingInner(player, item.id, 255, 0, 0, 0, amount, maxAmount);
+        }
+        public static void safeAddItemAmountWithStacking(Player player, ItemJar itemJar, byte page, int amount, byte maxAmount)
+        {
+            addItemAmountWithStackingInner(player, itemJar.item.id, page, itemJar.x, itemJar.y, itemJar.rot, amount, maxAmount);
         }
         public static int safeAddItemAmount(Player player, ItemJar itemJar, byte page, int amount, byte maxAmount)
         {
@@ -397,6 +406,42 @@ namespace SpeedMann.PvPRework.Helper
                 player.Inventory.items[2].resize(oldWidth, oldHeight);
             }
             return returnv;
+        }
+        private static void addItemAmountWithStackingInner(Player player, ushort itemId, byte page, byte x, byte y, byte rot, int amount, byte maxAmount)
+        {
+            // refill ammo stacks
+            int remainder = amount;
+            findAmmo(player.inventory, itemId, out List<InventorySearch> searchResult);
+            foreach (var result in searchResult)
+            {
+                if (remainder <= 0)
+                    break;
+                remainder = safeAddItemAmount(player, result.jar, result.page, amount, maxAmount);
+            }
+            while (remainder > 0)
+            {
+                // give remaining ammo
+                byte newAmount;
+                if (remainder > maxAmount)
+                {
+                    newAmount = maxAmount;
+                    remainder -= maxAmount;
+                }
+                else
+                {
+                    newAmount = (byte)remainder;
+                    remainder = 0;
+                }
+                Item remainingItem = new Item(itemId, newAmount, (byte)100);
+                if(page != 255)
+                {
+                    safeAddItem(player, remainingItem, page, x, y, rot);
+                }
+                else
+                {
+                    player.inventory.forceAddItem(remainingItem, false);
+                }
+            }
         }
         public enum StorageType
         {

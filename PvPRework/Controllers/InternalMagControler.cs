@@ -1,4 +1,5 @@
-﻿using Rocket.Unturned.Player;
+﻿using Rocket.Core.Assets;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models;
@@ -126,27 +127,7 @@ namespace SpeedMann.PvPRework.Controllers
             if (reloadState.oldMag == null)
                 return;
 
-            // give old mag
-            if (reloadState.reloaded)
-            {
-                ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.oldMag.id) as ItemMagazineAsset;
-                if (reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && (magAsset == null || !magAsset.deleteEmpty)))
-                {
-                    player.GiveItem(reloadState.oldMag);
-                    if(Debug)
-                        Logger.Log($"added old mag to inventory id: {reloadState.oldMag.id} amount: {reloadState.oldMag.amount}");
-                }
-                else
-                {
-                    Logger.Log($"Empty old mag {reloadState.oldMag.id} amount: {reloadState.oldMag.amount} was removed");
-                }
-                return;
-            }
-
-            // reset old mag
-            InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
-            if (Debug)
-                Logger.Log($"restored old mag id: {reloadState.oldMag.id} amount: {reloadState.oldMag.amount}");
+            handleOldMagUnloading(player.Player, gun, reloadState.oldMag, reloadState.reloaded, reloadState.newMag?.itemJar == null);
         }
         #region Helper Functions
         private static void handleInternalMagazineReload(UnturnedPlayer player, InternalMagReloadState reloadState, byte internalMagazineSize)
@@ -197,6 +178,10 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 item = itemJarWrapper.itemJar.item;
             }
+            else
+            {
+                itemJarWrapper.itemJar = new ItemJar(itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.itemJar.rot, item);
+            }
             ItemAsset asset = Assets.find(EAssetType.ITEM, item.id) as ItemAsset;
             if (asset == null)
             {
@@ -206,31 +191,40 @@ namespace SpeedMann.PvPRework.Controllers
             if (Debug)
                 Logger.Log($"adding remaining ammo to inventory id: {item.id} amount: {remainder}");
 
-            // refill ammo stacks
-            InventoryHelper.findAmmo(player.Inventory, item.id, out List<InventorySearch> searchResult);
-            foreach (var result in searchResult)
+            InventoryHelper.safeAddItemAmountWithStacking(player.Player, itemJarWrapper.itemJar, itemJarWrapper.page, remainder, asset.amount);
+        }
+        private static void handleOldMagUnloading(Player player, UseableGun gun, Item oldMag, bool didReload, bool wasUnload)
+        {
+
+            if (!didReload)
             {
-                if (remainder <= 0)
-                    break;
-                remainder = InventoryHelper.safeAddItemAmount(player.Player, result.jar, result.page, remainder, asset.amount);
+                // reset old mag
+                InventoryHelper.setMagForGun(player.equipment, oldMag);
+                if (Debug)
+                    Logger.Log($"Restored old mag id: {oldMag.id} amount: {oldMag.amount}");
+                return;
             }
-            while (remainder > 0)
+
+            // give old mag
+            ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, oldMag.id) as ItemMagazineAsset;
+            if (oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && (magAsset == null || !magAsset.deleteEmpty)))
             {
-                // give remaining ammo
-                byte newAmount;
-                if (remainder > asset.amount)
+                if (wasUnload)
                 {
-                    newAmount = asset.amount;
-                    remainder -= asset.amount;
+                    Item item = ItemReplacer.replaceItem(oldMag);
+                    if (item == null)
+                    {
+                        // refill ammo stacks
+                        InventoryHelper.safeAddItemAmountWithStacking(player, oldMag, oldMag.amount, magAsset.amount);
+                    }
                 }
-                else
-                {
-                    newAmount = (byte)remainder;
-                    remainder = 0;
-                }
-                Item remainingItem = new Item(item.id, newAmount, item.quality);
-                InventoryHelper.safeAddItem(player.Player, remainingItem, itemJarWrapper.page, itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.itemJar.rot);
+                player.inventory.forceAddItem(oldMag, false);
+                if (Debug)
+                    Logger.Log($"Added old mag to inventory id: {oldMag.id} amount: {oldMag.amount}");
             }
+            else if (Debug)
+                Logger.Log($"Empty old mag {oldMag.id} amount: {oldMag.amount} was removed");
+
         }
         internal static Dictionary<ushort, Dictionary<ushort, ushort>> createDictionaryForInternalMagAmmoToGun(List<InternalMagAmmoStack> ammoStacks, out Dictionary<ushort, bool> gunsWithInternalMags)
         {
