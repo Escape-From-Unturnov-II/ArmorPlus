@@ -144,6 +144,12 @@ namespace SpeedMann.PvPRework.Helper
 
 
         }
+        public static int safeAddItemAmount(Player player, ItemJar itemJar, byte page, int amount, byte maxAmount)
+        {
+            int remainder = safeAddItemAmount(itemJar.item, amount, maxAmount);
+            player.inventory.sendUpdateAmount(page, itemJar.x, itemJar.y, itemJar.item.amount);
+            return remainder;
+        }
         public static int safeAddItemAmount(Item item, int amount)
         {
             ItemAsset asset = Assets.find(EAssetType.ITEM, item.id) as ItemAsset;
@@ -165,9 +171,14 @@ namespace SpeedMann.PvPRework.Helper
             item.amount = (byte)total;
             return 0;
         }
-        public static ushort findAmmo(PlayerInventory inventory, ushort itemId, out List<InventorySearch> foundAmmo)
+        public static bool findAmmo(PlayerInventory inventory, ushort itemId, out List<InventorySearch> foundAmmo)
         {
-            ushort amount = 0;
+            foundAmmo = inventory.search(itemId, false, true);
+            return foundAmmo.Count > 0;
+        }
+        public static int findAmmoCount(PlayerInventory inventory, ushort itemId, out List<InventorySearch> foundAmmo)
+        {
+            byte amount = 0;
             foundAmmo = inventory.search(itemId, false, true);
             foreach (InventorySearch search in foundAmmo)
             {

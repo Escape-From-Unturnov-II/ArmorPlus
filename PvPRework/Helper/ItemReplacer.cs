@@ -10,14 +10,31 @@ namespace SpeedMann.PvPRework.Helper
 {
     public class ItemReplacer
     {
+        private static Dictionary<ushort, bool> ExistingReplacementsResults;
         private static Dictionary<ushort, ItemReplaceInfo> Replacement;
         public static void Init(List<ItemReplaceInfo> replacements)
         {
-            Replacement = createReplacementDictionary(replacements);
+            Replacement = createReplacementDictionary(replacements, out var existingReplacements);
+            ExistingReplacementsResults = existingReplacements;
         }
         public static void Cleanup()
         {
             Replacement.Clear();
+            ExistingReplacementsResults.Clear();
+        }
+        public static bool tryAddReplacement(ushort replaceTragetId, ushort replaceResultId, ReplaceType amountReplace, ReplaceType durabilityReplace)
+        {
+            if(replaceTragetId == 0 || 
+                replaceResultId == 0 ||
+                replaceResultId == replaceTragetId ||
+                Replacement.ContainsKey(replaceTragetId) ||
+                ExistingReplacementsResults.ContainsKey(replaceTragetId))
+            {
+                return false;
+            }
+            
+            Replacement.Add(replaceTragetId, new ItemReplaceInfo(replaceResultId, amountReplace, durabilityReplace));
+            return true;
         }
         public static void checkReplaceItem(Player player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
@@ -74,54 +91,54 @@ namespace SpeedMann.PvPRework.Helper
             return originalAmount;
         }
         #region Helper Functions
-        internal static Dictionary<ushort, ItemReplaceInfo> createReplacementDictionary(List<ItemReplaceInfo> replacements)
+        internal static Dictionary<ushort, ItemReplaceInfo> createReplacementDictionary(List<ItemReplaceInfo> replacements, out Dictionary<ushort, bool> existingReplacementResults)
         {
-            Dictionary<ushort, ushort> existingReplacements = new Dictionary<ushort, ushort>();
+            existingReplacementResults = new Dictionary<ushort, bool>();
             Dictionary<ushort, ItemReplaceInfo> replacementDict = new Dictionary<ushort, ItemReplaceInfo>();
             if (replacements != null)
             {
-                foreach (var replace in replacements)
+                foreach (var replaceResult in replacements)
                 {
-                    if (replace == null || replace.Id == 0)
+                    if (replaceResult == null || replaceResult.Id == 0)
                     {
-                        Logger.LogWarning("Item replacement cant be 0 or null and was skipped");
+                        Logger.LogWarning("Item replace result can not be 0 or null and was skipped");
                         continue;
                     }
-                    if (replacementDict.ContainsKey(replace.Id))
+                    if (replacementDict.ContainsKey(replaceResult.Id))
                     {
-                        Logger.LogWarning($"Cant create replacement to {replace.Id} it is already a replace target");
+                        Logger.LogWarning($"Can not create replace result {replaceResult.Id}, it is already a replace target");
                         continue;
                     }
 
                     bool didAdd = false;
-                    foreach (var target in replace.ReplaceTargets)
+                    foreach (var target in replaceResult.ReplaceTargets)
                     {
                         if (target == null || target.Id == 0)
                         {
-                            Logger.LogWarning("Item replace target cant be 0 or null and was skipped");
+                            Logger.LogWarning("Item replace target can not be 0 or null, it was skipped");
                             continue;
                         }
-                        if(target.Id == replace.Id)
+                        if(target.Id == replaceResult.Id)
                         {
-                            Logger.LogWarning($"Cant replace {replace.Id} with itself");
+                            Logger.LogWarning($"Can not replace {target.Id} with itself, it was skipped");
                             continue;
                         }
-                        if (existingReplacements.ContainsKey(replace.Id))
+                        if (existingReplacementResults.ContainsKey(replaceResult.Id))
                         {
-                            Logger.LogWarning($"Cant replace {replace.Id} it is already a replace result");
+                            Logger.LogWarning($"Can not set {replaceResult.Id} as replace target, it is already a replace result and was skipped");
                             continue;
                         }
                         if (replacementDict.TryGetValue(target.Id, out ItemReplaceInfo currentReplace))
                         {
-                            Logger.LogWarning($"Item with Id: {target.Id} cant have to replacements, it is already getting replaced by {currentReplace.Id}!");
+                            Logger.LogWarning($"Item with Id: {target.Id} is already a replace target for {currentReplace.Id}, it can not have two replace results and was skipped");
                             continue;
                         }
-                        replacementDict.Add(target.Id, replace);
+                        replacementDict.Add(target.Id, replaceResult);
                         didAdd = true;
                     }
                     if (didAdd)
                     {
-                        existingReplacements.Add(replace.Id, replace.Id);
+                        existingReplacementResults.Add(replaceResult.Id, true);
                     }
                 }
             }

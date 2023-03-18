@@ -188,8 +188,9 @@ namespace SpeedMann.PvPRework
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             HealthManager.Init(Conf.HealthManager);
-            InternalMagControler.Init(Conf.GunExtensions, Conf.InternalMagCompatibleAmmo);
             ItemReplacer.Init(Conf.ItemReplacements);
+            InternalMagControler.Init(Conf.InternalMagConfig);
+            
 
             Conf.addNames();
             Conf.updateConfig();

@@ -90,6 +90,9 @@
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Models\Config\DrugEffectLimit.cs" />
     <Compile Include="Models\Config\HealthManagerConfig.cs" />
+    <Compile Include="Models\Config\InternalMagConfig.cs" />
+    <Compile Include="Models\Config\ItemExtensions\InternalMagGun.cs" />
+    <Compile Include="Models\Config\ItemExtensions\InternalMagAmmoStack.cs" />
     <Compile Include="Models\Config\ItemExtensions\ItemReplaceInfo.cs" />
     <Compile Include="Models\Config\MedicalEffectConfig.cs" />
     <Compile Include="Models\Config\ItemExtensions\MedicalExtension.cs" />

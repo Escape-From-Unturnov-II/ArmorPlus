@@ -64,7 +64,7 @@ namespace SpeedMann.PvPRework
         public List<VestExtension> VestExtensions = new List<VestExtension>();
         public List<GunExtension> GunExtensions = new List<GunExtension>();
         public List<Caliber> BulletCalibers = new List<Caliber>();
-        public List<ItemExtension> InternalMagCompatibleAmmo = new List<ItemExtension>();
+        public InternalMagConfig InternalMagConfig = new InternalMagConfig();
         [XmlArrayItem(ElementName = "HelmetCycle")]
         public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>();
         [XmlArrayItem(ElementName = "SightCycle")]
@@ -1125,6 +1125,185 @@ namespace SpeedMann.PvPRework
                     #endregion
                 };
 
+                InternalMagConfig = new InternalMagConfig
+                {
+                    Debug = false,
+                    InternalMagAmmoStacks = new List<InternalMagAmmoStack> {
+                        new InternalMagAmmoStack {
+                            Id = 37998,
+                            Name = "Buckshot_20_Loadable",
+                            CompatibleGuns = new List<InternalMagGun> {
+                                new InternalMagGun()
+                                {
+                                    Id = 38011,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38012,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38013,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38014,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38015,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38016,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38017,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38018,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38020,
+                                        Name = "6-round 12ga Shells"
+                                    }
+                                }
+                            }
+                        },
+                        new InternalMagAmmoStack {
+                            Id = 37996,
+                            Name = "Lead_Slug_20_Loadable",
+                            CompatibleGuns = new List<InternalMagGun> {
+                                new InternalMagGun()
+                                {
+                                    Id = 38011,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38012,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38013,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38014,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38015,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38016,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38017,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                },
+                                new InternalMagGun()
+                                {
+                                    Id = 38018,
+                                    Name = "MP-153",
+                                    InternalMagazine = new ItemExtension
+                                    {
+                                        Id = 38029,
+                                        Name = "6-round 12ga Slug Shells"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
                 BulletCalibers = new List<Caliber>
                 {
                     new Caliber
@@ -1732,8 +1911,28 @@ namespace SpeedMann.PvPRework
             addNames(VestExtensions);
             addNames(GunExtensions);
             addNames(MaskExtensions);
-            addNames(InternalMagCompatibleAmmo);
 
+            if (InternalMagConfig?.InternalMagAmmoStacks != null)
+            {
+                foreach (var ammoStack in InternalMagConfig.InternalMagAmmoStacks)
+                {
+                    addName(ammoStack);
+                    foreach (var compatibleGun in ammoStack.CompatibleGuns)
+                    {
+                        addName(compatibleGun);
+                        addName(compatibleGun.InternalMagazine);
+                    }
+                }
+            }
+
+            if (ItemReplacements != null)
+            {
+                foreach (var replacement in ItemReplacements)
+                {
+                    addName(replacement);
+                    addNames(replacement.ReplaceTargets);
+                }
+            }
             if (HealthManager?.BetterMeds != null)
             {
                 addNames(HealthManager.BetterMeds);

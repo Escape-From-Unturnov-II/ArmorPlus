@@ -3,6 +3,7 @@ using SDG.Unturned;
 using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models;
 using SpeedMann.PvPRework.Models.Config;
+using SpeedMann.PvPRework.Models.Config.ItemExtensions;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -17,20 +18,29 @@ namespace SpeedMann.PvPRework.Controllers
 {
     internal class InternalMagControler
     {
-        private static bool Debug = false;
-        private static Dictionary<ushort, GunExtension> GunsWithInternalMags;
-        private static Dictionary<ushort, ItemExtension> CompatibleAmmo;
+        private static bool Debug = true;
+        private static Dictionary<ushort, Dictionary<ushort, ushort>> InternalMagAmmoToGunDict;
+        private static Dictionary<ushort, bool> GunsWithInternalMags;
         private static Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
-        internal static void Init(List<GunExtension> gunExtensions, List<ItemExtension> compatibleAmmo)
+        internal static void Init(InternalMagConfig config)
         {
-            GunsWithInternalMags = createDictionaryFromInternalMagGuns(gunExtensions);
-            CompatibleAmmo = PvPRework.createDictionaryFromItemExtensions(compatibleAmmo);
+            Debug = config.Debug;
+            InternalMagAmmoToGunDict = createDictionaryForInternalMagAmmoToGun(config.InternalMagAmmoStacks, out var gunsWithInternalMags);
+            GunsWithInternalMags = gunsWithInternalMags;
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
+
+            foreach (var ammoStackEntry in InternalMagAmmoToGunDict)
+            {
+                foreach (var gunMag in ammoStackEntry.Value.Values)
+                {
+                    ItemReplacer.tryAddReplacement(gunMag, ammoStackEntry.Key, ReplaceType.Keep, ReplaceType.Keep);
+                }
+            }
         }
         internal static void Cleanup()
         {
+            InternalMagAmmoToGunDict.Clear();
             GunsWithInternalMags.Clear();
-            CompatibleAmmo.Clear();
             ReloadExtensionStates.Clear();
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
@@ -47,13 +57,14 @@ namespace SpeedMann.PvPRework.Controllers
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
             InternalMagReloadState state = new InternalMagReloadState { newMag = new ItemJarWrapper { page = page }, };
 
-            // save and remove old mag
-            Item mag = ItemReplacer.replaceItem(InventoryHelper.getMagFromGun(player.Player.equipment));
+            // save and remove old mag from gun
+            Item mag = InventoryHelper.getMagFromGun(player.Player.equipment);
             if (mag != null)
             {
                 state.oldMag = mag;
                 InventoryHelper.removeMagFromGun(player.Player.equipment);
-                Logger.Log("Removed mag from gun");
+                if(Debug)
+                    Logger.Log($"Removed mag {mag.id} amount {mag.amount} from gun ({asset.id})");
             }
 
             if (ReloadExtensionStates.ContainsKey(player.CSteamID))
@@ -73,15 +84,25 @@ namespace SpeedMann.PvPRework.Controllers
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
             if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState.newMag == null)
                 return;
-
+            
             reloadState.reloaded = true;
 
             if (newItem == null)
                 return;
 
-            // save ammo stack
-            Item AmmoStack = new Item(newItem.item.id, newItem.item.amount, newItem.item.quality);
-            reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
+            ushort newId = newItem.item.id;
+            if (InternalMagAmmoToGunDict.TryGetValue(newItem.item.id, out var compatibleGunsDict))
+            {
+                if(compatibleGunsDict.TryGetValue(gun.equippedGunAsset.id, out ushort magId))
+                {
+                    // set state and replace ammo stack id with the coresponding mag id of the gun
+                    reloadState.internalMagReload = true;
+                    newId = magId;
+                }
+            }
+            // save ammo
+            Item newMag = new Item(newId, newItem.item.amount, newItem.item.quality);
+            reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, newMag);
             if (Debug)
                 Logger.Log($"Reloaded {equipment.itemID} with reloadExtension old Mag: {(oldItem != null ? oldItem.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
 
@@ -93,12 +114,13 @@ namespace SpeedMann.PvPRework.Controllers
             if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
                 return;
 
-            if (!GunsWithInternalMags.TryGetValue(gun.equippedGunAsset.id, out GunExtension gunExtension))
-                return;
-
-            if (reloadState.reloaded && reloadState.newMag?.itemJar?.item?.amount > 0 && CompatibleAmmo.ContainsKey(reloadState.newMag.itemJar.item.id))
+            if (reloadState.reloaded && reloadState.internalMagReload && reloadState.newMag?.itemJar?.item?.amount > 0)
             {
-                handleInternalMagazineReload(player, reloadState, gunExtension.InternalMagazineSize);
+                ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.newMag.itemJar.item.id) as ItemMagazineAsset;
+                if(magAsset != null)
+                {
+                    handleInternalMagazineReload(player, reloadState, magAsset.amount);
+                }
             }
             
             if (reloadState.oldMag == null)
@@ -129,9 +151,9 @@ namespace SpeedMann.PvPRework.Controllers
             Item oldMag = reloadState.oldMag;
 
             int remainder = 0;
-            if(newMag != null)
+            if(newMag?.item != null)
             {
-                if (oldMag?.id == newMag?.item?.id)
+                if (oldMag?.id == newMag.item.id)
                 {
                     int totalAmmo = newMag.item.amount + oldMag.amount;
                     if (Debug)
@@ -150,8 +172,8 @@ namespace SpeedMann.PvPRework.Controllers
             }
             if (Debug)
                 Logger.Log($"Loaded ammo = {newMag.item.amount} Remaining ammo = {remainder}");
-            player.Player.equipment.state[10] = newMag.item.amount;
-            player.Player.equipment.sendUpdateState();
+
+            InventoryHelper.setMagForGun(player.Player.equipment, newMag.item);
 
             addRemainingAmmoToInventory(player, remainder, reloadState.newMag);
         }
@@ -159,20 +181,35 @@ namespace SpeedMann.PvPRework.Controllers
         {
             if (remainder <= 0)
                 return;
-
+            
             if(itemJarWrapper?.itemJar?.item == null)
             {
                 Logger.LogError($"Error: Could not give remaining ammo ({remainder}) because ItemJarWrapper or objects in it where null!");
                 return;
             }
-            ItemAsset asset = Assets.find(EAssetType.ITEM, itemJarWrapper.itemJar.item.id) as ItemAsset;
+            // check for replace to fill valid ammo stacks
+            Item item = ItemReplacer.replaceItem(itemJarWrapper.itemJar.item);
+            if(item == null)
+            {
+                item = itemJarWrapper.itemJar.item;
+            }
+            ItemAsset asset = Assets.find(EAssetType.ITEM, item.id) as ItemAsset;
             if (asset == null)
             {
-                Logger.LogError($"Error: Could not give remaining ammo ({remainder}) because ItemAsset for item id: {itemJarWrapper.itemJar.item.id} could not be found!");
+                Logger.LogError($"Error: Could not give remaining ammo ({remainder}) because ItemAsset for item id: {item.id} could not be found!");
                 return;
             }
             if (Debug)
-                Logger.Log($"adding remaining ammo to inventory id: {itemJarWrapper.itemJar.item.id} amount: {remainder}");
+                Logger.Log($"adding remaining ammo to inventory id: {item.id} amount: {remainder}");
+
+            // refill ammo stacks
+            InventoryHelper.findAmmo(player.Inventory, item.id, out List<InventorySearch> searchResult);
+            foreach (var result in searchResult)
+            {
+                if (remainder <= 0)
+                    break;
+                remainder = InventoryHelper.safeAddItemAmount(player.Player, result.jar, result.page, remainder, asset.amount);
+            }
             while (remainder > 0)
             {
                 // give remaining ammo
@@ -187,42 +224,63 @@ namespace SpeedMann.PvPRework.Controllers
                     newAmount = (byte)remainder;
                     remainder = 0;
                 }
-                Item remaining = new Item(itemJarWrapper.itemJar.item.id, newAmount, itemJarWrapper.itemJar.item.quality);
-                InventoryHelper.safeAddItem(player.Player, remaining, itemJarWrapper.page, itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.itemJar.rot);
+                Item remainingItem = new Item(item.id, newAmount, item.quality);
+                InventoryHelper.safeAddItem(player.Player, remainingItem, itemJarWrapper.page, itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.itemJar.rot);
             }
         }
-        internal static Dictionary<ushort, GunExtension> createDictionaryFromInternalMagGuns(List<GunExtension> gunExtensions)
+        internal static Dictionary<ushort, Dictionary<ushort, ushort>> createDictionaryForInternalMagAmmoToGun(List<InternalMagAmmoStack> ammoStacks, out Dictionary<ushort, bool> gunsWithInternalMags)
         {
-            Dictionary<ushort, GunExtension> internalMagGunDict = new Dictionary<ushort, GunExtension>();
-            if (gunExtensions != null)
+            var ammoStacktoGunDict = new Dictionary<ushort, Dictionary<ushort, ushort>>();
+            gunsWithInternalMags = new Dictionary<ushort, bool>();
+            if (ammoStacks != null)
             {
-                foreach (GunExtension gunExtension in gunExtensions)
+                foreach (var ammoStack in ammoStacks)
                 {
-                    if (gunExtension == null || gunExtension.Id == 0)
+                    if (ammoStack == null || ammoStack.Id == 0)
                     {
-                        Logger.LogWarning("Item was null or had Id 0 and was skipped");
+                        Logger.LogWarning("InternalMagAmmoStack was null or had Id 0 and was skipped");
                         continue;
                     }
 
-
-                    if (internalMagGunDict.ContainsKey(gunExtension.Id))
+                    if (ammoStacktoGunDict.ContainsKey(ammoStack.Id))
                     {
-                        Logger.LogWarning("Item with Id:" + gunExtension.Id + " is a duplicate!"); 
+                        Logger.LogWarning($"InternalMagAmmoStack with Id: {ammoStack.Id} is a duplicate!"); 
                         continue;
                     }
-                    
-                    if(gunExtension.InternalMagazineSize > 0)
+
+                    ammoStacktoGunDict.Add(ammoStack.Id, new Dictionary<ushort, ushort>());
+                    foreach (var gun in ammoStack.CompatibleGuns)
                     {
-                        internalMagGunDict.Add(gunExtension.Id, gunExtension);
+                        if (gun == null || gun.Id == 0)
+                        {
+                            Logger.LogWarning("InternalMagGun was null or had Id 0 and was skipped");
+                            continue;
+                        }
+                        if (gun.InternalMagazine == null || gun.InternalMagazine.Id == 0)
+                        {
+                            Logger.LogWarning($"InternalMagazine of {gun.Id} in {ammoStack.Id} was null or had Id 0 and was skipped");
+                            continue;
+                        }
+                        if (ammoStacktoGunDict[ammoStack.Id].ContainsKey(gun.Id))
+                        {
+                            Logger.LogWarning($"InternalMagGun with Id: {gun.Id} is a duplicate in {ammoStack.Id}!");
+                            continue;
+                        }
+                        if (!gunsWithInternalMags.ContainsKey(gun.Id))
+                        {
+                            gunsWithInternalMags.Add(gun.Id, true);
+                        }
+                        ammoStacktoGunDict[ammoStack.Id].Add(gun.Id, gun.InternalMagazine.Id);
                     }
                 }
             }
-            return internalMagGunDict;
+            return ammoStacktoGunDict;
         }
         #endregion
         internal class InternalMagReloadState
         {
             internal bool reloaded = false;
+            internal bool internalMagReload = false;
             internal ItemJarWrapper newMag = null;
             internal Item oldMag = null;
         }
