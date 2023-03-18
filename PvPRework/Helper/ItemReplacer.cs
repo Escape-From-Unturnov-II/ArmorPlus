@@ -76,6 +76,7 @@ namespace SpeedMann.PvPRework.Helper
         #region Helper Functions
         internal static Dictionary<ushort, ItemReplaceInfo> createReplacementDictionary(List<ItemReplaceInfo> replacements)
         {
+            Dictionary<ushort, ushort> existingReplacements = new Dictionary<ushort, ushort>();
             Dictionary<ushort, ItemReplaceInfo> replacementDict = new Dictionary<ushort, ItemReplaceInfo>();
             if (replacements != null)
             {
@@ -86,6 +87,13 @@ namespace SpeedMann.PvPRework.Helper
                         Logger.LogWarning("Item replacement cant be 0 or null and was skipped");
                         continue;
                     }
+                    if (replacementDict.ContainsKey(replace.Id))
+                    {
+                        Logger.LogWarning($"Cant create replacement to {replace.Id} it is already a replace target");
+                        continue;
+                    }
+
+                    bool didAdd = false;
                     foreach (var target in replace.ReplaceTargets)
                     {
                         if (target == null || target.Id == 0)
@@ -98,12 +106,22 @@ namespace SpeedMann.PvPRework.Helper
                             Logger.LogWarning($"Cant replace {replace.Id} with itself");
                             continue;
                         }
+                        if (existingReplacements.ContainsKey(replace.Id))
+                        {
+                            Logger.LogWarning($"Cant replace {replace.Id} it is already a replace result");
+                            continue;
+                        }
                         if (replacementDict.TryGetValue(target.Id, out ItemReplaceInfo currentReplace))
                         {
                             Logger.LogWarning($"Item with Id: {target.Id} cant have to replacements, it is already getting replaced by {currentReplace.Id}!");
                             continue;
                         }
                         replacementDict.Add(target.Id, replace);
+                        didAdd = true;
+                    }
+                    if (didAdd)
+                    {
+                        existingReplacements.Add(replace.Id, replace.Id);
                     }
                 }
             }
