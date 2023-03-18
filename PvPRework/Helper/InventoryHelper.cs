@@ -175,11 +175,11 @@ namespace SpeedMann.PvPRework.Helper
             }
             return amount;
         }
-        public static void saveAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
+        public static void safeAddItem(Player player, Item item, byte page, byte x, byte y, byte rot)
         {
-            if (!player.Inventory.tryAddItem(item, x, y, page, rot))
+            if (!player.inventory.tryAddItem(item, x, y, page, rot))
             {
-                player.Inventory.forceAddItem(item, false);
+                player.inventory.forceAddItem(item, false);
             }
         }
         public static bool getInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)

@@ -25,6 +25,7 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void Init(HealthManagerConfig config)
         {
             Conf = config;
+            DrugStateDict = new Dictionary<DrugEffectType, DrugEffectLimit>();
         }
         internal static void Cleanup() 
         {

@@ -17,6 +17,7 @@ namespace SpeedMann.PvPRework.Controllers
 {
     internal class InternalMagControler
     {
+        private static bool Debug = false;
         private static Dictionary<ushort, GunExtension> GunsWithInternalMags;
         private static Dictionary<ushort, ItemExtension> CompatibleAmmo;
         private static Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
@@ -24,6 +25,7 @@ namespace SpeedMann.PvPRework.Controllers
         {
             GunsWithInternalMags = createDictionaryFromInternalMagGuns(gunExtensions);
             CompatibleAmmo = PvPRework.createDictionaryFromItemExtensions(compatibleAmmo);
+            ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
         }
         internal static void Cleanup()
         {
@@ -46,7 +48,7 @@ namespace SpeedMann.PvPRework.Controllers
             InternalMagReloadState state = new InternalMagReloadState { newMag = new ItemJarWrapper { page = page }, };
 
             // save and remove old mag
-            Item mag = InventoryHelper.getMagFromGun(player.Player.equipment);
+            Item mag = ItemReplacer.replaceItem(InventoryHelper.getMagFromGun(player.Player.equipment));
             if (mag != null)
             {
                 state.oldMag = mag;
@@ -65,8 +67,6 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
         {
-            Logger.Log($"Changed magazine for: {equipment.itemID} old Mag: {(oldItem != null ? oldItem.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
-
             if (!GunsWithInternalMags.ContainsKey(gun.equippedGunAsset.id))
                 return;
 
@@ -74,11 +74,16 @@ namespace SpeedMann.PvPRework.Controllers
             if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState.newMag == null)
                 return;
 
+            reloadState.reloaded = true;
+
+            if (newItem == null)
+                return;
+
             // save ammo stack
             Item AmmoStack = new Item(newItem.item.id, newItem.item.amount, newItem.item.quality);
             reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
-            reloadState.reloaded = true;
-            Logger.Log("reloaded with reloadExtension!");
+            if (Debug)
+                Logger.Log($"Reloaded {equipment.itemID} with reloadExtension old Mag: {(oldItem != null ? oldItem.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
 
         }
         internal static void OnPostAttachMag(UseableGun gun)
@@ -106,14 +111,16 @@ namespace SpeedMann.PvPRework.Controllers
                 if (reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && (magAsset == null || !magAsset.deleteEmpty)))
                 {
                     player.GiveItem(reloadState.oldMag);
-                    Logger.Log("added old mag to inventory");
+                    if(Debug)
+                        Logger.Log($"added old mag to inventory id: {reloadState.oldMag.id} amount: {reloadState.oldMag.amount}");
                 }
                 return;
             }
 
             // reset old mag
             InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
-            Logger.Log("restored old mag");
+            if (Debug)
+                Logger.Log($"restored old mag id: {reloadState.oldMag.id} amount: {reloadState.oldMag.amount}");
         }
         #region Helper Functions
         private static void handleInternalMagazineReload(UnturnedPlayer player, InternalMagReloadState reloadState, byte internalMagazineSize)
@@ -122,17 +129,27 @@ namespace SpeedMann.PvPRework.Controllers
             Item oldMag = reloadState.oldMag;
 
             int remainder = 0;
-            if (oldMag?.id == newMag?.item?.id)
+            if(newMag != null)
             {
-                int totalAmmo = newMag.item.amount + oldMag.amount;
-                remainder = InventoryHelper.safeAddItemAmount(newMag.item, totalAmmo, internalMagazineSize);
-                remainder = InventoryHelper.safeAddItemAmount(oldMag, remainder);
+                if (oldMag?.id == newMag?.item?.id)
+                {
+                    int totalAmmo = newMag.item.amount + oldMag.amount;
+                    if (Debug)
+                        Logger.Log($"Total ammo = {totalAmmo}");
+                    newMag.item.amount = 0;
+                    oldMag.amount = 0;
+                    remainder = InventoryHelper.safeAddItemAmount(newMag.item, totalAmmo, internalMagazineSize);
+                    remainder = InventoryHelper.safeAddItemAmount(oldMag, remainder);
+                }
+                else
+                {
+                    byte oldAmmo = newMag.item.amount;
+                    newMag.item.amount = 0;
+                    remainder = InventoryHelper.safeAddItemAmount(newMag.item, oldAmmo, internalMagazineSize);
+                }
             }
-            else
-            {
-                remainder = InventoryHelper.safeAddItemAmount(newMag.item, newMag.item.amount, internalMagazineSize);
-            }
-            
+            if (Debug)
+                Logger.Log($"Loaded ammo = {newMag.item.amount} Remaining ammo = {remainder}");
             player.Player.equipment.state[10] = newMag.item.amount;
             player.Player.equipment.sendUpdateState();
 
@@ -154,8 +171,8 @@ namespace SpeedMann.PvPRework.Controllers
                 Logger.LogError($"Error: Could not give remaining ammo ({remainder}) because ItemAsset for item id: {itemJarWrapper.itemJar.item.id} could not be found!");
                 return;
             }
-
-            Logger.Log("adding remaining ammo to inventory");
+            if (Debug)
+                Logger.Log($"adding remaining ammo to inventory id: {itemJarWrapper.itemJar.item.id} amount: {remainder}");
             while (remainder > 0)
             {
                 // give remaining ammo
@@ -171,7 +188,7 @@ namespace SpeedMann.PvPRework.Controllers
                     remainder = 0;
                 }
                 Item remaining = new Item(itemJarWrapper.itemJar.item.id, newAmount, itemJarWrapper.itemJar.item.quality);
-                InventoryHelper.saveAddItem(player, remaining, itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.page, itemJarWrapper.itemJar.rot);
+                InventoryHelper.safeAddItem(player.Player, remaining, itemJarWrapper.page, itemJarWrapper.itemJar.x, itemJarWrapper.itemJar.y, itemJarWrapper.itemJar.rot);
             }
         }
         internal static Dictionary<ushort, GunExtension> createDictionaryFromInternalMagGuns(List<GunExtension> gunExtensions)

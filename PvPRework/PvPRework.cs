@@ -2,6 +2,7 @@
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
+using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.NetTransport;
@@ -136,7 +137,9 @@ namespace SpeedMann.PvPRework
                 // Plugin Keys
                 PlayerInput.onPluginKeyTick -= InputHandler.OnPluginKeyDetected;
                 InputHandler.OnPluginKeyPressed -= OnPluginKeyPressed;
+
                 UnturnedPatches.OnPreAddItem -= OnAddItem;
+                UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
 
                 if (Conf.BetterArmor.BetterHitZones.Enabled)
                     UnturnedPatches.OnPostGetInput -= OnGetInput;
@@ -169,6 +172,7 @@ namespace SpeedMann.PvPRework
                 PlayerLife.OnTellBleeding_Global -= OnStartBleeding;
 
                 // cleanup
+                ItemReplacer.Cleanup();
                 UnturnedPatches.Cleanup();
                 HealthManager.Cleanup();
                 InternalMagControler.Cleanup();
@@ -185,7 +189,7 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.Init();
             HealthManager.Init(Conf.HealthManager);
             InternalMagControler.Init(Conf.GunExtensions, Conf.InternalMagCompatibleAmmo);
-            
+            ItemReplacer.Init(Conf.ItemReplacements);
 
             Conf.addNames();
             Conf.updateConfig();
@@ -490,6 +494,10 @@ namespace SpeedMann.PvPRework
                 hatSwaps.Remove(player.CSteamID);
                 shouldAllow = false;
             }
+        }
+        private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
+        {
+            ItemReplacer.checkReplaceItem(player.Player, inventoryGroup, inventoryIndex, P);
         }
         private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
         {
@@ -824,7 +832,9 @@ namespace SpeedMann.PvPRework
             // Plugin Keys
             PlayerInput.onPluginKeyTick += InputHandler.OnPluginKeyDetected;
             InputHandler.OnPluginKeyPressed += OnPluginKeyPressed;
+
             UnturnedPatches.OnPreAddItem += OnAddItem;
+            UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
 
             if (Conf.BetterArmor.BetterHitZones.Enabled)
                 UnturnedPatches.OnPostGetInput += OnGetInput;

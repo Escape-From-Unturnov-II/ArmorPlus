@@ -1,7 +1,9 @@
 ﻿using Rocket.API;
 using Rocket.Core.Logging;
 using SDG.Unturned;
+using SpeedMann.PvPRework.Helper;
 using SpeedMann.PvPRework.Models.Config;
+using SpeedMann.PvPRework.Models.Config.ItemExtensions;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -67,7 +69,7 @@ namespace SpeedMann.PvPRework
         public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>();
         [XmlArrayItem(ElementName = "SightCycle")]
         public List<List<ItemExtension>> CyclableSights = new List<List<ItemExtension>>();
-
+        public List<ItemReplaceInfo> ItemReplacements = new List<ItemReplaceInfo>();
         public void LoadDefaults()
         {
             Version = PvPRework.PluginVersion;

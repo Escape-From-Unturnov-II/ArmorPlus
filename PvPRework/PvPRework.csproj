@@ -86,9 +86,11 @@
     <Compile Include="Controllers\PlayerPenetration.cs" />
     <Compile Include="Helper\DrugEffectHandler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
+    <Compile Include="Helper\ItemReplacer.cs" />
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Models\Config\DrugEffectLimit.cs" />
     <Compile Include="Models\Config\HealthManagerConfig.cs" />
+    <Compile Include="Models\Config\ItemExtensions\ItemReplaceInfo.cs" />
     <Compile Include="Models\Config\MedicalEffectConfig.cs" />
     <Compile Include="Models\Config\ItemExtensions\MedicalExtension.cs" />
     <Compile Include="Models\DrugEffectType.cs" />
