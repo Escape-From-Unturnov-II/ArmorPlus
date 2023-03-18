@@ -114,7 +114,7 @@ namespace SpeedMann.PvPRework.Controllers
             if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
                 return;
 
-            if (reloadState.reloaded && reloadState.internalMagReload && reloadState.newMag?.itemJar?.item?.amount > 0)
+            if (reloadState.internalMagReload && reloadState.newMag?.itemJar?.item?.amount > 0)
             {
                 ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.newMag.itemJar.item.id) as ItemMagazineAsset;
                 if(magAsset != null)
@@ -135,6 +135,10 @@ namespace SpeedMann.PvPRework.Controllers
                     player.GiveItem(reloadState.oldMag);
                     if(Debug)
                         Logger.Log($"added old mag to inventory id: {reloadState.oldMag.id} amount: {reloadState.oldMag.amount}");
+                }
+                else
+                {
+                    Logger.Log($"Empty old mag {reloadState.oldMag.id} amount: {reloadState.oldMag.amount} was removed");
                 }
                 return;
             }
