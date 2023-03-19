@@ -145,6 +145,14 @@ namespace SpeedMann.PvPRework.Helper
 
 
         }
+        public static bool trySafeAddItemAmountWithStacking(Player player, Item item, int amount)
+        {
+            ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, item.id) as ItemMagazineAsset;
+            if (magAsset == null)
+                return false;
+            addItemAmountWithStackingInner(player, item.id, 255, 0, 0, 0, amount, magAsset.amount);
+            return true;
+        }
         public static void safeAddItemAmountWithStacking(Player player, Item item, int amount, byte maxAmount)
         {
             addItemAmountWithStackingInner(player, item.id, 255, 0, 0, 0, amount, maxAmount);
