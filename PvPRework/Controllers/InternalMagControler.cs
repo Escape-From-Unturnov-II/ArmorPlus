@@ -26,7 +26,7 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void Init(InternalMagConfig config)
         {
             Debug = config.Debug;
-            InternalMagAmmoToGunDict = createDictionaryForInternalMagAmmoToGun(config.InternalMagAmmoStacks, out var gunsWithInternalMags);
+            InternalMagAmmoToGunDict = createDictionaryForInternalMagsAndSetupReplacements(config.InternalMagAmmoStacks, out var gunsWithInternalMags);
             GunsWithInternalMags = gunsWithInternalMags;
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
         }
@@ -237,7 +237,7 @@ namespace SpeedMann.PvPRework.Controllers
             }
             return false;
         }
-        internal static Dictionary<ushort, Dictionary<ushort, ushort>> createDictionaryForInternalMagAmmoToGun(List<InternalMagAmmoStack> ammoStacks, out Dictionary<ushort, bool> gunsWithInternalMags)
+        internal static Dictionary<ushort, Dictionary<ushort, ushort>> createDictionaryForInternalMagsAndSetupReplacements(List<InternalMagAmmoStack> ammoStacks, out Dictionary<ushort, bool> gunsWithInternalMags)
         {
             var ammoStackToGunDict = new Dictionary<ushort, Dictionary<ushort, ushort>>();
             gunsWithInternalMags = new Dictionary<ushort, bool>();
@@ -287,7 +287,10 @@ namespace SpeedMann.PvPRework.Controllers
                         }
                         if (wasAdded)
                         {
-                            ItemReplacer.tryAddReplacement(internalMag.Id, ammoStack.Id, ReplaceType.Keep, ReplaceType.Keep);
+                            if(!ItemReplacer.tryAddReplacement(internalMag.Id, ammoStack.Id, ReplaceType.Keep, ReplaceType.Keep))
+                            {
+                                Logger.LogError($"Could not add replacement from internal mag {internalMag.Id} to ammo stack {ammoStack.Id}!");
+                            }
                         }
                     }
                 }
