@@ -9,6 +9,6 @@ namespace SpeedMann.PvPRework.Models.Config.ItemExtensions
 {
     public class InternalMagAmmoStack : ItemExtension
     {
-        public List<InternalMagGun> CompatibleGuns = new List<InternalMagGun>();
+        public List<InternalMagazine> InternalMagazines = new List<InternalMagazine>();
     }
 }

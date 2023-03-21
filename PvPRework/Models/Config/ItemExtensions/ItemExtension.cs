@@ -17,6 +17,11 @@ namespace SpeedMann.PvPRework.Models.Config
         {
 
         }
+        public ItemExtension(ushort id, string name = "")
+        {
+            Id = id;
+            Name = name != "" ? name : "Undefined";
+        }
 
         public bool Equals(ItemExtension other)
         {

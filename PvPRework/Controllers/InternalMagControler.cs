@@ -29,14 +29,6 @@ namespace SpeedMann.PvPRework.Controllers
             InternalMagAmmoToGunDict = createDictionaryForInternalMagAmmoToGun(config.InternalMagAmmoStacks, out var gunsWithInternalMags);
             GunsWithInternalMags = gunsWithInternalMags;
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
-
-            foreach (var ammoStackEntry in InternalMagAmmoToGunDict)
-            {
-                foreach (var gunMag in ammoStackEntry.Value.Values)
-                {
-                    ItemReplacer.tryAddReplacement(gunMag, ammoStackEntry.Key, ReplaceType.Keep, ReplaceType.Keep);
-                }
-            }
         }
         internal static void Cleanup()
         {
@@ -247,7 +239,7 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static Dictionary<ushort, Dictionary<ushort, ushort>> createDictionaryForInternalMagAmmoToGun(List<InternalMagAmmoStack> ammoStacks, out Dictionary<ushort, bool> gunsWithInternalMags)
         {
-            var ammoStacktoGunDict = new Dictionary<ushort, Dictionary<ushort, ushort>>();
+            var ammoStackToGunDict = new Dictionary<ushort, Dictionary<ushort, ushort>>();
             gunsWithInternalMags = new Dictionary<ushort, bool>();
             if (ammoStacks != null)
             {
@@ -259,39 +251,48 @@ namespace SpeedMann.PvPRework.Controllers
                         continue;
                     }
 
-                    if (ammoStacktoGunDict.ContainsKey(ammoStack.Id))
+                    if (ammoStackToGunDict.ContainsKey(ammoStack.Id))
                     {
                         Logger.LogWarning($"InternalMagAmmoStack with Id: {ammoStack.Id} is a duplicate!"); 
                         continue;
                     }
 
-                    ammoStacktoGunDict.Add(ammoStack.Id, new Dictionary<ushort, ushort>());
-                    foreach (var gun in ammoStack.CompatibleGuns)
+                    ammoStackToGunDict.Add(ammoStack.Id, new Dictionary<ushort, ushort>());
+                    foreach (var internalMag in ammoStack.InternalMagazines)
                     {
-                        if (gun == null || gun.Id == 0)
+                        if (internalMag == null || internalMag.Id == 0)
                         {
-                            Logger.LogWarning("InternalMagGun was null or had Id 0 and was skipped");
+                            Logger.LogWarning("InternalMagazine was null or had Id 0 and was skipped");
                             continue;
                         }
-                        if (gun.InternalMagazine == null || gun.InternalMagazine.Id == 0)
+                        bool wasAdded = false;
+                        foreach (var compatibleGun in internalMag.CompatibleGuns)
                         {
-                            Logger.LogWarning($"InternalMagazine of {gun.Id} in {ammoStack.Id} was null or had Id 0 and was skipped");
-                            continue;
+                            if (compatibleGun == null || compatibleGun.Id == 0)
+                            {
+                                Logger.LogWarning($"Gun using InternalMagazine {internalMag.Id} of AmmoStack {ammoStack.Id} was null or had Id 0 and was skipped");
+                                continue;
+                            }
+                            if (ammoStackToGunDict[ammoStack.Id].ContainsKey(compatibleGun.Id))
+                            {
+                                Logger.LogWarning($"Gun with Id: {compatibleGun.Id} using InternalMagazine {internalMag.Id} is a duplicate in {ammoStack.Id}!");
+                                continue;
+                            }
+                            if (!gunsWithInternalMags.ContainsKey(compatibleGun.Id))
+                            {
+                                gunsWithInternalMags.Add(compatibleGun.Id, true);
+                            }
+                            wasAdded = true;
+                            ammoStackToGunDict[ammoStack.Id].Add(compatibleGun.Id, internalMag.Id);
                         }
-                        if (ammoStacktoGunDict[ammoStack.Id].ContainsKey(gun.Id))
+                        if (wasAdded)
                         {
-                            Logger.LogWarning($"InternalMagGun with Id: {gun.Id} is a duplicate in {ammoStack.Id}!");
-                            continue;
+                            ItemReplacer.tryAddReplacement(internalMag.Id, ammoStack.Id, ReplaceType.Keep, ReplaceType.Keep);
                         }
-                        if (!gunsWithInternalMags.ContainsKey(gun.Id))
-                        {
-                            gunsWithInternalMags.Add(gun.Id, true);
-                        }
-                        ammoStacktoGunDict[ammoStack.Id].Add(gun.Id, gun.InternalMagazine.Id);
                     }
                 }
             }
-            return ammoStacktoGunDict;
+            return ammoStackToGunDict;
         }
         #endregion
         internal class InternalMagReloadState

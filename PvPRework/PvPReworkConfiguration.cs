@@ -1132,173 +1132,69 @@ namespace SpeedMann.PvPRework
                         new InternalMagAmmoStack {
                             Id = 37998,
                             Name = "Buckshot_20_Loadable",
-                            CompatibleGuns = new List<InternalMagGun> {
-                                new InternalMagGun()
+                            InternalMagazines = new List<InternalMagazine> {
+                                new InternalMagazine(38020, "12ga_Buckshot_6-round_MP-153_Shells") 
                                 {
-                                    Id = 38011,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
+                                    CompatibleGuns = new List<ItemExtension>
                                     {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
+                                        new ItemExtension(38011, "MP-153"),
+                                        new ItemExtension(38012, "MP-153_Stock"),
+                                        new ItemExtension(38013, "MP-153_Rail"),
+                                        new ItemExtension(38014, "MP-153_Mount"),
+                                        new ItemExtension(38015, "MP-153_Mount+Stock"),
+                                        new ItemExtension(38016, "MP-153_Stock+Rail"),
+                                        new ItemExtension(38017, "MP-153_Rail+Mount"),
+                                        new ItemExtension(38018, "MP-153_All_Mods"),
                                     }
                                 },
-                                new InternalMagGun()
+                                new InternalMagazine(38010, "12ga_Buckshot_4-round_M870_Shells") 
                                 {
-                                    Id = 38012,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
+                                    CompatibleGuns = new List<ItemExtension>
                                     {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
+                                        new ItemExtension(38021, "M870"),
+                                        new ItemExtension(38022, "M870_Grip"),
+                                        new ItemExtension(38023, "M870_Rail"),
+                                        new ItemExtension(38024, "M870_Handguard"),
+                                        new ItemExtension(38025, "M870_Grip+Handguard"),
+                                        new ItemExtension(38026, "M870_Rail+Grip"),
+                                        new ItemExtension(38027, "M870_Rail+Handguard"),
+                                        new ItemExtension(38028, "M870_All_Mods"),
                                     }
                                 },
-                                new InternalMagGun()
-                                {
-                                    Id = 38013,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38014,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38015,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38016,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38017,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38018,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38020,
-                                        Name = "6-round 12ga Shells"
-                                    }
-                                }
                             }
                         },
                         new InternalMagAmmoStack {
                             Id = 37996,
                             Name = "Lead_Slug_20_Loadable",
-                            CompatibleGuns = new List<InternalMagGun> {
-                                new InternalMagGun()
+                            InternalMagazines = new List<InternalMagazine> {
+                                new InternalMagazine(38029, "6-round 12ga Slug Shells")
                                 {
-                                    Id = 38011,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
+                                    CompatibleGuns = new List<ItemExtension>
                                     {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
+                                        new ItemExtension(38011, "MP-153"),
+                                        new ItemExtension(38012, "MP-153_Stock"),
+                                        new ItemExtension(38013, "MP-153_Rail"),
+                                        new ItemExtension(38014, "MP-153_Mount"),
+                                        new ItemExtension(38015, "MP-153_Mount+Stock"),
+                                        new ItemExtension(38016, "MP-153_Stock+Rail"),
+                                        new ItemExtension(38017, "MP-153_Rail+Mount"),
+                                        new ItemExtension(38018, "MP-153_All_Mods"),
                                     }
                                 },
-                                new InternalMagGun()
+                                new InternalMagazine(38019, "12ga_Slug_4-round_M870_Shells")
                                 {
-                                    Id = 38012,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
+                                    CompatibleGuns = new List<ItemExtension>
                                     {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
+                                        new ItemExtension(38021, "M870"),
+                                        new ItemExtension(38022, "M870_Grip"),
+                                        new ItemExtension(38023, "M870_Rail"),
+                                        new ItemExtension(38024, "M870_Handguard"),
+                                        new ItemExtension(38025, "M870_Grip+Handguard"),
+                                        new ItemExtension(38026, "M870_Rail+Grip"),
+                                        new ItemExtension(38027, "M870_Rail+Handguard"),
+                                        new ItemExtension(38028, "M870_All_Mods"),
                                     }
                                 },
-                                new InternalMagGun()
-                                {
-                                    Id = 38013,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38014,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38015,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38016,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38017,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                },
-                                new InternalMagGun()
-                                {
-                                    Id = 38018,
-                                    Name = "MP-153",
-                                    InternalMagazine = new ItemExtension
-                                    {
-                                        Id = 38029,
-                                        Name = "6-round 12ga Slug Shells"
-                                    }
-                                }
                             }
                         }
                     }
@@ -1676,6 +1572,151 @@ namespace SpeedMann.PvPRework
                     },
                 };
 
+                ItemReplacements = new List<ItemReplaceInfo>
+                {
+                   new ItemReplaceInfo(37185, "AI-2 Medikit")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37075, "AI-2 Medikit 3-3"),
+                           new ItemExtension(37076, "AI-2 Medikit 2-3"),
+                           new ItemExtension(37077, "AI-2 Medikit 1-3"),
+                       }
+                   },
+                   new ItemReplaceInfo(37186, "Analgin Painkillers")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37040, "Analgin Painkillers 4-4"),
+                           new ItemExtension(37041, "Analgin Painkillers 3-4"),
+                           new ItemExtension(37042, "Analgin Painkillers 2-4"),
+                           new ItemExtension(37043, "Analgin Painkillers 1-4"),
+                       }
+                   },
+                   new ItemReplaceInfo(37187, "Army Bandage")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37073, "Army Bandage 2-2"),
+                           new ItemExtension(37074, "Army Bandage 1-2"),
+                       }
+                   },
+                   new ItemReplaceInfo(37188, "Car First Aid Kit")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37063, "Car Firs Aid Kit 1-3"),
+                           new ItemExtension(37064, "Car Firs Aid Kit 2-3"),
+                           new ItemExtension(37065, "Car Firs Aid Kit 3-3"),
+                       }
+                   },
+                   new ItemReplaceInfo(37189, "Golden Star Balm")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37078, "Golden Star Balm 5-5"),
+                           new ItemExtension(37079, "Golden Star Balm 4-5"),
+                           new ItemExtension(37080, "Golden Star Balm 3-5"),
+                           new ItemExtension(37081, "Golden Star Balm 2-5"),
+                           new ItemExtension(37082, "Golden Star Balm 1-5"),
+                       }
+                   },
+                   new ItemReplaceInfo(37190, "Grizzly First Aid Kit")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37170, "Grizzly First Aid Kit 1-15"),
+                           new ItemExtension(37171, "Grizzly First Aid Kit 2-15"),
+                           new ItemExtension(37172, "Grizzly First Aid Kit 3-15"),
+                           new ItemExtension(37173, "Grizzly First Aid Kit 4-15"),
+                           new ItemExtension(37174, "Grizzly First Aid Kit 5-15"),
+                           new ItemExtension(37175, "Grizzly First Aid Kit 6-15"),
+                           new ItemExtension(37176, "Grizzly First Aid Kit 7-15"),
+                           new ItemExtension(37177, "Grizzly First Aid Kit 8-15"),
+                           new ItemExtension(37178, "Grizzly First Aid Kit 9-15"),
+                           new ItemExtension(37179, "Grizzly First Aid Kit 10-15"),
+                           new ItemExtension(37180, "Grizzly First Aid Kit 11-15"),
+                           new ItemExtension(37181, "Grizzly First Aid Kit 12-15"),
+                           new ItemExtension(37182, "Grizzly First Aid Kit 13-15"),
+                           new ItemExtension(37183, "Grizzly First Aid Kit 14-15"),
+                           new ItemExtension(37184, "Grizzly First Aid Kit 15-15"),
+                       }
+                   },
+                   new ItemReplaceInfo(37191, "Ibuprofen Painkillers")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37048, "Ibuprofen Painkillers 1-15"),
+                           new ItemExtension(37049, "Ibuprofen Painkillers 2-15"),
+                           new ItemExtension(37050, "Ibuprofen Painkillers 3-15"),
+                           new ItemExtension(37051, "Ibuprofen Painkillers 4-15"),
+                           new ItemExtension(37052, "Ibuprofen Painkillers 5-15"),
+                           new ItemExtension(37053, "Ibuprofen Painkillers 6-15"),
+                           new ItemExtension(37054, "Ibuprofen Painkillers 7-15"),
+                           new ItemExtension(37055, "Ibuprofen Painkillers 8-15"),
+                           new ItemExtension(37056, "Ibuprofen Painkillers 9-15"),
+                           new ItemExtension(37057, "Ibuprofen Painkillers 10-15"),
+                           new ItemExtension(37058, "Ibuprofen Painkillers 11-15"),
+                           new ItemExtension(37059, "Ibuprofen Painkillers 12-15"),
+                           new ItemExtension(37060, "Ibuprofen Painkillers 13-15"),
+                           new ItemExtension(37061, "Ibuprofen Painkillers 14-15"),
+                           new ItemExtension(37062, "Ibuprofen Painkillers 15-15"),
+                       }
+                   },
+                   new ItemReplaceInfo(37192, "IFAK")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                            new ItemExtension(37066, "IFAK 1-4"),
+                            new ItemExtension(37067, "IFAK 2-4"),
+                            new ItemExtension(37068, "IFAK 3-4"),
+                            new ItemExtension(37069, "IFAK 4-4"),
+                       }
+                   },
+                   new ItemReplaceInfo(37193, "Immobilizing Splint Alu")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37083, "Immobilizing Splint Alu 5-5"),
+                           new ItemExtension(37084, "Immobilizing Splint Alu 4-5"),
+                           new ItemExtension(37085, "Immobilizing Splint Alu 3-5"),
+                           new ItemExtension(37086, "Immobilizing Splint Alu 2-5"),
+                           new ItemExtension(37087, "Immobilizing Splint Alu 1-5"),
+                       }
+                   },
+                   new ItemReplaceInfo(37194, "Salewa First Aid Kit")
+                   {
+                       AmmountReplacementType = ReplaceType.Keep,
+                       DurabilityReplacementType = ReplaceType.Keep,
+                       ReplaceTargets = new List<ItemExtension>
+                       {
+                           new ItemExtension(37088, "Salewa First Aid Kit 6-6"),
+                           new ItemExtension(37089, "Salewa First Aid Kit 5-6"),
+                           new ItemExtension(37090, "Salewa First Aid Kit 4-6"),
+                           new ItemExtension(37091, "Salewa First Aid Kit 3-6"),
+                           new ItemExtension(37092, "Salewa First Aid Kit 2-6"),
+                           new ItemExtension(37093, "Salewa First Aid Kit 1-6"),
+                       }
+                   },
+                };
             }
         }
 
@@ -1917,10 +1958,10 @@ namespace SpeedMann.PvPRework
                 foreach (var ammoStack in InternalMagConfig.InternalMagAmmoStacks)
                 {
                     addName(ammoStack);
-                    foreach (var compatibleGun in ammoStack.CompatibleGuns)
+                    foreach (var compatibleGun in ammoStack.InternalMagazines)
                     {
                         addName(compatibleGun);
-                        addName(compatibleGun.InternalMagazine);
+                        addNames(compatibleGun.CompatibleGuns);
                     }
                 }
             }

@@ -9,9 +9,7 @@ namespace SpeedMann.PvPRework.Models.Config.ItemExtensions
 {
     public class ItemReplaceInfo : ItemExtension
     {
-        [XmlAttribute("AmmountReplacementType")]
         public ReplaceType AmmountReplacementType = ReplaceType.Keep;
-        [XmlAttribute("DurabilityReplacementType")]
         public ReplaceType DurabilityReplacementType = ReplaceType.Keep;
         public List<ItemExtension> ReplaceTargets = new List<ItemExtension>();
 
@@ -19,6 +17,7 @@ namespace SpeedMann.PvPRework.Models.Config.ItemExtensions
         {
 
         }
+        public ItemReplaceInfo(ushort id, string name = "") : base(id, name) { }
         public ItemReplaceInfo(ushort id, ReplaceType amountReplace, ReplaceType durabilityReplace)
         {
             Id = id;

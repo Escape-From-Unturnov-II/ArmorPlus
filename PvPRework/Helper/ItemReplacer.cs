@@ -4,6 +4,7 @@ using SpeedMann.PvPRework.Models.Config.ItemExtensions;
 using System.Collections.Generic;
 using System.Security.Policy;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Helper
@@ -24,12 +25,35 @@ namespace SpeedMann.PvPRework.Helper
         }
         public static bool tryAddReplacement(ushort replaceTragetId, ushort replaceResultId, ReplaceType amountReplace, ReplaceType durabilityReplace)
         {
-            if(replaceTragetId == 0 || 
-                replaceResultId == 0 ||
-                replaceResultId == replaceTragetId ||
-                Replacement.ContainsKey(replaceTragetId) ||
-                ExistingReplacementsResults.ContainsKey(replaceTragetId))
+            if (replaceTragetId == 0)
             {
+                Logger.LogWarning("Item replace target can not be 0 or null, it was skipped");
+                return false;
+            }
+            if (replaceResultId == 0)
+            {
+                Logger.LogWarning("Item replace result can not be 0 or null and was skipped");
+                return false;
+            }
+            if (replaceTragetId == replaceResultId)
+            {
+                Logger.LogWarning($"Can not replace {replaceTragetId} with itself, it was skipped");
+                return false;
+            }
+
+            if (Replacement.TryGetValue(replaceTragetId, out ItemReplaceInfo currentReplace))
+            {
+                Logger.LogWarning($"Item with Id: {replaceTragetId} can not have two replace results, it is already replaced by {currentReplace.Id} and was skipped");
+                return false;
+            }
+            if (Replacement.ContainsKey(replaceResultId))
+            {
+                Logger.LogWarning($"Can not create replace result {replaceResultId}, it is already a replace target");
+                return false;
+            }
+            if (ExistingReplacementsResults.ContainsKey(replaceTragetId))
+            {
+                Logger.LogWarning($"Can not set {replaceTragetId} as replace target, it is already a replace result and was skipped");
                 return false;
             }
             
@@ -123,14 +147,14 @@ namespace SpeedMann.PvPRework.Helper
                             Logger.LogWarning($"Can not replace {target.Id} with itself, it was skipped");
                             continue;
                         }
-                        if (existingReplacementResults.ContainsKey(replaceResult.Id))
+                        if (existingReplacementResults.ContainsKey(target.Id))
                         {
                             Logger.LogWarning($"Can not set {replaceResult.Id} as replace target, it is already a replace result and was skipped");
                             continue;
                         }
                         if (replacementDict.TryGetValue(target.Id, out ItemReplaceInfo currentReplace))
                         {
-                            Logger.LogWarning($"Item with Id: {target.Id} is already a replace target for {currentReplace.Id}, it can not have two replace results and was skipped");
+                            Logger.LogWarning($"Item with Id: {target.Id} can not have two replace results, it is already replaced by {currentReplace.Id} and was skipped");
                             continue;
                         }
                         replacementDict.Add(target.Id, replaceResult);
