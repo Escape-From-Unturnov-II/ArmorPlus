@@ -122,7 +122,7 @@ namespace SpeedMann.PvPRework.Controllers
             ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, compatibleMag.id) as ItemMagazineAsset;
             if (magAsset == null)
             {
-                Logger.LogWarning($"Could not find ItemMagazineAsset for {compatibleMag.id}");
+                Logger.LogError($"Could not find ItemMagazineAsset for {compatibleMag.id}");
                 return;
             }
 
@@ -148,7 +148,7 @@ namespace SpeedMann.PvPRework.Controllers
             }
 
             if (Debug)
-                Logger.Log($"Loaded ammo = {compatibleMag.amount} Remaining ammo = {remainder}");
+                Logger.Log($"Loaded ammo = {compatibleMag.amount}, Unloaded ammo {(oldMag != null ? oldMag.amount.ToString() : "0")} Remaining ammo = {remainder}");
 
             InventoryHelper.setMagForGun(player.Player.equipment, compatibleMag);
 
