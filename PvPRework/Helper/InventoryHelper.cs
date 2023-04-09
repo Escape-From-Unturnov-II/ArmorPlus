@@ -205,7 +205,7 @@ namespace SpeedMann.PvPRework.Helper
         }
         public static void safeAddItem(Player player, Item item, byte page, byte x, byte y, byte rot)
         {
-            if (!player.inventory.tryAddItem(item, x, y, page, rot))
+            if (page > PlayerInventory.PAGES || !player.inventory.tryAddItem(item, x, y, page, rot))
             {
                 player.inventory.forceAddItem(item, false);
             }

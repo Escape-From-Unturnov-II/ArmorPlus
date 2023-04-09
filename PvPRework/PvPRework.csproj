@@ -81,7 +81,7 @@
     <Compile Include="Controllers\BotControler.cs" />
     <Compile Include="Controllers\DrugEffectControler.cs" />
     <Compile Include="Controllers\HealthManager.cs" />
-    <Compile Include="Controllers\InternalMagControler.cs" />
+    <Compile Include="Controllers\ReloadControler.cs" />
     <Compile Include="Helper\InputHandler.cs" />
     <Compile Include="Controllers\PlayerPenetration.cs" />
     <Compile Include="Helper\DrugEffectHandler.cs" />
@@ -90,7 +90,7 @@
     <Compile Include="Helper\SerializableDictionary.cs" />
     <Compile Include="Models\Config\DrugEffectLimit.cs" />
     <Compile Include="Models\Config\HealthManagerConfig.cs" />
-    <Compile Include="Models\Config\InternalMagConfig.cs" />
+    <Compile Include="Models\Config\ReloadConfig.cs" />
     <Compile Include="Models\Config\ItemExtensions\InternalMagazine.cs" />
     <Compile Include="Models\Config\ItemExtensions\InternalMagAmmoStack.cs" />
     <Compile Include="Models\Config\ItemExtensions\ItemReplaceInfo.cs" />

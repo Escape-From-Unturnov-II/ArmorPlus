@@ -17,15 +17,15 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework.Controllers
 {
-    internal class InternalMagControler
+    internal class ReloadControler
     {
-        private static bool Debug = true;
+        private static ReloadConfig Conf;
         private static Dictionary<ushort, Dictionary<ushort, ushort>> InternalMagAmmoToGunDict;
         private static Dictionary<ushort, bool> GunsWithInternalMags;
         private static Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
-        internal static void Init(InternalMagConfig config)
+        internal static void Init(ReloadConfig config)
         {
-            Debug = config.Debug;
+            Conf = config;
             InternalMagAmmoToGunDict = createDictionaryForInternalMagsAndSetupReplacements(config.InternalMagAmmoStacks, out var gunsWithInternalMags);
             GunsWithInternalMags = gunsWithInternalMags;
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
@@ -42,8 +42,8 @@ namespace SpeedMann.PvPRework.Controllers
         }
         internal static void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
         {
-            ItemGunAsset asset = gun?.equippedGunAsset;
-            if (asset == null || !GunsWithInternalMags.ContainsKey(asset.id))
+            ItemGunAsset gunAsset = gun?.equippedGunAsset;
+            if (gunAsset == null || (!Conf.SwapMags && !GunsWithInternalMags.ContainsKey(gunAsset.id)))
                 return;
 
             // save page of new mag
@@ -56,8 +56,8 @@ namespace SpeedMann.PvPRework.Controllers
             {
                 state.oldMag = mag;
                 InventoryHelper.removeMagFromGun(player.Player.equipment);
-                if(Debug)
-                    Logger.Log($"Removed mag {mag.id} amount {mag.amount} from gun ({asset.id})");
+                if(Conf.Debug)
+                    Logger.Log($"Removed mag {mag.id} amount {mag.amount} from gun ({gunAsset.id})");
             }
 
             if (ReloadExtensionStates.ContainsKey(player.CSteamID))
@@ -83,7 +83,7 @@ namespace SpeedMann.PvPRework.Controllers
             reloadState.wasUnload = false;
             // set new mag
             reloadState.newMag.itemJar = newItem;
-            if (Debug)
+            if (Conf.Debug)
                 Logger.Log($"Reloaded {equipment.itemID} with reloadExtension old Mag: {(reloadState.oldMag != null ? reloadState.oldMag.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
 
         }
@@ -95,20 +95,40 @@ namespace SpeedMann.PvPRework.Controllers
                 return;
             ReloadExtensionStates.Remove(player.CSteamID);
 
-            if (!GunsWithInternalMags.ContainsKey(gun.equippedGunAsset.id))
-                return;
-
-            if (reloadState.magChanged)
+            if (GunsWithInternalMags.ContainsKey(gun.equippedGunAsset.id))
             {
-                checkInternalMagReload(player, gun, reloadState);
+                handleInternalMagReload(player, gun, reloadState);
+                return;
             }
 
             if (reloadState.oldMag == null)
                 return;
 
-            handleOldMag(player.Player, gun, reloadState.oldMag, reloadState.magChanged, reloadState.wasUnload);
+            byte page = 255;
+            byte x = 0;
+            byte y = 0;
+            byte rot = 0;
+            if (!reloadState.wasUnload)
+            {
+                page = reloadState.newMag.page;
+                x = reloadState.newMag.itemJar.x;
+                y = reloadState.newMag.itemJar.y;
+                rot = reloadState.newMag.itemJar.rot;
+            }
+            handleOldMag(player.Player, gun, reloadState.oldMag, reloadState.magChanged, reloadState.wasUnload, false, page, x, y, rot);
         }
         #region Helper Functions
+        private static void handleInternalMagReload(UnturnedPlayer player, UseableGun gun, InternalMagReloadState reloadState)
+        {
+            if (reloadState.magChanged)
+            {
+                checkInternalMagReload(player, gun, reloadState);
+            }
+            if (reloadState.oldMag == null)
+                return;
+
+            handleOldMag(player.Player, gun, reloadState.oldMag, reloadState.magChanged, reloadState.wasUnload, true);
+        }
         private static void checkInternalMagReload(UnturnedPlayer player, UseableGun gun, InternalMagReloadState reloadState)
         {
             if (reloadState.newMag?.itemJar?.item == null || 
@@ -133,7 +153,7 @@ namespace SpeedMann.PvPRework.Controllers
             if (oldMag?.id == compatibleMag.id)
             {
                 int totalAmmo = compatibleMag.amount + oldMag.amount;
-                if (Debug)
+                if (Conf.Debug)
                     Logger.Log($"Total ammo = {totalAmmo}");
                 compatibleMag.amount = 0;
                 oldMag.amount = 0;
@@ -147,7 +167,7 @@ namespace SpeedMann.PvPRework.Controllers
                 remainder = InventoryHelper.safeAddItemAmount(compatibleMag, currentAmount, internalMagSize);
             }
 
-            if (Debug)
+            if (Conf.Debug)
                 Logger.Log($"Loaded ammo = {compatibleMag.amount}, Unloaded ammo {(oldMag != null ? oldMag.amount.ToString() : "0")} Remaining ammo = {remainder}");
 
             InventoryHelper.setMagForGun(player.Player.equipment, compatibleMag);
@@ -171,19 +191,18 @@ namespace SpeedMann.PvPRework.Controllers
                 Logger.LogError($"Error: Could not give remaining ammo ({remainder}) because ItemAsset for item id: {itemJarWrapper.itemJar.item.id} could not be found!");
                 return;
             }
-            if (Debug)
+            if (Conf.Debug)
                 Logger.Log($"Adding remaining ammo id: {itemJarWrapper.itemJar.item.id} amount: {remainder} to inventory ");
 
             InventoryHelper.safeAddItemAmountWithStacking(player.Player, itemJarWrapper.itemJar, itemJarWrapper.page, remainder, asset.amount);
         }
-        private static void handleOldMag(Player player, UseableGun gun, Item oldMag, bool didReload, bool wasUnload)
+        private static void handleOldMag(Player player, UseableGun gun, Item oldMag, bool didReload, bool wasUnload, bool wasInternalMag, byte page = 255, byte x = 0, byte y = 0, byte rot = 0)
         {
-
             if (!didReload)
             {
                 // reset old mag as no reload was performed
                 InventoryHelper.setMagForGun(player.equipment, oldMag);
-                if (Debug)
+                if (Conf.Debug)
                     Logger.Log($"Restored old mag id: {oldMag.id} amount: {oldMag.amount}");
                 return;
             }
@@ -193,11 +212,24 @@ namespace SpeedMann.PvPRework.Controllers
             if (oldMag.amount <= 0 && 
                 (gun.equippedGunAsset.shouldDeleteEmptyMagazines || (magAsset == null || magAsset.deleteEmpty)))
             {
-                if (Debug)
+                if (Conf.Debug)
                     Logger.Log($"Empty old mag {oldMag.id} amount: {oldMag.amount} was removed");
                 return;
             }
 
+            if (wasInternalMag)
+            {
+                if(tryStackAmmoOfOldInternalMag(player, gun, oldMag, didReload, wasUnload))
+                    return;
+            }
+
+            // backup if stack ammo failed
+            InventoryHelper.safeAddItem(player, oldMag, page, x, y, rot);
+            if (Conf.Debug)
+                Logger.Log($"Added old mag to inventory id: {oldMag.id} amount: {oldMag.amount}");
+        }
+        private static bool tryStackAmmoOfOldInternalMag(Player player, UseableGun gun, Item oldMag, bool didReload, bool wasUnload)
+        {
             // converts mag to coresponding AmmoStack
             Item ammoStack = ItemReplacer.replaceItem(oldMag);
             if (ammoStack != null)
@@ -206,23 +238,19 @@ namespace SpeedMann.PvPRework.Controllers
                 if (wasUnload)
                 {
                     player.inventory.forceAddItem(ammoStack, false);
-                    if (Debug)
+                    if (Conf.Debug)
                         Logger.Log($"Unloaded ammo stack id: {ammoStack.id} amount: {ammoStack.amount} of old mag to inventory");
-                    return;
+                    return true;
                 }
                 // try unlaod with stacking
-                if(InventoryHelper.trySafeAddItemAmountWithStacking(player, ammoStack, ammoStack.amount))
+                if (InventoryHelper.trySafeAddItemAmountWithStacking(player, ammoStack, ammoStack.amount))
                 {
-                    if (Debug)
+                    if (Conf.Debug)
                         Logger.Log($"Added ammo stack id: {ammoStack.id} amount: {ammoStack.amount} of old mag with ammo stacking");
-                    return;
+                    return true;
                 }
             }
-
-            // backup if relacement failed
-            player.inventory.forceAddItem(oldMag, false);
-            if (Debug)
-                Logger.Log($"Added old mag to inventory id: {oldMag.id} amount: {oldMag.amount}");
+            return false;
         }
         private static bool tryConvertAmmoStackToMag(UseableGun gun, Item ammoStack, out Item mag)
         {

@@ -64,7 +64,7 @@ namespace SpeedMann.PvPRework
         public List<VestExtension> VestExtensions = new List<VestExtension>();
         public List<GunExtension> GunExtensions = new List<GunExtension>();
         public List<Caliber> BulletCalibers = new List<Caliber>();
-        public InternalMagConfig InternalMagConfig = new InternalMagConfig();
+        public ReloadConfig ReloadExtension = new ReloadConfig();
         [XmlArrayItem(ElementName = "HelmetCycle")]
         public List<List<ItemExtension>> CyclableHelmets = new List<List<ItemExtension>>();
         [XmlArrayItem(ElementName = "SightCycle")]
@@ -80,7 +80,7 @@ namespace SpeedMann.PvPRework
                 Enabled = true,
                 MessageColor = "yellow",
                 UseCustomUI = false,
-                UI_ID = 52313,
+                UI_ID = 5173,
                 UI_Key = 5255,
             };
 
@@ -750,21 +750,21 @@ namespace SpeedMann.PvPRework
                     {
                         Id = 37555,
                         Name = "GPNVG-18_Nightvision_Tan",
-                        EquipEffectId = 52211,
+                        EquipEffectId = 52151,
                         UnequipEffectId = 0,
                     },
                     new GlassesExtension()
                     {
                         Id = 37556,
                         Name = "GPNVG-18_Nightvision_Black",
-                        EquipEffectId = 52211,
+                        EquipEffectId = 52151,
                         UnequipEffectId = 0,
                     },
                     new GlassesExtension()
                     {
                         Id = 37557,
                         Name = "PNV-10T_Nightvision",
-                        EquipEffectId = 52210,
+                        EquipEffectId = 52150,
                         UnequipEffectId = 0,
                     }
                 };
@@ -1125,7 +1125,7 @@ namespace SpeedMann.PvPRework
                     #endregion
                 };
 
-                InternalMagConfig = new InternalMagConfig
+                ReloadExtension = new ReloadConfig
                 {
                     Debug = false,
                     InternalMagAmmoStacks = new List<InternalMagAmmoStack> {
@@ -1576,7 +1576,7 @@ namespace SpeedMann.PvPRework
                 {
                    new ItemReplaceInfo(37185, "AI-2 Medikit")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1587,7 +1587,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37186, "Analgin Painkillers")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1599,7 +1599,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37187, "Army Bandage")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1609,7 +1609,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37188, "Car First Aid Kit")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1620,7 +1620,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37189, "Golden Star Balm")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1633,7 +1633,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37190, "Grizzly First Aid Kit")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1656,7 +1656,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37191, "Ibuprofen Painkillers")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1679,7 +1679,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37192, "IFAK")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1691,7 +1691,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37193, "Immobilizing Splint Alu")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1704,7 +1704,7 @@ namespace SpeedMann.PvPRework
                    },
                    new ItemReplaceInfo(37194, "Salewa First Aid Kit")
                    {
-                       AmmountReplacementType = ReplaceType.Keep,
+                       AmountReplacementType = ReplaceType.Keep,
                        DurabilityReplacementType = ReplaceType.Keep,
                        ReplaceTargets = new List<ItemExtension>
                        {
@@ -1953,9 +1953,9 @@ namespace SpeedMann.PvPRework
             addNames(GunExtensions);
             addNames(MaskExtensions);
 
-            if (InternalMagConfig?.InternalMagAmmoStacks != null)
+            if (ReloadExtension?.InternalMagAmmoStacks != null)
             {
-                foreach (var ammoStack in InternalMagConfig.InternalMagAmmoStacks)
+                foreach (var ammoStack in ReloadExtension.InternalMagAmmoStacks)
                 {
                     addName(ammoStack);
                     foreach (var compatibleGun in ammoStack.InternalMagazines)

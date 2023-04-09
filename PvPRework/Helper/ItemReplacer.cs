@@ -68,7 +68,7 @@ namespace SpeedMann.PvPRework.Helper
             player.inventory.removeItem((byte)inventoryGroup, inventoryIndex);
 
             Item replacement = new Item(replaceInfo.Id,
-                getNewAmount(replaceInfo.AmmountReplacementType, P.item.amount, replaceInfo.Id),
+                getNewAmount(replaceInfo.AmountReplacementType, P.item.amount, replaceInfo.Id),
                 getNewDurability(replaceInfo.DurabilityReplacementType, P.item.durability, replaceInfo.Id));
 
             InventoryHelper.safeAddItem(player, replacement, (byte)inventoryGroup, P.x, P.y, P.rot);
@@ -79,7 +79,7 @@ namespace SpeedMann.PvPRework.Helper
                 return item;
 
             return new Item(replaceInfo.Id, 
-                getNewAmount(replaceInfo.AmmountReplacementType, item.amount, replaceInfo.Id), 
+                getNewAmount(replaceInfo.AmountReplacementType, item.amount, replaceInfo.Id), 
                 getNewDurability(replaceInfo.DurabilityReplacementType, item.durability, replaceInfo.Id));
         }
         public static byte getNewDurability(ReplaceType replaceType, byte originalDurability, ushort id)

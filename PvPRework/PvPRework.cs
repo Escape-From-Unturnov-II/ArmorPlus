@@ -124,9 +124,9 @@ namespace SpeedMann.PvPRework
             // cleanup
             UnturnedPatches.Cleanup();
             HealthManager.Cleanup();
-            InternalMagControler.Cleanup();
+            ReloadControler.Cleanup();
 
-            if (!Level.isLoaded)
+            if (Level.isLoaded)
             {
                 StanceHandler.OnPreStanceChange -= OnStanceChanged;
 
@@ -175,8 +175,11 @@ namespace SpeedMann.PvPRework
                 ItemReplacer.Cleanup();
                 UnturnedPatches.Cleanup();
                 HealthManager.Cleanup();
-                InternalMagControler.Cleanup();
+                ReloadControler.Cleanup();
             }
+
+            Inst = null;
+            Conf = null;
         }
         private void OnPreLevelLoaded(int level)
         {
@@ -189,7 +192,7 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.Init();
             HealthManager.Init(Conf.HealthManager);
             ItemReplacer.Init(Conf.ItemReplacements);
-            InternalMagControler.Init(Conf.InternalMagConfig);
+            ReloadControler.Init(Conf.ReloadExtension);
             
 
             Conf.addNames();
@@ -249,7 +252,7 @@ namespace SpeedMann.PvPRework
             }
             HealthManager.OnPlayerDisconnected(player);
             InputHandler.removePlayerEntry(player.CSteamID);
-            InternalMagControler.OnPlayerDisconnected(player);
+            ReloadControler.OnPlayerDisconnected(player);
         }
         private void OnPluginKeyPressed(UnturnedPlayer player, byte key)
         {
@@ -478,15 +481,15 @@ namespace SpeedMann.PvPRework
         }
         private void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
         {
-            InternalMagControler.OnPreAttachMag(gun, page, x, y, hash);
+            ReloadControler.OnPreAttachMag(gun, page, x, y, hash);
         }
         private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
         {
-            InternalMagControler.OnChangeMagazine(equipment, gun, oldItem, newItem, ref shouldAllow);
+            ReloadControler.OnChangeMagazine(equipment, gun, oldItem, newItem, ref shouldAllow);
         }
         private void OnPostAttachMag(UseableGun gun)
         {
-            InternalMagControler.OnPostAttachMag(gun);
+            ReloadControler.OnPostAttachMag(gun);
         }
         private void OnAddItem(UnturnedPlayer player, Items page, Item item, ref bool shouldAllow)
         {
@@ -864,11 +867,12 @@ namespace SpeedMann.PvPRework
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;
 
+            // Reloading
             UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
             UseableGun.onChangeMagazineRequested += OnChangeMagazine;
             UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
 
-            // health
+            // Health
             UnturnedPatches.OnPrePlayerDamaged += OnPlayerDamaged;
             PlayerLife.OnTellBroken_Global += OnBreakBones;
             PlayerLife.OnTellBleeding_Global += OnStartBleeding;
