@@ -39,29 +39,30 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         {
             updatePlayerSkill(page, index, -change);
         }
-        private void updatePlayerSkill(byte type, byte index, int levelChange)
+        private void updatePlayerSkill(byte type, byte index, int level, bool setLevel = false)
         {
-            if (levelChange == 0)
+            if (level == 0)
                 return;
 
-            byte newLevel = 0;
-            byte currentLevel = player.skills.skills[type][index].level;
+            int newLevel = setLevel ? level : player.skills.skills[type][index].level + level;
+            byte max = byte.MaxValue;
 
-            if (levelChange < 0 && currentLevel + levelChange >= 0)
+            /*
+            if (Conf.LimitSkillsToMapLimit)
             {
-                newLevel = (byte)(player.skills.skills[type][index].level + levelChange);
+                max = player.skills.skills[type][index].max;
             }
-            
-            if(levelChange > 0)            
+            */
+            if (newLevel < 0)
             {
-                newLevel = 255;
-                if(currentLevel + levelChange < 255)
-                {
-                    newLevel = (byte)(player.skills.skills[type][index].level + levelChange);
-                }
+                newLevel = 0;
             }
-            
-            UnturnedPrivateFields.trySendSingleSkillLevel(player.skills, type, index, newLevel);
+            else if (newLevel >= max)
+            {
+                newLevel = max;
+            }
+
+            UnturnedPrivateFields.trySendSingleSkillLevel(player.skills, type, index, (byte)newLevel);
         }
     }
 }
