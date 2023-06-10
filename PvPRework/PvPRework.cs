@@ -685,11 +685,16 @@ namespace SpeedMann.PvPRework
             penetration = 0;
             fleshDamage = 10;
             armorDamage = 0;
-            if (weapon == null) return; // no weapon
+            if (weapon == null) 
+                return; // no weapon
 
             // set asset values
             fleshDamage = weapon.playerDamageMultiplier.damage;
             armorDamage = weapon.barricadeDamage;
+
+            //TODO: check if the following creates problems
+            //equippedGunAsset.shouldDeleteEmptyMagazines || thirdAttachments.magazineAsset.deleteEmpty
+            //
 
             // check Calibers
             if (gunAttachments?.magazineAsset?.calibers != null)
