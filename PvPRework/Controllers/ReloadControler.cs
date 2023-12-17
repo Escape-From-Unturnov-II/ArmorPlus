@@ -44,7 +44,10 @@ namespace SpeedMann.PvPRework.Controllers
         {
             ItemGunAsset gunAsset = gun?.equippedGunAsset;
             if (gunAsset == null || (!Conf.SwapMags && !GunsWithInternalMags.ContainsKey(gunAsset.id)))
+            {
                 return;
+            }
+                
 
             // save page of new mag
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
@@ -72,13 +75,18 @@ namespace SpeedMann.PvPRework.Controllers
         internal static void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
-            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState.newMag == null)
+            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
+            {
                 return;
+            }
+                
             // gun was successfully reloaded
             reloadState.magChanged = true;
 
             if (newItem == null)
+            {
                 return;
+            }
 
             reloadState.wasUnload = false;
             // set new mag
@@ -92,7 +100,10 @@ namespace SpeedMann.PvPRework.Controllers
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
             
             if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
+            {
                 return;
+            }
+                
             ReloadExtensionStates.Remove(player.CSteamID);
 
             if (GunsWithInternalMags.ContainsKey(gun.equippedGunAsset.id))
@@ -102,7 +113,10 @@ namespace SpeedMann.PvPRework.Controllers
             }
 
             if (reloadState.oldMag == null)
+            {
                 return;
+            }
+                
 
             byte page = 255;
             byte x = 0;
@@ -213,20 +227,23 @@ namespace SpeedMann.PvPRework.Controllers
                 (gun.equippedGunAsset.shouldDeleteEmptyMagazines || (magAsset == null || magAsset.deleteEmpty)))
             {
                 if (Conf.Debug)
+                {
                     Logger.Log($"Empty old mag {oldMag.id} amount: {oldMag.amount} was removed");
+                }
                 return;
             }
 
-            if (wasInternalMag)
+            if (wasInternalMag && tryStackAmmoOfOldInternalMag(player, gun, oldMag, didReload, wasUnload))
             {
-                if(tryStackAmmoOfOldInternalMag(player, gun, oldMag, didReload, wasUnload))
-                    return;
+                return;
             }
 
             // backup if stack ammo failed
             InventoryHelper.safeAddItem(player, oldMag, page, x, y, rot);
             if (Conf.Debug)
+            {
                 Logger.Log($"Added old mag to inventory id: {oldMag.id} amount: {oldMag.amount}");
+            }
         }
         private static bool tryStackAmmoOfOldInternalMag(Player player, UseableGun gun, Item oldMag, bool didReload, bool wasUnload)
         {
