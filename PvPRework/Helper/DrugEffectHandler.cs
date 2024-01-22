@@ -58,19 +58,12 @@ namespace SpeedMann.PvPRework.Helper
 
             foreach(var effect in effects)
             {
+                //TODO: add seperate unique dict
                 if (effect.isUnique)
                 {
-                    Type effectType = effect.GetType();
-                    foreach (var activeMedEffects in activeMeds.Values)
+                    if (TryFindActiveUnique(effect, out MedicalEffect foundEffect))
                     {
-                        foreach (var activeEffect in activeMedEffects)
-                        {
-                            if (activeEffect.GetType() == effectType)
-                            {
-                                activeEffect.stopEffect();
-                                break;
-                            }
-                        }
+                        foundEffect.stopEffect();
                     }
                 }
                 effect.startEffect();
@@ -139,6 +132,23 @@ namespace SpeedMann.PvPRework.Helper
                 UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(_player);
                 ChatManager.say(uPlayer.CSteamID, Util.Translate("drug_effect_over", name), Color.red);
             }
+        }
+        private bool TryFindActiveUnique(MedicalEffect medicalEffectToCheck, out MedicalEffect foundActiveEffect)
+        {
+            foundActiveEffect = null;
+            Type effectType = medicalEffectToCheck.GetType();
+            foreach (var activeMedEffects in activeMeds.Values)
+            {
+                foreach (var activeEffect in activeMedEffects)
+                {
+                    if (activeEffect.GetType() == effectType)
+                    {
+                        foundActiveEffect = activeEffect;
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
         private bool tryGetEffect(MedicalEffectConfig config, out MedicalEffect effect)
         {

@@ -45,7 +45,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
 
             HealthManager.OnTriedHealingFracture += triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken += fractureChanged;
-            StanceHandler.OnPostStanceChange += stanceChanged;
+            player.stance.onStanceUpdated += stanceChanged;
             //TODO: move landing handler to HealthManager to also damage if painkillers are not active
             UnturnedPatches.OnPreLanded += preLanding;
             player.life.OnFallDamageRequested += onVanillaFallDamage;
@@ -59,8 +59,8 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         {
             HealthManager.OnTriedHealingFracture -= triedHealingFracture;
             UnturnedPlayerEvents.OnPlayerUpdateBroken -= fractureChanged;
-            StanceHandler.OnPostStanceChange -= stanceChanged;
-            
+            player.stance.onStanceUpdated -= stanceChanged;
+
             UnturnedPatches.OnPreLanded -= preLanding;
             player.life.OnFallDamageRequested -= onVanillaFallDamage;
             UnturnedPatches.OnPostLanded -= postLanding;
@@ -69,8 +69,9 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
             isSprinting = false;
             active = false;
         }
-        private void stanceChanged(EPlayerStance newStance)
+        private void stanceChanged()
         {
+            EPlayerStance newStance = player.stance.stance;
             isSprinting = newStance == EPlayerStance.SPRINT;
             checkSprintDamage();
         }
@@ -126,6 +127,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
 
             if (currentFallDamage > 0)
             {
+                Logger.Log($"{life.player.channel.owner.playerID.steamID} was damaged {currentFallDamage} by falling!");
                 causeFractureDamage(currentFallDamage);
             }
             currentFallDamage = 0;
@@ -134,7 +136,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         {
             if (gotDamaged || !legsBroken || !isSprinting)
                 return;
-
+            Logger.Log($"{player.channel.owner.playerID.steamID} was damaged {config.FractureRunningDamage} by sprinting!");
             gotDamaged = true;
             causeFractureDamage(config.FractureRunningDamage);
         }
