@@ -67,7 +67,7 @@ namespace SpeedMann.PvPRework.Helper
                         {
                             if (activeEffect.GetType() == effectType)
                             {
-                                activeEffect.stopEffect(true);
+                                activeEffect.stopEffect();
                                 break;
                             }
                         }

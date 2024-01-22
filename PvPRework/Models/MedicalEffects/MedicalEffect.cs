@@ -42,15 +42,12 @@ namespace SpeedMann.PvPRework.Models
             player.StartCoroutine(coroutine);
             active = true;
         }
-        public void stopEffect(bool reset = false)
+        public void stopEffect()
         {
             player.StopCoroutine(coroutine);
             stopInner();
             active = false;
-            if (!reset)
-            {
-                OnEffectRanOut?.Invoke();
-            }
+            OnEffectRanOut?.Invoke();
         }
         protected abstract void startInner();
         protected abstract void stopInner();
