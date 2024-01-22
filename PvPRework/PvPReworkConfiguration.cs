@@ -1953,15 +1953,15 @@ namespace SpeedMann.PvPRework
             addNames(GunExtensions);
             addNames(MaskExtensions);
 
-            if (ReloadExtension?.InternalMagAmmoStacks != null)
+            if (ReloadExtension != null && ReloadExtension.InternalMagAmmoStacks != null)
             {
                 foreach (var ammoStack in ReloadExtension.InternalMagAmmoStacks)
                 {
                     addName(ammoStack);
-                    foreach (var compatibleGun in ammoStack.InternalMagazines)
+                    foreach (var internalMag in ammoStack.InternalMagazines)
                     {
-                        addName(compatibleGun);
-                        addNames(compatibleGun.CompatibleGuns);
+                        addName(internalMag);
+                        addNames(internalMag.CompatibleGuns);
                     }
                 }
             }
