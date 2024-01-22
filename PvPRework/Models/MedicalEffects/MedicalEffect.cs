@@ -17,12 +17,14 @@ namespace SpeedMann.PvPRework.Models
     {
         public delegate void EffectRanOut();
         public event EffectRanOut OnEffectRanOut;
-
+        internal bool isUnique => unique;
+        
         private bool active = false;
         private IEnumerator coroutine;
         private float duration;
         private float delay;
         protected Player player;
+        protected bool unique = false;
 
         public MedicalEffect(Player player, float effectDuration, float effectDelay)
         {
@@ -40,12 +42,15 @@ namespace SpeedMann.PvPRework.Models
             player.StartCoroutine(coroutine);
             active = true;
         }
-        public void stopEffect()
+        public void stopEffect(bool reset = false)
         {
             player.StopCoroutine(coroutine);
             stopInner();
             active = false;
-            OnEffectRanOut?.Invoke();
+            if (!reset)
+            {
+                OnEffectRanOut?.Invoke();
+            }
         }
         protected abstract void startInner();
         protected abstract void stopInner();

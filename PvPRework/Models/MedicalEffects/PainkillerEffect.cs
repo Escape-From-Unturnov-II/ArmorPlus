@@ -30,6 +30,7 @@ namespace SpeedMann.PvPRework.Models.MedicalEffects
         private float currentFallDamage = 0;
         internal PainkillerEffect(Player player, float effectDuration, float effectDelay, PainkillerConfig config) : base(player, effectDuration, effectDelay)
         {
+            unique = true;
             steamID = player.channel.owner.playerID.steamID;
             this.config = config;
             this.config.FractureRunningDamageInterval = config.FractureRunningDamageInterval > 0 ? config.FractureRunningDamageInterval : 1;

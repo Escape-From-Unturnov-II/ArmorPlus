@@ -58,13 +58,28 @@ namespace SpeedMann.PvPRework.Helper
 
             foreach(var effect in effects)
             {
+                if (effect.isUnique)
+                {
+                    Type effectType = effect.GetType();
+                    foreach (var activeMedEffects in activeMeds.Values)
+                    {
+                        foreach (var activeEffect in activeMedEffects)
+                        {
+                            if (activeEffect.GetType() == effectType)
+                            {
+                                activeEffect.stopEffect(true);
+                                break;
+                            }
+                        }
+                    }
+                }
                 effect.startEffect();
             }
             activeMeds.Add(itemId, effects);
 
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(_player);
 
-            string effectsString = String.Join("\n", effectConfigs.Select(x => $"{x.Type}: " +
+            string effectsString = string.Join("\n", effectConfigs.Select(x => $"{x.Type}: " +
                    (x.StartDelay > 0 ? $"Delay {x.StartDelay}s," : "") +
                    $"Duration {x.Duration}s" +
                    (x.Value != 0 ? $", Value {x.Value}" : "") +
