@@ -237,10 +237,10 @@ namespace SpeedMann.PvPRework.Helper
             float defaultReturn = vanilla ? 1 : 0;
             armorTier = 0;
             armorClassIndex = 0;
-            float armor = armorOverride > 0 ? armorOverride : clothing.armor;
-
+            
             if (clothing != null)
             {
+                float armor = armorOverride > 0 ? armorOverride : clothing.armor;
                 int quality = 100;
                 if (clothing is ItemHatAsset)
                 {
