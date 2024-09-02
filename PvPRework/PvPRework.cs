@@ -403,12 +403,28 @@ namespace SpeedMann.PvPRework
             if (activate)
             {
                 ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), glassesId);
+                DisableGlassesForOtherPlayers(player.clothing);
             }
             else
             {
                 ClothingEffectHandler.checkClothingEffect(glassesExtensions, UnturnedPlayer.FromPlayer(player), 0);
+                DisableGlassesForOtherPlayers(player.clothing);
             }
 
+        }
+        private void OnSendInitialClothingState(PlayerClothing playerClothing, List<ITransportConnection> transportConnections)
+        {
+            if (playerClothing.glassesState != null
+                && playerClothing.glassesState.Length > 0 
+                && playerClothing.glassesState[0] != 0)
+            {
+                UnturnedPrivateFields.trySendWearGlasses(playerClothing,
+                    playerClothing.glassesAsset,
+                    playerClothing.glassesQuality,
+                    new byte[] { 0 },
+                    false,
+                    transportConnections);
+            }
         }
         private void OnBreakBones(PlayerLife playerLife)
         {
@@ -830,6 +846,18 @@ namespace SpeedMann.PvPRework
             }
             return itemExtensionsDict;
         }
+        private void DisableGlassesForOtherPlayers(PlayerClothing playerClothing)
+        {
+            PooledTransportConnectionList transportConnections = Provider.GatherRemoteClientConnections();
+            transportConnections.Remove(playerClothing.channel.GetOwnerTransportConnection());
+
+            UnturnedPrivateFields.trySendWearGlasses(playerClothing, 
+                playerClothing.glassesAsset, 
+                playerClothing.glassesQuality, 
+                new byte[] {0}, 
+                false, 
+                transportConnections);
+        }
         private void linkEvents()
         {
             StanceHandler.OnPreStanceChange += OnStanceChanged;
@@ -868,6 +896,7 @@ namespace SpeedMann.PvPRework
             UnturnedPatches.OnPreChangeHat += OnHatChanged;
             UnturnedPatches.OnPreChangeGlasses += OnGlassesChanged;
             UnturnedPatches.OnPreVisionChanged += OnVisionChanged;
+            UnturnedPatches.OnSendInitialClothingState += OnSendInitialClothingState;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
             PlayerLife.onPlayerDied += OnPlayerDeath;
             UnturnedPlayerEvents.OnPlayerDead += OnPlayerDead;

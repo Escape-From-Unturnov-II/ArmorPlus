@@ -1,13 +1,12 @@
 ﻿using HarmonyLib;
-using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
+using SDG.NetTransport;
 using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+using System.Diagnostics;
+using System.Reflection;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.PvPRework
@@ -18,23 +17,27 @@ namespace SpeedMann.PvPRework
         private static string harmonyId = "SpeedMann.PvPRework";
         public static void Init()
         {
-            try
+            harmony = new Harmony(harmonyId);
+            Assembly assembly = new StackTrace().GetFrame(1).GetMethod().ReflectedType.Assembly;
+            AccessTools.GetTypesFromAssembly(assembly).Do(delegate (Type type)
             {
-                harmony = new Harmony(harmonyId);
-                harmony.PatchAll();
-                if (PvPRework.Conf.Debug)
+                try
                 {
-                    var myOriginalMethods = harmony.GetPatchedMethods();
-                    Logger.Log("Patched Methods:");
-                    foreach (var method in myOriginalMethods)
-                    {
-                        Logger.Log(" " + method.ToString());
-                    }
+                    harmony.CreateClassProcessor(type).Patch();
                 }
-            }
-            catch (Exception e)
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to patch: {type.FullName} {ex.Message}");
+                }
+            });
+            if (PvPRework.Conf.Debug)
             {
-                Logger.LogError($"ArmorPlus patches: {e.Message}");
+                var myOriginalMethods = harmony.GetPatchedMethods();
+                Logger.Log("Patched Methods:");
+                foreach (var method in myOriginalMethods)
+                {
+                    Logger.Log(" " + method.ToString());
+                }
             }
         }
         public static void Cleanup()
@@ -71,6 +74,9 @@ namespace SpeedMann.PvPRework
         public delegate void PostVisualToggle(PlayerClothing playerClothing, EVisualToggleType type, bool toggle);
         public static event PostVisualToggle OnPostVisualToggle;
 
+        public delegate void PostSendInitialClothingState(PlayerClothing playerClothing, List<ITransportConnection> transportConnections);
+        public static event PostSendInitialClothingState OnSendInitialClothingState;
+
         public delegate void PreWearHat(Player player, ushort newHatId, byte quality, byte[] state, ref bool shouldAllow);
         public static event PreWearHat OnPreChangeHat;
 
@@ -78,7 +84,7 @@ namespace SpeedMann.PvPRework
         public static event PreWearGlasses OnPreChangeGlasses;
 
         public delegate void PreVisionChanged(Player player, ushort glassesId, bool ativate);
-        public static event PreVisionChanged OnPreVisionChanged;
+        public static event PreVisionChanged OnPreVisionChanged;     
 
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
@@ -233,7 +239,7 @@ namespace SpeedMann.PvPRework
             }
         }
         // Attach magazine
-        [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine), new Type[] { typeof(byte), typeof(byte), typeof(byte), typeof(byte[]) })]
+        [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine))]
         class ReceiveAttachMagazinePatch
         {
             [HarmonyPrefix]
@@ -279,15 +285,48 @@ namespace SpeedMann.PvPRework
             }
         }
         [HarmonyPatch(typeof(Player), nameof(Player.updateGlassesLights))]
-        class EquipmentToggleVision
+        class GlassesUpdated
         {
             [HarmonyPrefix]
             internal static bool OnPreChangeVisionInvoker(Player __instance, bool on)
             {
                 OnPreVisionChanged?.Invoke(__instance, __instance.clothing.glasses, on);
+                
                 return true;
             }
         }
+
+        internal class InitClothingState
+        {
+            internal InitClothingState(List<ITransportConnection> transportConnections, PlayerClothing playerClothing)
+            {
+                this.playerClothing = playerClothing;
+                this.transportConnections = transportConnections;
+            }
+            internal List<ITransportConnection> transportConnections;
+            internal PlayerClothing playerClothing;
+        }
+
+        [HarmonyPatch(typeof(PlayerClothing), "SendInitialPlayerState", new Type[] { typeof(SteamPlayer) })]
+        class ClothingStateInit
+        {
+            [HarmonyPostfix]
+            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, SteamPlayer client, InitClothingState __state)
+            {
+                OnSendInitialClothingState?.Invoke(__instance, new List<ITransportConnection> { client.transportConnection });
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerClothing), "SendInitialPlayerState", new Type[] { typeof(List<ITransportConnection>) })]
+        class ClothingStateInit2
+        {
+            [HarmonyPostfix]
+            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, List<ITransportConnection> transportConnections, InitClothingState __state)
+            {
+                OnSendInitialClothingState?.Invoke(__instance, transportConnections);
+            }
+        }
+
         [HarmonyPatch(typeof(PlayerClothing), nameof(PlayerClothing.ReceiveWearGlasses), new Type[] { typeof(Guid), typeof(byte), typeof(byte[]), typeof(bool) })]
         class PlayerWearGlassesPatch
         {

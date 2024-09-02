@@ -21,6 +21,7 @@ namespace SpeedMann.PvPRework.Helper
 
         private static FieldInfo SendSingleSkillLevelField;
         private static FieldInfo SendDamagedEventField;
+        private static FieldInfo SendWearGlassesField;
 
         private static MethodInfo ReplicateStanceMethod;
         public static bool getGunAttachments(UseableGun gun, out Attachments result)
@@ -116,6 +117,29 @@ namespace SpeedMann.PvPRework.Helper
             return true;
 
         }
+        public static bool trySendWearGlasses(PlayerClothing playerClothing, ItemGlassesAsset asset, byte quality, byte[] state, bool playEffect, List<ITransportConnection> transportConnections)
+        {
+            if (SendWearGlassesField == null || playerClothing?.channel == null)
+            {
+                return false;
+            }
+            try
+            {
+                ClientInstanceMethod<Guid, byte, byte[], bool> sender = SendWearGlassesField.GetValue(null) as ClientInstanceMethod<Guid, byte, byte[], bool>;
+                if (sender == null)
+                {
+                    return false;
+                }
+                sender.Invoke(playerClothing.GetNetId(), ENetReliability.Reliable, transportConnections, asset?.GUID ?? Guid.Empty, quality, state, playEffect);
+            }
+            catch (Exception e)
+            {
+                Logger.LogException(e, "Exception sending WearGlasses");
+                return false;
+            }
+            return true;
+
+        }
         public static void Init()
         {
             Type type;
@@ -137,6 +161,13 @@ namespace SpeedMann.PvPRework.Helper
 
             type = typeof(PlayerLife);
             SendDamagedEventField = type.GetField("SendDamagedEvent", BindingFlags.NonPublic | BindingFlags.Static);
+
+            type = typeof(PlayerClothing);
+            SendWearGlassesField = type.GetField("SendWearGlasses", BindingFlags.NonPublic | BindingFlags.Static);
+            if (SendWearGlassesField == null)
+            {
+                Logger.LogError($"Could not get {nameof(SendWearGlassesField)}");
+            }
         }
     }
 }
