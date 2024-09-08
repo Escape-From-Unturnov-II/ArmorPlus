@@ -296,22 +296,11 @@ namespace SpeedMann.PvPRework
             }
         }
 
-        internal class InitClothingState
-        {
-            internal InitClothingState(List<ITransportConnection> transportConnections, PlayerClothing playerClothing)
-            {
-                this.playerClothing = playerClothing;
-                this.transportConnections = transportConnections;
-            }
-            internal List<ITransportConnection> transportConnections;
-            internal PlayerClothing playerClothing;
-        }
-
         [HarmonyPatch(typeof(PlayerClothing), "SendInitialPlayerState", new Type[] { typeof(SteamPlayer) })]
         class ClothingStateInit
         {
             [HarmonyPostfix]
-            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, SteamPlayer client, InitClothingState __state)
+            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, SteamPlayer client)
             {
                 OnSendInitialClothingState?.Invoke(__instance, new List<ITransportConnection> { client.transportConnection });
             }
@@ -321,7 +310,7 @@ namespace SpeedMann.PvPRework
         class ClothingStateInit2
         {
             [HarmonyPostfix]
-            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, List<ITransportConnection> transportConnections, InitClothingState __state)
+            internal static void OnPostSendInitialPlayerStateInvoker(PlayerClothing __instance, List<ITransportConnection> transportConnections)
             {
                 OnSendInitialClothingState?.Invoke(__instance, transportConnections);
             }
